@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/bamiyanapp/shock-lab/compare/v1.0.1...v1.0.2) (2026-07-12)
+
+
+### Bug Fixes
+
+* **frontend:** GitHub Pagesで白画面になる不具合を修正（Viteのbase未設定） ([#11](https://github.com/bamiyanapp/shock-lab/issues/11)) ([260225b](https://github.com/bamiyanapp/shock-lab/commit/260225b320036fe08655bb32094cfdef76833553))
+
 ## [1.0.1](https://github.com/bamiyanapp/shock-lab/compare/v1.0.0...v1.0.1) (2026-07-12)
 
 
