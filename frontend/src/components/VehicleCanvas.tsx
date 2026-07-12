@@ -4,6 +4,7 @@ import { createWorld } from "../physics/world";
 import { createTerrain } from "../physics/terrain";
 import { createVehicleBodies } from "../physics/vehicle";
 import { createSuspensionConstraint } from "../physics/suspension";
+import { computeMetrics } from "../physics/metrics";
 import { useSimulationStore } from "../store/simulationStore";
 
 const CANVAS_WIDTH = 800;
@@ -44,11 +45,33 @@ export function VehicleCanvas() {
       rearSuspension,
     ]);
 
+    let previousVerticalVelocityPxPerStep = 0;
+    let maxImpact = 0;
+    const frontSuspensionRestLengthPx = frontSuspension.length;
+
+    const handleAfterUpdate = () => {
+      const frontSuspensionLengthPx = Matter.Vector.magnitude(
+        Matter.Vector.sub(chassis.position, frontWheel.position)
+      );
+      const result = computeMetrics({
+        chassisVelocity: chassis.velocity,
+        previousVerticalVelocityPxPerStep,
+        frontSuspensionLengthPx,
+        frontSuspensionRestLengthPx,
+        previousMaxImpact: maxImpact,
+      });
+      previousVerticalVelocityPxPerStep = result.verticalVelocityPxPerStep;
+      maxImpact = result.metrics.maxImpact;
+      useSimulationStore.getState().setMetrics(result.metrics);
+    };
+    Matter.Events.on(engine, "afterUpdate", handleAfterUpdate);
+
     const runner = Matter.Runner.create();
     Matter.Runner.run(runner, engine);
     Matter.Render.run(render);
 
     return () => {
+      Matter.Events.off(engine, "afterUpdate", handleAfterUpdate);
       Matter.Render.stop(render);
       Matter.Runner.stop(runner);
       Matter.World.clear(engine.world, false);
