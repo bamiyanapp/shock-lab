@@ -8,6 +8,11 @@ export interface VehicleBodies {
 }
 
 const PIXELS_PER_METER = 60;
+// weightKgをそのままdensity（質量/面積）に使うと、タイヤ（Matter.jsの既定density 0.001）に対し
+// chassisの質量が桁違いに重くなり、タイヤの駆動力ではほぼ前進できなくなる。基準車重における
+// chassis densityをタイヤの数倍程度に正規化し、車重の変化に応じて比例スケールさせる。
+const REFERENCE_WEIGHT_KG = 1200;
+const REFERENCE_CHASSIS_DENSITY = 0.003;
 
 /**
  * 車体・前輪・後輪の剛体を生成する（サスペンションでの接続は行わない）。
@@ -27,7 +32,7 @@ export function createVehicleBodies(
     originY - wheelRadiusPx - chassisHeightPx / 2,
     wheelbasePx + 60,
     chassisHeightPx,
-    { density: body.weightKg / ((wheelbasePx + 60) * chassisHeightPx), friction: 0.5 }
+    { density: REFERENCE_CHASSIS_DENSITY * (body.weightKg / REFERENCE_WEIGHT_KG), friction: 0.5 }
   );
 
   const frontWheel = Matter.Bodies.circle(originX + wheelbasePx / 2, originY, wheelRadiusPx, {
