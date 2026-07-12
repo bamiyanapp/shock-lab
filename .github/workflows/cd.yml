@@ -1,0 +1,39 @@
+name: CD
+run-name: CD ${{ github.event.head_commit.message }}
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@v1.0.0
+    with:
+      enable_shared_release_config: true
+    secrets:
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+  deploy:
+    needs: release
+    if: success() && needs.release.outputs.new_release_published == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page-url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v1.0.0
+        with:
+          working-directory: frontend
+          artifact-path: frontend/dist
