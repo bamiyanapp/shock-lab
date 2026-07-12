@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/bamiyanapp/shock-lab/compare/v1.0.2...v1.1.0) (2026-07-12)
+
+
+### Features
+
+* **frontend:** シミュレーション開始ボタンを追加し、開始前は静止・開始後に前進するようにする ([#13](https://github.com/bamiyanapp/shock-lab/issues/13)) ([dcf0389](https://github.com/bamiyanapp/shock-lab/commit/dcf0389bb508b354ab09b697ca4d7e3eae7c60b0))
+
 ## [1.0.2](https://github.com/bamiyanapp/shock-lab/compare/v1.0.1...v1.0.2) (2026-07-12)
 
 
