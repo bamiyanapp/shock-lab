@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/bamiyanapp/shock-lab/compare/v1.0.0...v1.0.1) (2026-07-12)
+
+
+### Bug Fixes
+
+* **frontend:** シミュレーションメトリクスがGraphPanelに反映されない不具合を修正 ([#9](https://github.com/bamiyanapp/shock-lab/issues/9)) ([22f9497](https://github.com/bamiyanapp/shock-lab/commit/22f9497f5e25a5d072d1157cd89fb9178054cbc4))
+
 # 1.0.0 (2026-07-12)
 
 
