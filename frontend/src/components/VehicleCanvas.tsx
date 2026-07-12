@@ -10,16 +10,22 @@ import { useSimulationStore } from "../store/simulationStore";
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 400;
 const GROUND_Y = 300;
+const STEPS_PER_SECOND = 60;
 
 export function VehicleCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const vehicle = useSimulationStore((state) => state.vehicle);
   const terrainType = useSimulationStore((state) => state.testConditions.terrainType);
+  const isRunning = useSimulationStore((state) => state.isRunning);
+
+  const engineRef = useRef<Matter.Engine | null>(null);
+  const runnerRef = useRef<Matter.Runner | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current) return;
 
     const engine = createWorld();
+    engineRef.current = engine;
     const render = Matter.Render.create({
       canvas: canvasRef.current,
       engine,
@@ -48,8 +54,15 @@ export function VehicleCanvas() {
     let previousVerticalVelocityPxPerStep = 0;
     let maxImpact = 0;
     const frontSuspensionRestLengthPx = frontSuspension.length;
+    const tireRadiusM = vehicle.tire.diameter / 2;
 
     const handleAfterUpdate = () => {
+      // 開始ボタンでシミュレーションが走行中の間、試験速度に応じた角速度をタイヤに与えて前進させる
+      const { speed } = useSimulationStore.getState().testConditions;
+      const drivingAngularVelocityPerStep = speed / tireRadiusM / STEPS_PER_SECOND;
+      Matter.Body.setAngularVelocity(frontWheel, drivingAngularVelocityPerStep);
+      Matter.Body.setAngularVelocity(rearWheel, drivingAngularVelocityPerStep);
+
       const frontSuspensionLengthPx = Matter.Vector.magnitude(
         Matter.Vector.sub(chassis.position, frontWheel.position)
       );
@@ -67,7 +80,10 @@ export function VehicleCanvas() {
     Matter.Events.on(engine, "afterUpdate", handleAfterUpdate);
 
     const runner = Matter.Runner.create();
-    Matter.Runner.run(runner, engine);
+    runnerRef.current = runner;
+    if (useSimulationStore.getState().isRunning) {
+      Matter.Runner.run(runner, engine);
+    }
     Matter.Render.run(render);
 
     return () => {
@@ -76,8 +92,22 @@ export function VehicleCanvas() {
       Matter.Runner.stop(runner);
       Matter.World.clear(engine.world, false);
       Matter.Engine.clear(engine);
+      engineRef.current = null;
+      runnerRef.current = null;
     };
   }, [vehicle, terrainType]);
+
+  useEffect(() => {
+    const engine = engineRef.current;
+    const runner = runnerRef.current;
+    if (!engine || !runner) return;
+
+    if (isRunning) {
+      Matter.Runner.run(runner, engine);
+    } else {
+      Matter.Runner.stop(runner);
+    }
+  }, [isRunning]);
 
   return <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} data-testid="vehicle-canvas" />;
 }
