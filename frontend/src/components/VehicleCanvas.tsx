@@ -7,11 +7,20 @@ import { createSuspensionConstraint } from "../physics/suspension";
 import { computeMetrics } from "../physics/metrics";
 import { createScenery } from "../physics/scenery";
 import { useSimulationStore } from "../store/simulationStore";
+import vehicleImageUrl from "../assets/vehicle-side.png";
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 400;
 const GROUND_Y = 300;
 const STEPS_PER_SECOND = 60;
+const PIXELS_PER_METER = 60;
+// アセット画像（frontend/src/assets/vehicle-side.png）の実寸に基づくアスペクト比。
+const VEHICLE_IMAGE_ASPECT_RATIO = 396 / 599;
+// 画像下部のタイヤ接地位置が画像高さの何割の位置にあるか（目視調整値）。
+const VEHICLE_IMAGE_WHEEL_ANCHOR_RATIO = 0.82;
+
+const vehicleImage = new Image();
+vehicleImage.src = vehicleImageUrl;
 
 function drawTree(ctx: CanvasRenderingContext2D, x: number, groundScreenY: number) {
   ctx.fillStyle = "#6b4a2f";
@@ -82,14 +91,34 @@ export function VehicleCanvas() {
     let previousVerticalVelocityPxPerStep = 0;
     let maxImpact = 0;
     const frontSuspensionRestLengthPx = frontSuspension.length;
-    const tireRadiusM = vehicle.tire.diameter / 2;
+    const wheelbasePx = Math.abs(frontWheel.position.x - rearWheel.position.x);
+    const wheelRadiusPx = frontWheel.circleRadius ?? 0;
+
+    // 画像スプライトで車体を表現するため、Matter.jsの既定描画（矩形・円）は隠す。
+    const hideDefaultVehicleRender = () => {
+      chassis.render.visible = false;
+      frontWheel.render.visible = false;
+      rearWheel.render.visible = false;
+    };
+    if (vehicleImage.complete) {
+      hideDefaultVehicleRender();
+    } else {
+      vehicleImage.addEventListener("load", hideDefaultVehicleRender, { once: true });
+    }
 
     const handleAfterUpdate = () => {
-      // 開始ボタンでシミュレーションが走行中の間、試験速度に応じた角速度をタイヤに与えて前進させる
+      // 開始ボタンでシミュレーションが走行中の間、試験速度に応じた水平速度を車体・タイヤへ
+      // 直接与えて前進させる（垂直速度は重力・サスペンションによる挙動を保つため変更しない）。
+      // タイヤの角速度による摩擦駆動も試したが、Matter.jsの既定重力スケールでは垂直抗力が
+      // 小さく生成される摩擦力が不足し、目標速度に対して実測速度が1割程度にしかならなかった
+      // ため、この直接制御方式を採用している。
       const { speed } = useSimulationStore.getState().testConditions;
-      const drivingAngularVelocityPerStep = speed / tireRadiusM / STEPS_PER_SECOND;
-      Matter.Body.setAngularVelocity(frontWheel, drivingAngularVelocityPerStep);
-      Matter.Body.setAngularVelocity(rearWheel, drivingAngularVelocityPerStep);
+      const drivingVelocityXPerStep = (speed * PIXELS_PER_METER) / STEPS_PER_SECOND;
+      Matter.Body.setVelocity(chassis, { x: drivingVelocityXPerStep, y: chassis.velocity.y });
+      Matter.Body.setVelocity(frontWheel, { x: drivingVelocityXPerStep, y: frontWheel.velocity.y });
+      Matter.Body.setVelocity(rearWheel, { x: drivingVelocityXPerStep, y: rearWheel.velocity.y });
+      Matter.Body.setAngularVelocity(frontWheel, drivingVelocityXPerStep / wheelRadiusPx);
+      Matter.Body.setAngularVelocity(rearWheel, drivingVelocityXPerStep / wheelRadiusPx);
 
       const frontSuspensionLengthPx = Matter.Vector.magnitude(
         Matter.Vector.sub(chassis.position, frontWheel.position)
@@ -131,6 +160,22 @@ export function VehicleCanvas() {
           drawHouse(context, screenX, GROUND_Y);
         }
       }
+
+      if (vehicleImage.complete && vehicleImage.naturalWidth > 0) {
+        const targetWidthPx = wheelbasePx + wheelRadiusPx * 2.8;
+        const targetHeightPx = targetWidthPx * VEHICLE_IMAGE_ASPECT_RATIO;
+        const wheelCenterY = (frontWheel.position.y + rearWheel.position.y) / 2;
+
+        context.translate(chassis.position.x - offsetX, wheelCenterY);
+        context.rotate(chassis.angle);
+        context.drawImage(
+          vehicleImage,
+          -targetWidthPx / 2,
+          -targetHeightPx * VEHICLE_IMAGE_WHEEL_ANCHOR_RATIO,
+          targetWidthPx,
+          targetHeightPx
+        );
+      }
       context.restore();
     };
     Matter.Events.on(render, "afterRender", handleAfterRender);
@@ -143,6 +188,7 @@ export function VehicleCanvas() {
     Matter.Render.run(render);
 
     return () => {
+      vehicleImage.removeEventListener("load", hideDefaultVehicleRender);
       Matter.Events.off(engine, "afterUpdate", handleAfterUpdate);
       Matter.Events.off(render, "beforeRender", handleBeforeRender);
       Matter.Events.off(render, "afterRender", handleAfterRender);
