@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/bamiyanapp/shock-lab/compare/v1.2.1...v1.2.2) (2026-07-13)
+
+
+### Bug Fixes
+
+* **frontend:** 車体スプライトを左右反転し、タイヤ回転アニメーションを追加 ([#24](https://github.com/bamiyanapp/shock-lab/issues/24)) ([36dd4f5](https://github.com/bamiyanapp/shock-lab/commit/36dd4f50b73091fb9504497e82e64ae67df93efa))
+
 ## [1.2.1](https://github.com/bamiyanapp/shock-lab/compare/v1.2.0...v1.2.1) (2026-07-13)
 
 
