@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/bamiyanapp/shock-lab/compare/v1.1.0...v1.2.0) (2026-07-12)
+
+
+### Features
+
+* **frontend:** カメラ追従で流れる背景（木・家）と繰り返しバンプを追加 ([#15](https://github.com/bamiyanapp/shock-lab/issues/15)) ([4a8bd2a](https://github.com/bamiyanapp/shock-lab/commit/4a8bd2a70aaf8a9421e5c941644358d2c7be2a46))
+
 # [1.1.0](https://github.com/bamiyanapp/shock-lab/compare/v1.0.2...v1.1.0) (2026-07-12)
 
 
