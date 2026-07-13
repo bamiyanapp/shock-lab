@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/bamiyanapp/shock-lab/compare/v1.2.0...v1.2.1) (2026-07-13)
+
+
+### Bug Fixes
+
+* **frontend:** 車体を画像スプライト化し、バンプの視認性向上・駆動方式を修正 ([#21](https://github.com/bamiyanapp/shock-lab/issues/21)) ([a80f088](https://github.com/bamiyanapp/shock-lab/commit/a80f088a85362bc091c81f787f1dfa841d31022f))
+
 # [1.2.0](https://github.com/bamiyanapp/shock-lab/compare/v1.1.0...v1.2.0) (2026-07-12)
 
 
