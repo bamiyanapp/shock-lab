@@ -15,7 +15,17 @@ export const COURSE_LENGTH_PX = 20000;
  * MVPでは波状路・ジャンプ台等の専用形状は今後拡張する。
  */
 export function createTerrain(terrainType: TerrainType, groundY: number): Matter.Body[] {
-  const groundOptions: Matter.IChamferableBodyDefinition = { isStatic: true, friction: 0.8 };
+  const groundOptions: Matter.IChamferableBodyDefinition = {
+    isStatic: true,
+    friction: 0.8,
+    render: { fillStyle: "#52606d" },
+  };
+  // バンプは背景・地面と混同しないよう、警告色（アンバー）で明確に色分けする。
+  const bumpOptions: Matter.IChamferableBodyDefinition = {
+    isStatic: true,
+    friction: 0.8,
+    render: { fillStyle: "#f59e0b" },
+  };
   const groundCenterY = groundY + GROUND_THICKNESS_PX / 2;
 
   if (terrainType === "flat") {
@@ -57,7 +67,7 @@ export function createTerrain(terrainType: TerrainType, groundY: number): Matter
         groundCenterY - bumpHeight / 2,
         BUMP_WIDTH_PX,
         GROUND_THICKNESS_PX + bumpHeight,
-        groundOptions
+        bumpOptions
       )
     );
     cursor = bumpCenter + BUMP_WIDTH_PX / 2;
