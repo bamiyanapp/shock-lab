@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/bamiyanapp/shock-lab/compare/v1.2.2...v1.3.0) (2026-07-14)
+
+
+### Features
+
+* **frontend:** タイヤ接地判定を導入し、非接地時・転倒時は駆動しないようにする ([#29](https://github.com/bamiyanapp/shock-lab/issues/29)) ([d790c13](https://github.com/bamiyanapp/shock-lab/commit/d790c13636ee16ae6067f7471d969d6926e92144))
+
 ## [1.2.2](https://github.com/bamiyanapp/shock-lab/compare/v1.2.1...v1.2.2) (2026-07-13)
 
 
