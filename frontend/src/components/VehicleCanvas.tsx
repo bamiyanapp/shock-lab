@@ -6,6 +6,7 @@ import { createVehicleBodies } from "../physics/vehicle";
 import { createSuspensionConstraint } from "../physics/suspension";
 import { computeMetrics } from "../physics/metrics";
 import { shouldApplyDrivingForce } from "../physics/driveControl";
+import { computeAirDragDeceleration } from "../physics/resistance";
 import { createScenery } from "../physics/scenery";
 import { useSimulationStore } from "../store/simulationStore";
 import vehicleSpriteUrl from "../assets/vehicle-sprite.png";
@@ -167,6 +168,14 @@ export function VehicleCanvas() {
         Matter.Body.setVelocity(rearWheel, { x: drivingVelocityXPerStep, y: rearWheel.velocity.y });
         Matter.Body.setAngularVelocity(frontWheel, drivingVelocityXPerStep / wheelRadiusPx);
         Matter.Body.setAngularVelocity(rearWheel, drivingVelocityXPerStep / wheelRadiusPx);
+      } else {
+        // 駆動していない間（空中・転倒中）は、速度の2乗に比例する空気抵抗で自然に減速させる。
+        // 駆動中はこの抵抗を適用しても直後の速度強制で上書きされるため、非駆動時のみ適用する。
+        const dragDeceleration = computeAirDragDeceleration(chassis.velocity.x);
+        Matter.Body.setVelocity(chassis, {
+          x: chassis.velocity.x - dragDeceleration,
+          y: chassis.velocity.y,
+        });
       }
       // 走行中（Runner稼働中）のみカウントを進めることで、開始/一時停止に連動して
       // ホイールアニメーションも止まるようにする（駆動力の有無とは独立に進める）。
