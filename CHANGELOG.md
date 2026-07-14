@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/bamiyanapp/shock-lab/compare/v1.3.0...v1.4.0) (2026-07-14)
+
+
+### Features
+
+* **frontend:** 重量配分・重心高さ・タイヤ剛性・空気抵抗を物理挙動に反映する ([#31](https://github.com/bamiyanapp/shock-lab/issues/31)) ([5ee6ecf](https://github.com/bamiyanapp/shock-lab/commit/5ee6ecf3959af2c57d844059d50ca7e419224836))
+
 # [1.3.0](https://github.com/bamiyanapp/shock-lab/compare/v1.2.2...v1.3.0) (2026-07-14)
 
 
