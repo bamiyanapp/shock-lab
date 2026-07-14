@@ -5,6 +5,7 @@ import { createTerrain, COURSE_LENGTH_PX } from "../physics/terrain";
 import { createVehicleBodies } from "../physics/vehicle";
 import { createSuspensionConstraint } from "../physics/suspension";
 import { computeMetrics } from "../physics/metrics";
+import { shouldApplyDrivingForce } from "../physics/driveControl";
 import { createScenery } from "../physics/scenery";
 import { useSimulationStore } from "../store/simulationStore";
 import vehicleSpriteUrl from "../assets/vehicle-sprite.png";
@@ -99,9 +100,12 @@ export function VehicleCanvas() {
     let previousVerticalVelocityPxPerStep = 0;
     let maxImpact = 0;
     let animationTickCount = 0;
+    let frontWheelContactCount = 0;
+    let rearWheelContactCount = 0;
     const frontSuspensionRestLengthPx = frontSuspension.length;
     const wheelbasePx = Math.abs(frontWheel.position.x - rearWheel.position.x);
     const wheelRadiusPx = frontWheel.circleRadius ?? 0;
+    const groundBodySet = new Set<Matter.Body>(terrainBodies);
 
     // 画像スプライトで車体を表現するため、Matter.jsの既定描画（矩形・円）は隠す。
     const hideDefaultVehicleRender = () => {
@@ -115,21 +119,57 @@ export function VehicleCanvas() {
       vehicleSprite.addEventListener("load", hideDefaultVehicleRender, { once: true });
     }
 
+    // タイヤが地面パーツと接触しているかどうかを衝突イベントで追跡する。
+    // 1本のタイヤが複数の地面パーツ（バンプの継ぎ目等）に同時接触することがあるため、
+    // 単純なbooleanではなく接触ペア数をカウントし、0より大きい間は接地とみなす。
+    const isWheelGroundPair = (pair: Matter.Pair, wheel: Matter.Body) => {
+      if (pair.bodyA === wheel) return groundBodySet.has(pair.bodyB);
+      if (pair.bodyB === wheel) return groundBodySet.has(pair.bodyA);
+      return false;
+    };
+    const handleCollisionStart = (event: Matter.IEventCollision<Matter.Engine>) => {
+      for (const pair of event.pairs) {
+        if (isWheelGroundPair(pair, frontWheel)) frontWheelContactCount += 1;
+        if (isWheelGroundPair(pair, rearWheel)) rearWheelContactCount += 1;
+      }
+    };
+    const handleCollisionEnd = (event: Matter.IEventCollision<Matter.Engine>) => {
+      for (const pair of event.pairs) {
+        if (isWheelGroundPair(pair, frontWheel)) {
+          frontWheelContactCount = Math.max(0, frontWheelContactCount - 1);
+        }
+        if (isWheelGroundPair(pair, rearWheel)) {
+          rearWheelContactCount = Math.max(0, rearWheelContactCount - 1);
+        }
+      }
+    };
+    Matter.Events.on(engine, "collisionStart", handleCollisionStart);
+    Matter.Events.on(engine, "collisionEnd", handleCollisionEnd);
+
     const handleAfterUpdate = () => {
       // 開始ボタンでシミュレーションが走行中の間、試験速度に応じた水平速度を車体・タイヤへ
       // 直接与えて前進させる（垂直速度は重力・サスペンションによる挙動を保つため変更しない）。
       // タイヤの角速度による摩擦駆動も試したが、Matter.jsの既定重力スケールでは垂直抗力が
       // 小さく生成される摩擦力が不足し、目標速度に対して実測速度が1割程度にしかならなかった
       // ため、この直接制御方式を採用している。
+      // ただし無条件に適用すると、タイヤが地面から離れていても・車体が転倒していても
+      // 常に一定速度を保ってしまい非現実的なため、shouldApplyDrivingForce()で判定する。
       const { speed } = useSimulationStore.getState().testConditions;
       const drivingVelocityXPerStep = (speed * PIXELS_PER_METER) / STEPS_PER_SECOND;
-      Matter.Body.setVelocity(chassis, { x: drivingVelocityXPerStep, y: chassis.velocity.y });
-      Matter.Body.setVelocity(frontWheel, { x: drivingVelocityXPerStep, y: frontWheel.velocity.y });
-      Matter.Body.setVelocity(rearWheel, { x: drivingVelocityXPerStep, y: rearWheel.velocity.y });
-      Matter.Body.setAngularVelocity(frontWheel, drivingVelocityXPerStep / wheelRadiusPx);
-      Matter.Body.setAngularVelocity(rearWheel, drivingVelocityXPerStep / wheelRadiusPx);
+      const canDrive = shouldApplyDrivingForce({
+        isFrontWheelGrounded: frontWheelContactCount > 0,
+        isRearWheelGrounded: rearWheelContactCount > 0,
+        chassisAngle: chassis.angle,
+      });
+      if (canDrive) {
+        Matter.Body.setVelocity(chassis, { x: drivingVelocityXPerStep, y: chassis.velocity.y });
+        Matter.Body.setVelocity(frontWheel, { x: drivingVelocityXPerStep, y: frontWheel.velocity.y });
+        Matter.Body.setVelocity(rearWheel, { x: drivingVelocityXPerStep, y: rearWheel.velocity.y });
+        Matter.Body.setAngularVelocity(frontWheel, drivingVelocityXPerStep / wheelRadiusPx);
+        Matter.Body.setAngularVelocity(rearWheel, drivingVelocityXPerStep / wheelRadiusPx);
+      }
       // 走行中（Runner稼働中）のみカウントを進めることで、開始/一時停止に連動して
-      // ホイールアニメーションも止まるようにする。
+      // ホイールアニメーションも止まるようにする（駆動力の有無とは独立に進める）。
       animationTickCount += 1;
 
       const frontSuspensionLengthPx = Matter.Vector.magnitude(
@@ -209,6 +249,8 @@ export function VehicleCanvas() {
 
     return () => {
       vehicleSprite.removeEventListener("load", hideDefaultVehicleRender);
+      Matter.Events.off(engine, "collisionStart", handleCollisionStart);
+      Matter.Events.off(engine, "collisionEnd", handleCollisionEnd);
       Matter.Events.off(engine, "afterUpdate", handleAfterUpdate);
       Matter.Events.off(render, "beforeRender", handleBeforeRender);
       Matter.Events.off(render, "afterRender", handleAfterRender);
