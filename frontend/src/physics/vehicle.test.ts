@@ -43,4 +43,58 @@ describe("createVehicleBodies", () => {
 
     expect(heavy.chassis.mass).toBeCloseTo(light.chassis.mass * 2, 5);
   });
+
+  it("shifts the chassis center of mass toward the front when frontWeightRatio is high", () => {
+    const { chassis, frontWheel, rearWheel } = createVehicleBodies(
+      { weightKg: 1200, frontWeightRatio: 0.9, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
+      { diameter: 0.6, stiffness: 200000 },
+      0,
+      0
+    );
+
+    // frontWheelはchassisの+X側にあるため、前重心ほどchassisの重心（回転軸）も+X側へ寄る。
+    const midpointX = (frontWheel.position.x + rearWheel.position.x) / 2;
+    expect(chassis.position.x).toBeGreaterThan(midpointX);
+  });
+
+  it("shifts the chassis center of mass toward the rear when frontWeightRatio is low", () => {
+    const { chassis, frontWheel, rearWheel } = createVehicleBodies(
+      { weightKg: 1200, frontWeightRatio: 0.1, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
+      { diameter: 0.6, stiffness: 200000 },
+      0,
+      0
+    );
+
+    const midpointX = (frontWheel.position.x + rearWheel.position.x) / 2;
+    expect(chassis.position.x).toBeLessThan(midpointX);
+  });
+
+  it("keeps the chassis center of mass centered when frontWeightRatio is balanced", () => {
+    const { chassis, frontWheel, rearWheel } = createVehicleBodies(
+      { weightKg: 1200, frontWeightRatio: 0.5, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
+      { diameter: 0.6, stiffness: 200000 },
+      0,
+      0
+    );
+
+    const midpointX = (frontWheel.position.x + rearWheel.position.x) / 2;
+    expect(chassis.position.x).toBeCloseTo(midpointX, 5);
+  });
+
+  it("increases tire restitution as tire stiffness increases", () => {
+    const soft = createVehicleBodies(
+      { weightKg: 1200, frontWeightRatio: 0.5, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
+      { diameter: 0.6, stiffness: 50000 },
+      0,
+      0
+    );
+    const stiff = createVehicleBodies(
+      { weightKg: 1200, frontWeightRatio: 0.5, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
+      { diameter: 0.6, stiffness: 400000 },
+      0,
+      0
+    );
+
+    expect(stiff.frontWheel.restitution).toBeGreaterThan(soft.frontWheel.restitution);
+  });
 });
