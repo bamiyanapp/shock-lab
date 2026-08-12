@@ -8,6 +8,7 @@ import { computeMetrics } from "../physics/metrics";
 import { shouldApplyDrivingForce } from "../physics/driveControl";
 import { computeAirDragDeceleration } from "../physics/resistance";
 import { createScenery, createParallaxLayers } from "../physics/scenery";
+import { spawnDustBurst, advanceDustParticles, type DustParticle } from "../physics/impactEffects";
 import { useSimulationStore } from "../store/simulationStore";
 import vehicleSpriteUrl from "../assets/vehicle-sprite.png";
 
@@ -16,6 +17,13 @@ const CANVAS_HEIGHT = 400;
 const GROUND_Y = 300;
 const STEPS_PER_SECOND = 60;
 const PIXELS_PER_METER = 60;
+// この値を超える上下Gを検知するとカメラを微振動させる（衝撃の体感フィードバック）。
+const IMPACT_SHAKE_THRESHOLD_G = 1.5;
+const SHAKE_AMPLITUDE_PX = 4;
+// 着地（非接地→接地）1回あたりに発生させる砂埃パーティクル数。
+const LANDING_DUST_PARTICLE_COUNT = 8;
+// 走行中に接地しているタイヤから、tickごとにこの確率で軽い砂埃を1粒発生させる。
+const ROLLING_DUST_SPAWN_PROBABILITY = 0.15;
 
 // アセット画像（frontend/src/assets/vehicle-sprite.png）は、タイヤの回転角が少しずつ
 // 異なる12フレームを縦に並べたスプライトシート。ホイールアニメーション用に切り出して使う。
@@ -68,6 +76,14 @@ function drawCloud(ctx: CanvasRenderingContext2D, x: number) {
   ctx.ellipse(x, y, 34, 16, 0, 0, Math.PI * 2);
   ctx.ellipse(x - 24, y + 4, 22, 12, 0, 0, Math.PI * 2);
   ctx.ellipse(x + 24, y + 4, 22, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawDustParticle(ctx: CanvasRenderingContext2D, particle: DustParticle, screenX: number) {
+  const opacity = particle.life / particle.maxLife;
+  ctx.fillStyle = `rgba(180, 150, 110, ${(opacity * 0.6).toFixed(3)})`;
+  ctx.beginPath();
+  ctx.arc(screenX, particle.worldY, 2 + (1 - opacity) * 3, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -133,7 +149,9 @@ export function VehicleCanvas() {
     let animationTickCount = 0;
     let frontWheelContactCount = 0;
     let rearWheelContactCount = 0;
+    let dustParticles: DustParticle[] = [];
     const frontSuspensionRestLengthPx = frontSuspension.length;
+    const rearSuspensionRestLengthPx = rearSuspension.length;
     const wheelbasePx = Math.abs(frontWheel.position.x - rearWheel.position.x);
     const wheelRadiusPx = frontWheel.circleRadius ?? 0;
     const groundBodySet = new Set<Matter.Body>(terrainBodies);
@@ -160,8 +178,23 @@ export function VehicleCanvas() {
     };
     const handleCollisionStart = (event: Matter.IEventCollision<Matter.Engine>) => {
       for (const pair of event.pairs) {
-        if (isWheelGroundPair(pair, frontWheel)) frontWheelContactCount += 1;
-        if (isWheelGroundPair(pair, rearWheel)) rearWheelContactCount += 1;
+        if (isWheelGroundPair(pair, frontWheel)) {
+          // 非接地→接地への遷移（着地の瞬間）でのみ土煙パーティクルを発生させる
+          if (frontWheelContactCount === 0) {
+            dustParticles.push(
+              ...spawnDustBurst(frontWheel.position.x, frontWheel.position.y, LANDING_DUST_PARTICLE_COUNT)
+            );
+          }
+          frontWheelContactCount += 1;
+        }
+        if (isWheelGroundPair(pair, rearWheel)) {
+          if (rearWheelContactCount === 0) {
+            dustParticles.push(
+              ...spawnDustBurst(rearWheel.position.x, rearWheel.position.y, LANDING_DUST_PARTICLE_COUNT)
+            );
+          }
+          rearWheelContactCount += 1;
+        }
       }
     };
     const handleCollisionEnd = (event: Matter.IEventCollision<Matter.Engine>) => {
@@ -214,11 +247,16 @@ export function VehicleCanvas() {
       const frontSuspensionLengthPx = Matter.Vector.magnitude(
         Matter.Vector.sub(chassis.position, frontWheel.position)
       );
+      const rearSuspensionLengthPx = Matter.Vector.magnitude(
+        Matter.Vector.sub(chassis.position, rearWheel.position)
+      );
       const result = computeMetrics({
         chassisVelocity: chassis.velocity,
         previousVerticalVelocityPxPerStep,
         frontSuspensionLengthPx,
         frontSuspensionRestLengthPx,
+        rearSuspensionLengthPx,
+        rearSuspensionRestLengthPx,
         previousMaxImpact: maxImpact,
         strokeLength: vehicle.suspension.strokeLength,
         previousIsBottomedOut: isBottomedOut,
@@ -229,6 +267,15 @@ export function VehicleCanvas() {
       isBottomedOut = result.metrics.isBottomedOut;
       bottomOutCount = result.metrics.bottomOutCount;
       useSimulationStore.getState().setMetrics(result.metrics);
+
+      // 走行中に接地しているタイヤから、確率的に軽い砂埃を発生させ続ける
+      if (frontWheelContactCount > 0 && Math.random() < ROLLING_DUST_SPAWN_PROBABILITY) {
+        dustParticles.push(...spawnDustBurst(frontWheel.position.x, frontWheel.position.y, 1));
+      }
+      if (rearWheelContactCount > 0 && Math.random() < ROLLING_DUST_SPAWN_PROBABILITY) {
+        dustParticles.push(...spawnDustBurst(rearWheel.position.x, rearWheel.position.y, 1));
+      }
+      dustParticles = advanceDustParticles(dustParticles);
     };
     Matter.Events.on(engine, "afterUpdate", handleAfterUpdate);
 
@@ -236,8 +283,14 @@ export function VehicleCanvas() {
     render.options.hasBounds = true;
     const handleBeforeRender = () => {
       const cameraX = Math.max(chassis.position.x, CANVAS_WIDTH / 2);
-      render.bounds.min.x = cameraX - CANVAS_WIDTH / 2;
-      render.bounds.max.x = cameraX + CANVAS_WIDTH / 2;
+      // 大きな上下Gを検知した間だけ、カメラを左右に数px微振動させて衝撃を体感的に伝える。
+      // 縦方向の揺れは、地形・車体スプライト等の自前描画がworld Y座標をそのまま画面Yとして
+      // 扱っている前提を崩してしまうため、横方向のみに限定する。
+      const verticalG = useSimulationStore.getState().metrics.verticalG;
+      const shakeOffsetX =
+        Math.abs(verticalG) > IMPACT_SHAKE_THRESHOLD_G ? (Math.random() - 0.5) * 2 * SHAKE_AMPLITUDE_PX : 0;
+      render.bounds.min.x = cameraX - CANVAS_WIDTH / 2 + shakeOffsetX;
+      render.bounds.max.x = cameraX + CANVAS_WIDTH / 2 + shakeOffsetX;
       render.bounds.min.y = 0;
       render.bounds.max.y = CANVAS_HEIGHT;
     };
@@ -268,6 +321,12 @@ export function VehicleCanvas() {
         } else {
           drawHouse(context, screenX, GROUND_Y);
         }
+      }
+
+      for (const particle of dustParticles) {
+        const screenX = particle.worldX - offsetX;
+        if (screenX < -20 || screenX > CANVAS_WIDTH + 20) continue;
+        drawDustParticle(context, particle, screenX);
       }
 
       if (vehicleSprite.complete && vehicleSprite.naturalWidth > 0) {

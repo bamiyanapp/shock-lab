@@ -31,6 +31,7 @@ interface SimulationState {
 const INITIAL_METRICS: SimulationMetrics = {
   speed: 0,
   suspensionStroke: 0,
+  rearSuspensionStroke: 0,
   verticalG: 0,
   maxImpact: 0,
   isBottomedOut: false,

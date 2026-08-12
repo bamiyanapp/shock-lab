@@ -21,6 +21,7 @@ describe("useSimulationStore", () => {
       useSimulationStore.getState().setMetrics({
         speed: i,
         suspensionStroke: 0,
+        rearSuspensionStroke: 0,
         verticalG: 0,
         maxImpact: 0,
         isBottomedOut: false,

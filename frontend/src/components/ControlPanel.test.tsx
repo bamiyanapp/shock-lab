@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { ControlPanel } from "./ControlPanel";
 import { useSimulationStore } from "../store/simulationStore";
 import { VEHICLE_PRESETS } from "../store/vehiclePresets";
+import { decodeSharedConfig, SHARED_CONFIG_QUERY_PARAM } from "../store/urlConfig";
 
 describe("ControlPanel", () => {
   beforeEach(() => {
@@ -32,5 +33,19 @@ describe("ControlPanel", () => {
     expect(
       screen.getByText(`固有振動数: ${expectedFrequencyHz} Hz / 減衰比 ζ: ${expectedDampingRatio}`)
     ).toBeInTheDocument();
+  });
+
+  it("copies a share URL encoding the current vehicle and testConditions to the clipboard", async () => {
+    const user = userEvent.setup();
+    render(<ControlPanel />);
+
+    await user.click(screen.getByRole("button", { name: "セッティングを共有（URLをコピー）" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("リンクをコピーしました");
+    const copiedText = await navigator.clipboard.readText();
+    const copiedUrl = new URL(copiedText);
+    const encoded = copiedUrl.searchParams.get(SHARED_CONFIG_QUERY_PARAM);
+    const { vehicle, testConditions } = useSimulationStore.getState();
+    expect(decodeSharedConfig(encoded as string)).toEqual({ vehicle, testConditions });
   });
 });
