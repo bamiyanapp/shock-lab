@@ -1,8 +1,16 @@
 import { Home } from "./pages/Home";
+import { ServiceWorkerRegistration } from "./components/ServiceWorkerRegistration";
+import UpdateNotifier from "./components/UpdateNotifier.jsx";
 import "./App.css";
 
 function App() {
-  return <Home />;
+  return (
+    <>
+      <ServiceWorkerRegistration />
+      <UpdateNotifier />
+      <Home />
+    </>
+  );
 }
 
 export default App;
