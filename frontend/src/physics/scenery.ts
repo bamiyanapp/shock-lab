@@ -22,3 +22,44 @@ export function createScenery(courseLengthPx: number, startX = 300): SceneryItem
   }
   return items;
 }
+
+export type ParallaxKind = "mountain" | "cloud";
+
+export interface ParallaxItem {
+  worldX: number;
+  kind: ParallaxKind;
+}
+
+export interface ParallaxLayer {
+  /** カメラ移動量に対して背景をどれだけ動かすかの比率（0〜1）。小さいほど遠くにあるように見える */
+  speedFactor: number;
+  items: ParallaxItem[];
+}
+
+const MOUNTAIN_SPACING_PX = 900;
+const CLOUD_SPACING_PX = 700;
+
+function createParallaxItems(
+  courseLengthPx: number,
+  spacingPx: number,
+  startX: number,
+  kind: ParallaxKind
+): ParallaxItem[] {
+  const items: ParallaxItem[] = [];
+  for (let x = startX; x < courseLengthPx; x += spacingPx) {
+    items.push({ worldX: x, kind });
+  }
+  return items;
+}
+
+/**
+ * 遠景（山並み・雲）を、通常のscenery（木・家）よりゆっくり流れる複数レイヤーとして生成する。
+ * 描画側でworldXにspeedFactorを乗じたぶんだけカメラ移動を反映させることで、
+ * 手前のsceneryより奥にあるように見える視差スクロールを実現する。
+ */
+export function createParallaxLayers(courseLengthPx: number): ParallaxLayer[] {
+  return [
+    { speedFactor: 0.2, items: createParallaxItems(courseLengthPx, MOUNTAIN_SPACING_PX, 0, "mountain") },
+    { speedFactor: 0.5, items: createParallaxItems(courseLengthPx, CLOUD_SPACING_PX, 150, "cloud") },
+  ];
+}
