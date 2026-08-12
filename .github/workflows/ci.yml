@@ -17,7 +17,9 @@ jobs:
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v1.22.0
     with:
       # frontend単一パッケージ構成のため、backend-test固定ジョブを避けるためにpackages構成を使う。
-      packages: '[{"dir":"frontend","build":true}]'
+      packages: '[{"dir":"frontend","build":true,"coverage_threshold":70}]'
+      enable_standards_check: true
+      enable_duplication_check: true
     secrets:
       # mergeジョブのスカッシュマージをBOT_TOKENで行わないと、GITHUB_TOKENによる
       # pushはGitHub Actions上で新たなワークフロー実行のトリガーにならず、

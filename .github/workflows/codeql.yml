@@ -1,0 +1,15 @@
+name: CodeQL
+run-name: CodeQL ${{ github.event.head_commit.message || github.event.pull_request.title }}
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    # 毎週月曜4:00 UTC（コード変更が無い期間もクエリセット更新を検知するため）
+    - cron: "0 4 * * 1"
+
+jobs:
+  codeql:
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v1.22.0
