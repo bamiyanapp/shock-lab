@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/bamiyanapp/shock-lab/compare/v1.4.0...v1.4.1) (2026-08-12)
+
+
+### Bug Fixes
+
+* **ci:** 共通CI機能の有効化（standards-check・CodeQL・重複検知・カバレッジ閾値） ([#134](https://github.com/bamiyanapp/shock-lab/issues/134)) ([1308285](https://github.com/bamiyanapp/shock-lab/commit/1308285aa796d81237b3d4636bb16997fe925fce))
+
 # [1.4.0](https://github.com/bamiyanapp/shock-lab/compare/v1.3.0...v1.4.0) (2026-07-14)
 
 
