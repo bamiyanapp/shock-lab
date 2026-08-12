@@ -20,11 +20,17 @@ interface SimulationState {
   testConditions: TestConditions;
   metrics: SimulationMetrics;
   isRunning: boolean;
+  /** 一度でも開始ボタンが押されたかどうか。一時停止後に「開始」ではなく「再開/最初から」を出し分けるために使う */
+  hasStarted: boolean;
+  /** インクリメントするとVehicleCanvas側のシミュレーション世界が再構築され、車体位置が最初からになる */
+  runToken: number;
   metricsHistory: SimulationMetrics[];
   setVehicle: (vehicle: Partial<VehicleConfig>) => void;
   setTestConditions: (conditions: Partial<TestConditions>) => void;
   setMetrics: (metrics: SimulationMetrics) => void;
   setRunning: (isRunning: boolean) => void;
+  /** 車体位置・履歴を最初の状態へ戻し、そのまま走行を再開する（車両パラメータは維持する） */
+  restartRun: () => void;
   reset: () => void;
 }
 
@@ -43,6 +49,8 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   testConditions: DEFAULT_TEST_CONDITIONS,
   metrics: INITIAL_METRICS,
   isRunning: false,
+  hasStarted: false,
+  runToken: 0,
   metricsHistory: [],
   setVehicle: (vehicle) =>
     set((state) => ({
@@ -59,7 +67,16 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       metrics,
       metricsHistory: [...state.metricsHistory, metrics].slice(-200),
     })),
-  setRunning: (isRunning) => set({ isRunning }),
+  setRunning: (isRunning) =>
+    set((state) => ({ isRunning, hasStarted: state.hasStarted || isRunning })),
+  restartRun: () =>
+    set((state) => ({
+      runToken: state.runToken + 1,
+      isRunning: true,
+      hasStarted: true,
+      metrics: INITIAL_METRICS,
+      metricsHistory: [],
+    })),
   reset: () =>
     set({
       vehicle: DEFAULT_VEHICLE,
@@ -67,5 +84,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       metrics: INITIAL_METRICS,
       metricsHistory: [],
       isRunning: false,
+      hasStarted: false,
+      runToken: 0,
     }),
 }));

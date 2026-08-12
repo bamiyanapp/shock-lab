@@ -23,6 +23,17 @@ describe("ControlPanel", () => {
     expect(useSimulationStore.getState().vehicle).toEqual(truckPreset.config);
   });
 
+  it("updates the vehicle when a value is typed directly into the numeric input next to a slider", async () => {
+    const user = userEvent.setup();
+    render(<ControlPanel />);
+
+    const weightInput = screen.getByRole("spinbutton", { name: /車重/ });
+    await user.clear(weightInput);
+    await user.type(weightInput, "2500");
+
+    expect(useSimulationStore.getState().vehicle.body.weightKg).toBe(2500);
+  });
+
   it("displays the natural frequency and damping ratio computed from the current vehicle", () => {
     render(<ControlPanel />);
     const { weightKg } = useSimulationStore.getState().vehicle.body;

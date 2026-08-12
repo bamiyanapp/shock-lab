@@ -10,6 +10,22 @@ const FIRST_BUMP_X_PX = 1500;
 export const COURSE_LENGTH_PX = 20000;
 
 /**
+ * ゴールライン位置。物理的な地面自体はCOURSE_LENGTH_PXちょうどで終わるため、
+ * ゴール到達時点でまだ地面が残っているよう手前に余裕を持たせる。
+ */
+export const GOAL_LINE_X_PX = COURSE_LENGTH_PX - 500;
+
+/**
+ * コース序盤は小さいバンプから始め、進行に伴って徐々に高さがmaxHeightへ近づくようにする
+ * （コース終盤の最初のバンプ位置で最大、それ以降は最大のまま）。
+ */
+export function computeBumpHeight(bumpCenterX: number, maxHeight: number): number {
+  const minHeight = maxHeight / 3;
+  const progress = Math.min(Math.max((bumpCenterX - FIRST_BUMP_X_PX) / BUMP_SPACING_PX / 5, 0), 1);
+  return minHeight + (maxHeight - minHeight) * progress;
+}
+
+/**
  * 路面種類ごとの地形をボディ列として生成する。flat以外は単発の段差ではなく、
  * コース全体に一定間隔でバンプを繰り返し配置し、走行中に何度も段差に遭遇するようにする。
  * MVPでは波状路・ジャンプ台等の専用形状は今後拡張する。
@@ -40,7 +56,7 @@ export function createTerrain(terrainType: TerrainType, groundY: number): Matter
     ];
   }
 
-  const bumpHeight = terrainType === "hugeSpeedBump" ? 80 : 30;
+  const maxBumpHeight = terrainType === "hugeSpeedBump" ? 80 : 30;
   const bodies: Matter.Body[] = [];
   let cursor = 0;
 
@@ -49,6 +65,7 @@ export function createTerrain(terrainType: TerrainType, groundY: number): Matter
     bumpCenter + BUMP_WIDTH_PX / 2 < COURSE_LENGTH_PX;
     bumpCenter += BUMP_SPACING_PX
   ) {
+    const bumpHeight = computeBumpHeight(bumpCenter, maxBumpHeight);
     const segmentWidth = bumpCenter - BUMP_WIDTH_PX / 2 - cursor;
     if (segmentWidth > 0) {
       bodies.push(

@@ -25,6 +25,65 @@ describe("SimulationControls", () => {
 
     await user.click(screen.getByRole("button", { name: "一時停止" }));
     expect(useSimulationStore.getState().isRunning).toBe(false);
-    expect(screen.getByRole("button", { name: "開始" })).toBeInTheDocument();
+  });
+
+  it("shows separate 再開/最初から buttons after pausing instead of 開始", async () => {
+    const user = userEvent.setup();
+    render(<SimulationControls />);
+
+    await user.click(screen.getByRole("button", { name: "開始" }));
+    await user.click(screen.getByRole("button", { name: "一時停止" }));
+
+    expect(screen.queryByRole("button", { name: "開始" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "再開" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "最初から" })).toBeInTheDocument();
+  });
+
+  it("再開 resumes without touching runToken or clearing history", async () => {
+    const user = userEvent.setup();
+    render(<SimulationControls />);
+
+    await user.click(screen.getByRole("button", { name: "開始" }));
+    useSimulationStore.getState().setMetrics({
+      speed: 5,
+      suspensionStroke: 0,
+      rearSuspensionStroke: 0,
+      verticalG: 0,
+      maxImpact: 0,
+      isBottomedOut: false,
+      bottomOutCount: 0,
+    });
+    await user.click(screen.getByRole("button", { name: "一時停止" }));
+    const runTokenBeforeResume = useSimulationStore.getState().runToken;
+
+    await user.click(screen.getByRole("button", { name: "再開" }));
+
+    expect(useSimulationStore.getState().isRunning).toBe(true);
+    expect(useSimulationStore.getState().runToken).toBe(runTokenBeforeResume);
+    expect(useSimulationStore.getState().metricsHistory).toHaveLength(1);
+  });
+
+  it("最初から increments runToken, clears history, and starts running", async () => {
+    const user = userEvent.setup();
+    render(<SimulationControls />);
+
+    await user.click(screen.getByRole("button", { name: "開始" }));
+    useSimulationStore.getState().setMetrics({
+      speed: 5,
+      suspensionStroke: 0,
+      rearSuspensionStroke: 0,
+      verticalG: 0,
+      maxImpact: 0,
+      isBottomedOut: false,
+      bottomOutCount: 0,
+    });
+    await user.click(screen.getByRole("button", { name: "一時停止" }));
+    const runTokenBeforeRestart = useSimulationStore.getState().runToken;
+
+    await user.click(screen.getByRole("button", { name: "最初から" }));
+
+    expect(useSimulationStore.getState().isRunning).toBe(true);
+    expect(useSimulationStore.getState().runToken).toBe(runTokenBeforeRestart + 1);
+    expect(useSimulationStore.getState().metricsHistory).toHaveLength(0);
   });
 });
