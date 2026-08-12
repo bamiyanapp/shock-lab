@@ -55,8 +55,10 @@ export interface VehicleConfig {
 export interface SimulationMetrics {
   /** 車速(m/s) */
   speed: number;
-  /** サスペンションストローク(m) */
+  /** フロントサスペンションストローク(m) */
   suspensionStroke: number;
+  /** リアサスペンションストローク(m) */
+  rearSuspensionStroke: number;
   /** 上下G */
   verticalG: number;
   /** 最大衝撃 */

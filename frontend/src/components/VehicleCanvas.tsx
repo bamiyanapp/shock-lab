@@ -134,6 +134,7 @@ export function VehicleCanvas() {
     let frontWheelContactCount = 0;
     let rearWheelContactCount = 0;
     const frontSuspensionRestLengthPx = frontSuspension.length;
+    const rearSuspensionRestLengthPx = rearSuspension.length;
     const wheelbasePx = Math.abs(frontWheel.position.x - rearWheel.position.x);
     const wheelRadiusPx = frontWheel.circleRadius ?? 0;
     const groundBodySet = new Set<Matter.Body>(terrainBodies);
@@ -214,11 +215,16 @@ export function VehicleCanvas() {
       const frontSuspensionLengthPx = Matter.Vector.magnitude(
         Matter.Vector.sub(chassis.position, frontWheel.position)
       );
+      const rearSuspensionLengthPx = Matter.Vector.magnitude(
+        Matter.Vector.sub(chassis.position, rearWheel.position)
+      );
       const result = computeMetrics({
         chassisVelocity: chassis.velocity,
         previousVerticalVelocityPxPerStep,
         frontSuspensionLengthPx,
         frontSuspensionRestLengthPx,
+        rearSuspensionLengthPx,
+        rearSuspensionRestLengthPx,
         previousMaxImpact: maxImpact,
         strokeLength: vehicle.suspension.strokeLength,
         previousIsBottomedOut: isBottomedOut,

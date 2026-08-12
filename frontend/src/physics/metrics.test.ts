@@ -8,6 +8,8 @@ describe("computeMetrics", () => {
       previousVerticalVelocityPxPerStep: 0,
       frontSuspensionLengthPx: 24,
       frontSuspensionRestLengthPx: 24,
+      rearSuspensionLengthPx: 24,
+      rearSuspensionRestLengthPx: 24,
       previousMaxImpact: 0,
       strokeLength: 0.15,
       previousIsBottomedOut: false,
@@ -16,10 +18,31 @@ describe("computeMetrics", () => {
 
     expect(metrics.speed).toBe(0);
     expect(metrics.suspensionStroke).toBe(0);
+    expect(metrics.rearSuspensionStroke).toBe(0);
     expect(metrics.verticalG).toBe(0);
     expect(metrics.maxImpact).toBe(0);
     expect(metrics.isBottomedOut).toBe(false);
     expect(metrics.bottomOutCount).toBe(0);
+  });
+
+  it("computes rearSuspensionStroke independently from the front suspension stroke", () => {
+    const { metrics } = computeMetrics({
+      chassisVelocity: { x: 0, y: 0 },
+      previousVerticalVelocityPxPerStep: 0,
+      frontSuspensionLengthPx: 24,
+      frontSuspensionRestLengthPx: 24,
+      rearSuspensionLengthPx: 12,
+      rearSuspensionRestLengthPx: 24,
+      previousMaxImpact: 0,
+      strokeLength: 0.15,
+      previousIsBottomedOut: false,
+      previousBottomOutCount: 0,
+    });
+
+    expect(metrics.suspensionStroke).toBe(0);
+    expect(metrics.rearSuspensionStroke).toBeCloseTo(0.2, 5);
+    // 底付き判定はフロントストロークのみを基準にするため、リアが底付き相当でも影響しない
+    expect(metrics.isBottomedOut).toBe(false);
   });
 
   it("reports a positive suspensionStroke when the suspension is compressed below its rest length", () => {
@@ -28,6 +51,8 @@ describe("computeMetrics", () => {
       previousVerticalVelocityPxPerStep: 0,
       frontSuspensionLengthPx: 18,
       frontSuspensionRestLengthPx: 24,
+      rearSuspensionLengthPx: 24,
+      rearSuspensionRestLengthPx: 24,
       previousMaxImpact: 0,
       strokeLength: 0.15,
       previousIsBottomedOut: false,
@@ -43,6 +68,8 @@ describe("computeMetrics", () => {
       previousVerticalVelocityPxPerStep: 0,
       frontSuspensionLengthPx: 24,
       frontSuspensionRestLengthPx: 24,
+      rearSuspensionLengthPx: 24,
+      rearSuspensionRestLengthPx: 24,
       previousMaxImpact: 0,
       strokeLength: 0.15,
       previousIsBottomedOut: false,
@@ -55,6 +82,8 @@ describe("computeMetrics", () => {
       previousVerticalVelocityPxPerStep: first.verticalVelocityPxPerStep,
       frontSuspensionLengthPx: 24,
       frontSuspensionRestLengthPx: 24,
+      rearSuspensionLengthPx: 24,
+      rearSuspensionRestLengthPx: 24,
       previousMaxImpact: first.metrics.maxImpact,
       strokeLength: 0.15,
       previousIsBottomedOut: first.metrics.isBottomedOut,
@@ -71,6 +100,8 @@ describe("computeMetrics", () => {
       // (24 - 15) / 60 = 0.15m のストローク。strokeLength 0.15と同値のため底付き
       frontSuspensionLengthPx: 15,
       frontSuspensionRestLengthPx: 24,
+      rearSuspensionLengthPx: 24,
+      rearSuspensionRestLengthPx: 24,
       previousMaxImpact: 0,
       strokeLength: 0.15,
       previousIsBottomedOut: false,
@@ -87,6 +118,8 @@ describe("computeMetrics", () => {
       previousVerticalVelocityPxPerStep: 0,
       frontSuspensionLengthPx: 15,
       frontSuspensionRestLengthPx: 24,
+      rearSuspensionLengthPx: 24,
+      rearSuspensionRestLengthPx: 24,
       previousMaxImpact: 0,
       strokeLength: 0.15,
       previousIsBottomedOut: false,
@@ -99,6 +132,8 @@ describe("computeMetrics", () => {
       previousVerticalVelocityPxPerStep: first.verticalVelocityPxPerStep,
       frontSuspensionLengthPx: 15,
       frontSuspensionRestLengthPx: 24,
+      rearSuspensionLengthPx: 24,
+      rearSuspensionRestLengthPx: 24,
       previousMaxImpact: first.metrics.maxImpact,
       strokeLength: 0.15,
       previousIsBottomedOut: first.metrics.isBottomedOut,
@@ -115,6 +150,8 @@ describe("computeMetrics", () => {
       previousVerticalVelocityPxPerStep: 0,
       frontSuspensionLengthPx: 15,
       frontSuspensionRestLengthPx: 24,
+      rearSuspensionLengthPx: 24,
+      rearSuspensionRestLengthPx: 24,
       previousMaxImpact: 0,
       strokeLength: 0.15,
       previousIsBottomedOut: false,
@@ -127,6 +164,8 @@ describe("computeMetrics", () => {
       previousVerticalVelocityPxPerStep: bottomedOut.verticalVelocityPxPerStep,
       frontSuspensionLengthPx: 20,
       frontSuspensionRestLengthPx: 24,
+      rearSuspensionLengthPx: 24,
+      rearSuspensionRestLengthPx: 24,
       previousMaxImpact: bottomedOut.metrics.maxImpact,
       strokeLength: 0.15,
       previousIsBottomedOut: bottomedOut.metrics.isBottomedOut,
@@ -140,6 +179,8 @@ describe("computeMetrics", () => {
       previousVerticalVelocityPxPerStep: recovered.verticalVelocityPxPerStep,
       frontSuspensionLengthPx: 15,
       frontSuspensionRestLengthPx: 24,
+      rearSuspensionLengthPx: 24,
+      rearSuspensionRestLengthPx: 24,
       previousMaxImpact: recovered.metrics.maxImpact,
       strokeLength: 0.15,
       previousIsBottomedOut: recovered.metrics.isBottomedOut,
