@@ -17,7 +17,10 @@ jobs:
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v1.22.0
     with:
       # frontend単一パッケージ構成のため、backend-test固定ジョブを避けるためにpackages構成を使う。
-      packages: '[{"dir":"frontend","build":true,"coverage_threshold":70}]'
+      # node_version: jsdom v30がNode.js組み込みundiciのwebidl API（Node.js 22以降で提供）に
+      # 依存するため、既定の20では`webidl.util.markAsUncloneable is not a function`で
+      # テストがクラッシュする（issue #143）。
+      packages: '[{"dir":"frontend","build":true,"coverage_threshold":70,"node_version":22}]'
       enable_standards_check: true
       enable_duplication_check: true
     secrets:
