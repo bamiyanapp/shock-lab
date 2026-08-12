@@ -61,4 +61,8 @@ export interface SimulationMetrics {
   verticalG: number;
   /** 最大衝撃 */
   maxImpact: number;
+  /** 底付き（ストロークがstrokeLengthに達している）中かどうか */
+  isBottomedOut: boolean;
+  /** 底付きが発生した回数（累積、非底付き→底付きの遷移ごとに1回カウント） */
+  bottomOutCount: number;
 }

@@ -10,6 +10,10 @@ export interface MetricsSample {
   frontSuspensionLengthPx: number;
   frontSuspensionRestLengthPx: number;
   previousMaxImpact: number;
+  /** サスペンションのストローク量(m)。この値に達すると底付きとみなす */
+  strokeLength: number;
+  previousIsBottomedOut: boolean;
+  previousBottomOutCount: number;
 }
 
 export interface MetricsResult {
@@ -28,6 +32,9 @@ export function computeMetrics(sample: MetricsSample): MetricsResult {
     frontSuspensionLengthPx,
     frontSuspensionRestLengthPx,
     previousMaxImpact,
+    strokeLength,
+    previousIsBottomedOut,
+    previousBottomOutCount,
   } = sample;
 
   const speed = (Math.hypot(chassisVelocity.x, chassisVelocity.y) * STEPS_PER_SECOND) / PIXELS_PER_METER;
@@ -40,8 +47,12 @@ export function computeMetrics(sample: MetricsSample): MetricsResult {
   const suspensionStroke = (frontSuspensionRestLengthPx - frontSuspensionLengthPx) / PIXELS_PER_METER;
   const maxImpact = Math.max(previousMaxImpact, Math.abs(verticalG));
 
+  const isBottomedOut = suspensionStroke >= strokeLength;
+  // 底付きが続いている間は毎tick加算せず、非底付き→底付きに切り替わった瞬間のみを1回として数える
+  const bottomOutCount = previousBottomOutCount + (isBottomedOut && !previousIsBottomedOut ? 1 : 0);
+
   return {
-    metrics: { speed, suspensionStroke, verticalG, maxImpact },
+    metrics: { speed, suspensionStroke, verticalG, maxImpact, isBottomedOut, bottomOutCount },
     verticalVelocityPxPerStep: chassisVelocity.y,
   };
 }

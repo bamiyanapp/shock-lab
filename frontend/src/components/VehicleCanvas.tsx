@@ -7,7 +7,7 @@ import { createSuspensionConstraint } from "../physics/suspension";
 import { computeMetrics } from "../physics/metrics";
 import { shouldApplyDrivingForce } from "../physics/driveControl";
 import { computeAirDragDeceleration } from "../physics/resistance";
-import { createScenery } from "../physics/scenery";
+import { createScenery, createParallaxLayers } from "../physics/scenery";
 import { useSimulationStore } from "../store/simulationStore";
 import vehicleSpriteUrl from "../assets/vehicle-sprite.png";
 
@@ -41,6 +41,33 @@ function drawTree(ctx: CanvasRenderingContext2D, x: number, groundScreenY: numbe
   ctx.lineTo(x - 28, groundScreenY - 36);
   ctx.lineTo(x + 28, groundScreenY - 36);
   ctx.closePath();
+  ctx.fill();
+}
+
+function drawMountain(ctx: CanvasRenderingContext2D, x: number, groundScreenY: number) {
+  ctx.fillStyle = "#334155";
+  ctx.beginPath();
+  ctx.moveTo(x, groundScreenY - 150);
+  ctx.lineTo(x - 110, groundScreenY);
+  ctx.lineTo(x + 110, groundScreenY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#475569";
+  ctx.beginPath();
+  ctx.moveTo(x - 55, groundScreenY - 80);
+  ctx.lineTo(x - 130, groundScreenY);
+  ctx.lineTo(x + 10, groundScreenY);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawCloud(ctx: CanvasRenderingContext2D, x: number) {
+  const y = 60;
+  ctx.fillStyle = "rgba(226, 232, 240, 0.6)";
+  ctx.beginPath();
+  ctx.ellipse(x, y, 34, 16, 0, 0, Math.PI * 2);
+  ctx.ellipse(x - 24, y + 4, 22, 12, 0, 0, Math.PI * 2);
+  ctx.ellipse(x + 24, y + 4, 22, 12, 0, 0, Math.PI * 2);
   ctx.fill();
 }
 
@@ -80,6 +107,7 @@ export function VehicleCanvas() {
 
     const terrainBodies = createTerrain(terrainType, GROUND_Y);
     const scenery = createScenery(COURSE_LENGTH_PX);
+    const parallaxLayers = createParallaxLayers(COURSE_LENGTH_PX);
     const { chassis, frontWheel, rearWheel } = createVehicleBodies(
       vehicle.body,
       vehicle.tire,
@@ -100,6 +128,8 @@ export function VehicleCanvas() {
 
     let previousVerticalVelocityPxPerStep = 0;
     let maxImpact = 0;
+    let isBottomedOut = false;
+    let bottomOutCount = 0;
     let animationTickCount = 0;
     let frontWheelContactCount = 0;
     let rearWheelContactCount = 0;
@@ -190,9 +220,14 @@ export function VehicleCanvas() {
         frontSuspensionLengthPx,
         frontSuspensionRestLengthPx,
         previousMaxImpact: maxImpact,
+        strokeLength: vehicle.suspension.strokeLength,
+        previousIsBottomedOut: isBottomedOut,
+        previousBottomOutCount: bottomOutCount,
       });
       previousVerticalVelocityPxPerStep = result.verticalVelocityPxPerStep;
       maxImpact = result.metrics.maxImpact;
+      isBottomedOut = result.metrics.isBottomedOut;
+      bottomOutCount = result.metrics.bottomOutCount;
       useSimulationStore.getState().setMetrics(result.metrics);
     };
     Matter.Events.on(engine, "afterUpdate", handleAfterUpdate);
@@ -212,6 +247,19 @@ export function VehicleCanvas() {
       const context = render.context;
       const offsetX = render.bounds.min.x;
       context.save();
+      // 遠景（山並み・雲）はカメラ移動量にspeedFactorを乗じた分だけ動かし、手前のscenery（木・家）
+      // より遅く流れて見えるようにする（視差スクロール）。手前のsceneryより先に描画し、背後に置く。
+      for (const layer of parallaxLayers) {
+        for (const item of layer.items) {
+          const screenX = item.worldX - offsetX * layer.speedFactor;
+          if (screenX < -140 || screenX > CANVAS_WIDTH + 140) continue;
+          if (item.kind === "mountain") {
+            drawMountain(context, screenX, GROUND_Y);
+          } else {
+            drawCloud(context, screenX);
+          }
+        }
+      }
       for (const item of scenery) {
         const screenX = item.worldX - offsetX;
         if (screenX < -60 || screenX > CANVAS_WIDTH + 60) continue;
@@ -246,6 +294,14 @@ export function VehicleCanvas() {
         );
       }
       context.restore();
+
+      // 底付き（ストローク使い切り）中は画面全体を赤くフラッシュさせ、警告として体感的に伝える。
+      if (useSimulationStore.getState().metrics.isBottomedOut) {
+        context.save();
+        context.fillStyle = "rgba(220, 38, 38, 0.35)";
+        context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        context.restore();
+      }
     };
     Matter.Events.on(render, "afterRender", handleAfterRender);
 
