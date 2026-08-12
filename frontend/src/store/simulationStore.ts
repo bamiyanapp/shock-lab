@@ -49,6 +49,8 @@ const INITIAL_METRICS: SimulationMetrics = {
   suspensionStroke: 0,
   verticalG: 0,
   maxImpact: 0,
+  isBottomedOut: false,
+  bottomOutCount: 0,
 };
 
 export const useSimulationStore = create<SimulationState>((set) => ({

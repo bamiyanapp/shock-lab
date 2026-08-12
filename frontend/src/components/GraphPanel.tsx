@@ -3,11 +3,13 @@ import { useSimulationStore } from "../store/simulationStore";
 
 export function GraphPanel() {
   const metricsHistory = useSimulationStore((state) => state.metricsHistory);
+  const bottomOutCount = useSimulationStore((state) => state.metrics.bottomOutCount);
   const data = metricsHistory.map((metrics, index) => ({ tick: index, ...metrics }));
 
   return (
     <div>
       <h2>メトリクス</h2>
+      <p>底付き回数: {bottomOutCount}</p>
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />

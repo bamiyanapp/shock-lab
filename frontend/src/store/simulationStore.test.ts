@@ -23,6 +23,8 @@ describe("useSimulationStore", () => {
         suspensionStroke: 0,
         verticalG: 0,
         maxImpact: 0,
+        isBottomedOut: false,
+        bottomOutCount: 0,
       });
     }
 

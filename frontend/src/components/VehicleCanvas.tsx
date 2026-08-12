@@ -100,6 +100,8 @@ export function VehicleCanvas() {
 
     let previousVerticalVelocityPxPerStep = 0;
     let maxImpact = 0;
+    let isBottomedOut = false;
+    let bottomOutCount = 0;
     let animationTickCount = 0;
     let frontWheelContactCount = 0;
     let rearWheelContactCount = 0;
@@ -190,9 +192,14 @@ export function VehicleCanvas() {
         frontSuspensionLengthPx,
         frontSuspensionRestLengthPx,
         previousMaxImpact: maxImpact,
+        strokeLength: vehicle.suspension.strokeLength,
+        previousIsBottomedOut: isBottomedOut,
+        previousBottomOutCount: bottomOutCount,
       });
       previousVerticalVelocityPxPerStep = result.verticalVelocityPxPerStep;
       maxImpact = result.metrics.maxImpact;
+      isBottomedOut = result.metrics.isBottomedOut;
+      bottomOutCount = result.metrics.bottomOutCount;
       useSimulationStore.getState().setMetrics(result.metrics);
     };
     Matter.Events.on(engine, "afterUpdate", handleAfterUpdate);
@@ -246,6 +253,14 @@ export function VehicleCanvas() {
         );
       }
       context.restore();
+
+      // 底付き（ストローク使い切り）中は画面全体を赤くフラッシュさせ、警告として体感的に伝える。
+      if (useSimulationStore.getState().metrics.isBottomedOut) {
+        context.save();
+        context.fillStyle = "rgba(220, 38, 38, 0.35)";
+        context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        context.restore();
+      }
     };
     Matter.Events.on(render, "afterRender", handleAfterRender);
 
