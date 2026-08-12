@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/bamiyanapp/shock-lab/compare/v1.7.0...v1.7.1) (2026-08-12)
+
+
+### Bug Fixes
+
+* **ci:** frontendのCI実行Node.jsをv22へ引き上げ ([#144](https://github.com/bamiyanapp/shock-lab/issues/144)) ([36f3e3a](https://github.com/bamiyanapp/shock-lab/commit/36f3e3a8bd463387ef4a3b3943c982cdd9f0e264))
+
 # [1.7.0](https://github.com/bamiyanapp/shock-lab/compare/v1.6.0...v1.7.0) (2026-08-12)
 
 
