@@ -18,6 +18,7 @@ jobs:
     with:
       # frontend単一パッケージ構成のため、backend-test固定ジョブを避けるためにpackages構成を使う。
       packages: '[{"dir":"frontend","build":true}]'
+      enable_standards_check: true
     secrets:
       # mergeジョブのスカッシュマージをBOT_TOKENで行わないと、GITHUB_TOKENによる
       # pushはGitHub Actions上で新たなワークフロー実行のトリガーにならず、
