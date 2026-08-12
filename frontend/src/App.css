@@ -1,0 +1,101 @@
+/* dev-standardsのshared/pwa/UpdateNotifier.jsx（symlink共有、issue #147）はdaisyUIの
+   クラス名（toast/alert/btn）を前提にしているが、ShockLabはdaisyUI未導入のため、
+   このアプリの配色（index.cssのCSS変数）に合わせた最小限のスタイルを補う。 */
+.toast {
+  position: fixed;
+  z-index: 50;
+}
+.toast-bottom {
+  bottom: 16px;
+}
+.toast-center {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+.alert-info {
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  color: var(--text-h);
+}
+
+.btn {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+.btn-sm {
+  padding: 4px 12px;
+  font-size: 14px;
+}
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* dev-standardsのshared/ui/ShareButton.jsx（symlink共有、issue #148）向け。
+   同様にdaisyUI/Tailwindのクラス名を前提にしているため最小限のスタイルを補う。 */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+.modal.modal-open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+.modal-box {
+  position: relative;
+  z-index: 1;
+  background: var(--bg);
+  color: var(--text-h);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 90vw;
+  box-shadow: var(--shadow);
+}
+.modal-box h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+}
+.modal-box svg {
+  display: block;
+  margin: 16px auto;
+}
+.modal-box p {
+  background: var(--code-bg);
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 14px;
+  word-break: break-all;
+  user-select: all;
+}
+.modal-action {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  justify-content: flex-end;
+}

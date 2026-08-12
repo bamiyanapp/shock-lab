@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { ControlPanel } from "./ControlPanel";
 import { useSimulationStore } from "../store/simulationStore";
 import { VEHICLE_PRESETS } from "../store/vehiclePresets";
-import { decodeSharedConfig, SHARED_CONFIG_QUERY_PARAM } from "../store/urlConfig";
+import { buildShareUrl } from "../store/urlConfig";
 
 describe("ControlPanel", () => {
   beforeEach(() => {
@@ -46,17 +46,17 @@ describe("ControlPanel", () => {
     ).toBeInTheDocument();
   });
 
-  it("copies a share URL encoding the current vehicle and testConditions to the clipboard", async () => {
+  it("opens a QR share modal with the current settings' URL and copies it to the clipboard", async () => {
     const user = userEvent.setup();
     render(<ControlPanel />);
-
-    await user.click(screen.getByRole("button", { name: "セッティングを共有（URLをコピー）" }));
-
-    expect(await screen.findByRole("status")).toHaveTextContent("リンクをコピーしました");
-    const copiedText = await navigator.clipboard.readText();
-    const copiedUrl = new URL(copiedText);
-    const encoded = copiedUrl.searchParams.get(SHARED_CONFIG_QUERY_PARAM);
     const { vehicle, testConditions } = useSimulationStore.getState();
-    expect(decodeSharedConfig(encoded as string)).toEqual({ vehicle, testConditions });
+    const expectedUrl = buildShareUrl(vehicle, testConditions);
+
+    await user.click(screen.getByRole("button", { name: "セッティングを共有" }));
+    expect(await screen.findByText(expectedUrl)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "URLをコピー" }));
+    expect(await screen.findByRole("button", { name: "コピーしました" })).toBeInTheDocument();
+    expect(await navigator.clipboard.readText()).toBe(expectedUrl);
   });
 });

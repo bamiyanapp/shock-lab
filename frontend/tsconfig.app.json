@@ -7,6 +7,9 @@
     "types": ["vite/client"],
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
+    // dev-standardsのshared/pwa・shared/ui配下はプレーンなJSX（symlink共有、issue #147・#148）。
+    // TypeScript側の型検査対象には含めず（checkJsは既定false）、Viteのトランスパイルのみで動かす。
+    "allowJs": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",

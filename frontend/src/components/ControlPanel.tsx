@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { useSimulationStore } from "../store/simulationStore";
 import { computeSuspensionTheory } from "../physics/suspensionTheory";
 import { VEHICLE_PRESETS } from "../store/vehiclePresets";
 import { buildShareUrl } from "../store/urlConfig";
+import ShareButton from "./ShareButton.jsx";
 
 interface SliderRowProps {
   label: string;
@@ -48,31 +48,21 @@ export function ControlPanel() {
   const vehicle = useSimulationStore((state) => state.vehicle);
   const setVehicle = useSimulationStore((state) => state.setVehicle);
   const testConditions = useSimulationStore((state) => state.testConditions);
-  const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "failed">("idle");
   const { naturalFrequencyHz, dampingRatio } = computeSuspensionTheory(
     vehicle.suspension.springConstant,
     vehicle.suspension.damperCoefficient,
     vehicle.body.weightKg
   );
 
-  const handleCopyShareLink = async () => {
-    const url = buildShareUrl(vehicle, testConditions);
-    try {
-      await navigator.clipboard.writeText(url);
-      setShareStatus("copied");
-    } catch {
-      setShareStatus("failed");
-    }
-  };
-
   return (
     <div>
       <h2>車両パラメータ</h2>
-      <button type="button" onClick={handleCopyShareLink} style={{ marginBottom: 8 }}>
-        セッティングを共有（URLをコピー）
-      </button>
-      {shareStatus === "copied" && <p role="status">リンクをコピーしました</p>}
-      {shareStatus === "failed" && <p role="status">コピーに失敗しました</p>}
+      <div style={{ marginBottom: 8 }}>
+        <ShareButton
+          label="セッティングを共有"
+          getUrl={() => buildShareUrl(vehicle, testConditions)}
+        />
+      </div>
       <label style={{ display: "block", marginBottom: 8 }}>
         プリセット
         <select
