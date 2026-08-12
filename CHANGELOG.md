@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/bamiyanapp/shock-lab/compare/v1.6.0...v1.7.0) (2026-08-12)
+
+
+### Features
+
+* **ux:** UI/UX改善（数値入力・バンプ漸増・再開/最初から・ゴールライン）＋グラフレイアウト修正 ([#141](https://github.com/bamiyanapp/shock-lab/issues/141)) ([079e23d](https://github.com/bamiyanapp/shock-lab/commit/079e23ddde788c9d272cdb2abd3e1cfac5cc34fc))
+
 # [1.6.0](https://github.com/bamiyanapp/shock-lab/compare/v1.5.0...v1.6.0) (2026-08-12)
 
 
