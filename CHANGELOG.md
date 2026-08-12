@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/bamiyanapp/shock-lab/compare/v1.4.1...v1.5.0) (2026-08-12)
+
+
+### Features
+
+* **physics,vehicle,scenery:** 底付き検出・理論値表示・プリセット・パララックス背景 ([#136](https://github.com/bamiyanapp/shock-lab/issues/136)) ([942d59e](https://github.com/bamiyanapp/shock-lab/commit/942d59e9a2187fac2edb157d95de6099c2520493))
+
 ## [1.4.1](https://github.com/bamiyanapp/shock-lab/compare/v1.4.0...v1.4.1) (2026-08-12)
 
 
