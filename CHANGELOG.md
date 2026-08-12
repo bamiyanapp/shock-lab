@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/bamiyanapp/shock-lab/compare/v1.7.1...v1.8.0) (2026-08-12)
+
+
+### Features
+
+* **pwa,share:** PWA対応・QRコード共有ボタンの導入 ([#150](https://github.com/bamiyanapp/shock-lab/issues/150)) ([4d8a4d6](https://github.com/bamiyanapp/shock-lab/commit/4d8a4d6ca7b59baf4634805911b82ba101d66def))
+
 ## [1.7.1](https://github.com/bamiyanapp/shock-lab/compare/v1.7.0...v1.7.1) (2026-08-12)
 
 
