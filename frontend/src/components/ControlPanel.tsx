@@ -16,7 +16,21 @@ interface SliderRowProps {
 function SliderRow({ label, min, max, step, value, onChange }: SliderRowProps) {
   return (
     <label style={{ display: "block", marginBottom: 8 }}>
-      {label}: {value}
+      <span style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+        {label}
+        <input
+          type="number"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(event) => {
+            const nextValue = Number(event.target.value);
+            if (!Number.isNaN(nextValue)) onChange(nextValue);
+          }}
+          style={{ width: 90 }}
+        />
+      </span>
       <input
         type="range"
         min={min}

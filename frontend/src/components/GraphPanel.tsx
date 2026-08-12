@@ -18,7 +18,10 @@ export function GraphPanel() {
   const data = metricsHistory.map((metrics, index) => ({ tick: index, ...metrics }));
 
   return (
-    <div>
+    // flexコンテナ（Home.tsx）内でwidth指定の無いブロック要素はデフォルトのmin-content幅に
+    // 縮もうとし、ResponsiveContainer（recharts）がそれに合わせて極端に狭くなり、凡例・軸ラベルが
+    // 重なって判読不能になる（issue #140）。flex-basisで最低限の描画幅を確保する。
+    <div style={{ flex: "1 1 480px", minWidth: 320 }}>
       <h2>メトリクス</h2>
       <p>底付き回数: {bottomOutCount}</p>
       <ResponsiveContainer width="100%" height={200}>

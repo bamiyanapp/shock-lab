@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import Matter from "matter-js";
 import { createWorld } from "../physics/world";
-import { createTerrain, COURSE_LENGTH_PX } from "../physics/terrain";
+import { createTerrain, COURSE_LENGTH_PX, GOAL_LINE_X_PX } from "../physics/terrain";
 import { createVehicleBodies } from "../physics/vehicle";
 import { createSuspensionConstraint } from "../physics/suspension";
 import { computeMetrics } from "../physics/metrics";
@@ -87,6 +87,18 @@ function drawDustParticle(ctx: CanvasRenderingContext2D, particle: DustParticle,
   ctx.fill();
 }
 
+function drawGoalLine(ctx: CanvasRenderingContext2D, x: number, groundScreenY: number) {
+  ctx.fillStyle = "#f0fdfa";
+  ctx.fillRect(x - 3, groundScreenY - 160, 6, 160);
+  ctx.fillStyle = "#0f766e";
+  ctx.beginPath();
+  ctx.moveTo(x + 3, groundScreenY - 160);
+  ctx.lineTo(x + 40, groundScreenY - 145);
+  ctx.lineTo(x + 3, groundScreenY - 130);
+  ctx.closePath();
+  ctx.fill();
+}
+
 function drawHouse(ctx: CanvasRenderingContext2D, x: number, groundScreenY: number) {
   ctx.fillStyle = "#c98a5c";
   ctx.fillRect(x - 26, groundScreenY - 42, 52, 42);
@@ -106,6 +118,7 @@ export function VehicleCanvas() {
   const vehicle = useSimulationStore((state) => state.vehicle);
   const terrainType = useSimulationStore((state) => state.testConditions.terrainType);
   const isRunning = useSimulationStore((state) => state.isRunning);
+  const runToken = useSimulationStore((state) => state.runToken);
 
   const engineRef = useRef<Matter.Engine | null>(null);
   const runnerRef = useRef<Matter.Runner | null>(null);
@@ -150,6 +163,7 @@ export function VehicleCanvas() {
     let frontWheelContactCount = 0;
     let rearWheelContactCount = 0;
     let dustParticles: DustParticle[] = [];
+    let hasReachedGoal = false;
     const frontSuspensionRestLengthPx = frontSuspension.length;
     const rearSuspensionRestLengthPx = rearSuspension.length;
     const wheelbasePx = Math.abs(frontWheel.position.x - rearWheel.position.x);
@@ -276,6 +290,13 @@ export function VehicleCanvas() {
         dustParticles.push(...spawnDustBurst(rearWheel.position.x, rearWheel.position.y, 1));
       }
       dustParticles = advanceDustParticles(dustParticles);
+
+      // ゴールライン到達を検知し、崖から落下する前にシミュレーションを止める。
+      // 1回の走行で1度だけトリガーされ、再度「最初から」するまで再発火しない。
+      if (!hasReachedGoal && chassis.position.x >= GOAL_LINE_X_PX) {
+        hasReachedGoal = true;
+        useSimulationStore.getState().setRunning(false);
+      }
     };
     Matter.Events.on(engine, "afterUpdate", handleAfterUpdate);
 
@@ -329,6 +350,11 @@ export function VehicleCanvas() {
         drawDustParticle(context, particle, screenX);
       }
 
+      const goalScreenX = GOAL_LINE_X_PX - offsetX;
+      if (goalScreenX > -20 && goalScreenX < CANVAS_WIDTH + 20) {
+        drawGoalLine(context, goalScreenX, GROUND_Y);
+      }
+
       if (vehicleSprite.complete && vehicleSprite.naturalWidth > 0) {
         const targetWidthPx = wheelbasePx + wheelRadiusPx * 2.8;
         const targetHeightPx = targetWidthPx * VEHICLE_SPRITE_ASPECT_RATIO;
@@ -361,6 +387,18 @@ export function VehicleCanvas() {
         context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         context.restore();
       }
+
+      if (hasReachedGoal) {
+        context.save();
+        context.fillStyle = "rgba(15, 118, 110, 0.55)";
+        context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        context.fillStyle = "#f0fdfa";
+        context.font = "bold 48px sans-serif";
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.fillText("ゴール！", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+        context.restore();
+      }
     };
     Matter.Events.on(render, "afterRender", handleAfterRender);
 
@@ -385,7 +423,7 @@ export function VehicleCanvas() {
       engineRef.current = null;
       runnerRef.current = null;
     };
-  }, [vehicle, terrainType]);
+  }, [vehicle, terrainType, runToken]);
 
   useEffect(() => {
     const engine = engineRef.current;
