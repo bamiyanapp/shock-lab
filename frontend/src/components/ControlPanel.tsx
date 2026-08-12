@@ -1,4 +1,5 @@
 import { useSimulationStore } from "../store/simulationStore";
+import { computeSuspensionTheory } from "../physics/suspensionTheory";
 
 interface SliderRowProps {
   label: string;
@@ -29,10 +30,21 @@ function SliderRow({ label, min, max, step, value, onChange }: SliderRowProps) {
 export function ControlPanel() {
   const vehicle = useSimulationStore((state) => state.vehicle);
   const setVehicle = useSimulationStore((state) => state.setVehicle);
+  const { naturalFrequencyHz, dampingRatio } = computeSuspensionTheory(
+    vehicle.suspension.springConstant,
+    vehicle.suspension.damperCoefficient,
+    vehicle.body.weightKg
+  );
 
   return (
     <div>
       <h2>車両パラメータ</h2>
+      <p
+        title="ζ<1: アンダーダンピング（ふわふわ、振動が続きやすい） / ζ>1: オーバーダンピング（ガチガチ、動きが硬い）"
+        style={{ color: "#94a3b8" }}
+      >
+        固有振動数: {naturalFrequencyHz.toFixed(2)} Hz / 減衰比 ζ: {dampingRatio.toFixed(2)}
+      </p>
       <SliderRow
         label="車重(kg)"
         min={500}
