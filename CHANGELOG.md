@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/bamiyanapp/shock-lab/compare/v1.5.0...v1.6.0) (2026-08-12)
+
+
+### Features
+
+* **graph,effects,share:** グラフパネル改善・衝撃エフェクト・URL共有 ([#138](https://github.com/bamiyanapp/shock-lab/issues/138)) ([894caf5](https://github.com/bamiyanapp/shock-lab/commit/894caf5735c74511e8b357c755ddae25c8763346))
+
 # [1.5.0](https://github.com/bamiyanapp/shock-lab/compare/v1.4.1...v1.5.0) (2026-08-12)
 
 
