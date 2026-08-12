@@ -4,25 +4,9 @@ import type {
   TestConditions,
   SimulationMetrics,
 } from "../types/vehicle";
+import { VEHICLE_PRESETS } from "./vehiclePresets";
 
-const DEFAULT_VEHICLE: VehicleConfig = {
-  body: {
-    weightKg: 1200,
-    frontWeightRatio: 0.55,
-    centerOfGravityHeight: 0.5,
-    wheelbase: 2.5,
-  },
-  suspension: {
-    springConstant: 30000,
-    damperCoefficient: 3000,
-    strokeLength: 0.15,
-    rideHeight: 0.4,
-  },
-  tire: {
-    diameter: 0.6,
-    stiffness: 200000,
-  },
-};
+const DEFAULT_VEHICLE: VehicleConfig = VEHICLE_PRESETS[0].config;
 
 const DEFAULT_TEST_CONDITIONS: TestConditions = {
   speed: 10,

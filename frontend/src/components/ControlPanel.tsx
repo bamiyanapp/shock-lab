@@ -1,5 +1,6 @@
 import { useSimulationStore } from "../store/simulationStore";
 import { computeSuspensionTheory } from "../physics/suspensionTheory";
+import { VEHICLE_PRESETS } from "../store/vehiclePresets";
 
 interface SliderRowProps {
   label: string;
@@ -39,6 +40,26 @@ export function ControlPanel() {
   return (
     <div>
       <h2>車両パラメータ</h2>
+      <label style={{ display: "block", marginBottom: 8 }}>
+        プリセット
+        <select
+          defaultValue=""
+          onChange={(event) => {
+            const preset = VEHICLE_PRESETS.find((candidate) => candidate.id === event.target.value);
+            if (preset) setVehicle(preset.config);
+          }}
+          style={{ display: "block", width: "100%" }}
+        >
+          <option value="" disabled>
+            プリセットを選択
+          </option>
+          {VEHICLE_PRESETS.map((preset) => (
+            <option key={preset.id} value={preset.id}>
+              {preset.label}
+            </option>
+          ))}
+        </select>
+      </label>
       <p
         title="ζ<1: アンダーダンピング（ふわふわ、振動が続きやすい） / ζ>1: オーバーダンピング（ガチガチ、動きが硬い）"
         style={{ color: "#94a3b8" }}
