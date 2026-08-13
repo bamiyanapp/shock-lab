@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/bamiyanapp/shock-lab/compare/v1.8.0...v1.9.0) (2026-08-13)
+
+
+### Features
+
+* **ci:** push時の冗長なCI検証をスキップ（skip_verification_on_push） ([#153](https://github.com/bamiyanapp/shock-lab/issues/153)) ([66abf09](https://github.com/bamiyanapp/shock-lab/commit/66abf09ee1d63db835b1dee5d676a4ed2ab65f54))
+
 # [1.8.0](https://github.com/bamiyanapp/shock-lab/compare/v1.7.1...v1.8.0) (2026-08-12)
 
 
