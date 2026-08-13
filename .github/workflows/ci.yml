@@ -23,6 +23,11 @@ jobs:
       packages: '[{"dir":"frontend","build":true,"coverage_threshold":70,"node_version":22}]'
       enable_standards_check: true
       enable_duplication_check: true
+      # squash merge運用（enable_auto_merge）のため、pull_requestイベントで既に検証済みの
+      # 内容をpushイベント（squash merge後のmainへのpush）で再検証しない（issue #149）。
+      # 「base_branchと同期済みでないとマージ不可」（up-to-date required）のブランチ保護が
+      # 前提。この前提が崩れている場合はfalseへ戻すこと。
+      skip_verification_on_push: true
     secrets:
       # mergeジョブのスカッシュマージをBOT_TOKENで行わないと、GITHUB_TOKENによる
       # pushはGitHub Actions上で新たなワークフロー実行のトリガーにならず、
