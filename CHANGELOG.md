@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/bamiyanapp/shock-lab/compare/v1.9.0...v1.9.1) (2026-08-15)
+
+
+### Bug Fixes
+
+* **standards:** 新規Skill（planning-and-task-breakdown）のsymlink追加 ([#165](https://github.com/bamiyanapp/shock-lab/issues/165)) ([0c13edb](https://github.com/bamiyanapp/shock-lab/commit/0c13edbdfedaa822d4b16d9185e7602875071850))
+
 # [1.9.0](https://github.com/bamiyanapp/shock-lab/compare/v1.8.0...v1.9.0) (2026-08-13)
 
 
