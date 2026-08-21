@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/bamiyanapp/shock-lab/compare/v1.10.0...v1.11.0) (2026-08-21)
+
+
+### Features
+
+* **pwa:** アプリアイコンに車両画像を設定する ([#190](https://github.com/bamiyanapp/shock-lab/issues/190)) ([8fc6e59](https://github.com/bamiyanapp/shock-lab/commit/8fc6e596efcff611c27198a86f1e1143e0a57901)), closes [#189](https://github.com/bamiyanapp/shock-lab/issues/189)
+
 # [1.10.0](https://github.com/bamiyanapp/shock-lab/compare/v1.9.1...v1.10.0) (2026-08-21)
 
 
