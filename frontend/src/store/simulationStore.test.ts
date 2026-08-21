@@ -34,4 +34,28 @@ describe("useSimulationStore", () => {
     expect(metrics.speed).toBe(249);
     expect(metricsHistory[metricsHistory.length - 1].speed).toBe(249);
   });
+
+  it("clears result when restarting or resetting the run", () => {
+    useSimulationStore.getState().setResult({
+      rank: "A",
+      maxImpact: 2.5,
+      bottomOutCount: 0,
+      averageAbsVerticalG: 0.4,
+      elapsedSeconds: 12.3,
+    });
+    expect(useSimulationStore.getState().result).not.toBeNull();
+
+    useSimulationStore.getState().restartRun();
+    expect(useSimulationStore.getState().result).toBeNull();
+
+    useSimulationStore.getState().setResult({
+      rank: "S",
+      maxImpact: 1.0,
+      bottomOutCount: 0,
+      averageAbsVerticalG: 0.1,
+      elapsedSeconds: 10,
+    });
+    useSimulationStore.getState().reset();
+    expect(useSimulationStore.getState().result).toBeNull();
+  });
 });
