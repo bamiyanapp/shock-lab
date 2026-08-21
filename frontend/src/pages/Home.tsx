@@ -3,6 +3,7 @@ import { VehicleCanvas } from "../components/VehicleCanvas";
 import { ControlPanel } from "../components/ControlPanel";
 import { GraphPanel } from "../components/GraphPanel";
 import { SimulationControls } from "../components/SimulationControls";
+import { ResultScreen } from "../components/ResultScreen";
 import { useSimulationStore } from "../store/simulationStore";
 import { decodeSharedConfig, SHARED_CONFIG_QUERY_PARAM } from "../store/urlConfig";
 
@@ -23,6 +24,7 @@ export function Home() {
       <h1>ShockLab</h1>
       <VehicleCanvas />
       <SimulationControls />
+      <ResultScreen />
       <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
         <ControlPanel />
         <GraphPanel />

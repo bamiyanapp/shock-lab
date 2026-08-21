@@ -9,6 +9,7 @@ import { shouldApplyDrivingForce } from "../physics/driveControl";
 import { computeAirDragDeceleration } from "../physics/resistance";
 import { createScenery, createParallaxLayers } from "../physics/scenery";
 import { spawnDustBurst, advanceDustParticles, type DustParticle } from "../physics/impactEffects";
+import { computeResultRank } from "../physics/resultRank";
 import { useSimulationStore } from "../store/simulationStore";
 import vehicleSpriteUrl from "../assets/vehicle-sprite.png";
 
@@ -164,6 +165,9 @@ export function VehicleCanvas() {
     let rearWheelContactCount = 0;
     let dustParticles: DustParticle[] = [];
     let hasReachedGoal = false;
+    // ゴール到達時のリザルト（平均G）算出用に、走行中の|verticalG|を毎tick積算しておく。
+    let sumAbsVerticalG = 0;
+    let verticalGSampleCount = 0;
     const frontSuspensionRestLengthPx = frontSuspension.length;
     const rearSuspensionRestLengthPx = rearSuspension.length;
     const wheelbasePx = Math.abs(frontWheel.position.x - rearWheel.position.x);
@@ -280,6 +284,8 @@ export function VehicleCanvas() {
       maxImpact = result.metrics.maxImpact;
       isBottomedOut = result.metrics.isBottomedOut;
       bottomOutCount = result.metrics.bottomOutCount;
+      sumAbsVerticalG += Math.abs(result.metrics.verticalG);
+      verticalGSampleCount += 1;
       useSimulationStore.getState().setMetrics(result.metrics);
 
       // 走行中に接地しているタイヤから、確率的に軽い砂埃を発生させ続ける
@@ -296,6 +302,17 @@ export function VehicleCanvas() {
       if (!hasReachedGoal && chassis.position.x >= GOAL_LINE_X_PX) {
         hasReachedGoal = true;
         useSimulationStore.getState().setRunning(false);
+
+        const averageAbsVerticalG = verticalGSampleCount > 0 ? sumAbsVerticalG / verticalGSampleCount : 0;
+        const elapsedSeconds = animationTickCount / STEPS_PER_SECOND;
+        const rank = computeResultRank({ maxImpact, bottomOutCount, averageAbsVerticalG });
+        useSimulationStore.getState().setResult({
+          rank,
+          maxImpact,
+          bottomOutCount,
+          averageAbsVerticalG,
+          elapsedSeconds,
+        });
       }
     };
     Matter.Events.on(engine, "afterUpdate", handleAfterUpdate);

@@ -5,6 +5,14 @@ import type {
   SimulationMetrics,
 } from "../types/vehicle";
 import { VEHICLE_PRESETS } from "./vehiclePresets";
+import type { ResultRank, ResultStats } from "../physics/resultRank";
+
+/** ゴール到達時にVehicleCanvasが集計し、ストアへ書き込むリザルト情報 */
+export interface SimulationResult extends ResultStats {
+  rank: ResultRank;
+  /** 走破タイム(秒)。ランク判定には使わない参考値（詳細はphysics/resultRank.ts参照） */
+  elapsedSeconds: number;
+}
 
 const DEFAULT_VEHICLE: VehicleConfig = VEHICLE_PRESETS[0].config;
 
@@ -25,10 +33,13 @@ interface SimulationState {
   /** インクリメントするとVehicleCanvas側のシミュレーション世界が再構築され、車体位置が最初からになる */
   runToken: number;
   metricsHistory: SimulationMetrics[];
+  /** ゴール到達時のリザルト。未到達・リスタート後はnull */
+  result: SimulationResult | null;
   setVehicle: (vehicle: Partial<VehicleConfig>) => void;
   setTestConditions: (conditions: Partial<TestConditions>) => void;
   setMetrics: (metrics: SimulationMetrics) => void;
   setRunning: (isRunning: boolean) => void;
+  setResult: (result: SimulationResult) => void;
   /** 車体位置・履歴を最初の状態へ戻し、そのまま走行を再開する（車両パラメータは維持する） */
   restartRun: () => void;
   reset: () => void;
@@ -52,6 +63,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   hasStarted: false,
   runToken: 0,
   metricsHistory: [],
+  result: null,
   setVehicle: (vehicle) =>
     set((state) => ({
       vehicle: {
@@ -69,6 +81,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
     })),
   setRunning: (isRunning) =>
     set((state) => ({ isRunning, hasStarted: state.hasStarted || isRunning })),
+  setResult: (result) => set({ result }),
   restartRun: () =>
     set((state) => ({
       runToken: state.runToken + 1,
@@ -76,6 +89,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       hasStarted: true,
       metrics: INITIAL_METRICS,
       metricsHistory: [],
+      result: null,
     })),
   reset: () =>
     set({
@@ -86,5 +100,6 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       isRunning: false,
       hasStarted: false,
       runToken: 0,
+      result: null,
     }),
 }));
