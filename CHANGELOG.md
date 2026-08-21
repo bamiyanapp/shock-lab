@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/bamiyanapp/shock-lab/compare/v1.9.1...v1.10.0) (2026-08-21)
+
+
+### Features
+
+* **result:** ゴール到達時のリザルト画面を追加 ([#186](https://github.com/bamiyanapp/shock-lab/issues/186)) ([e141463](https://github.com/bamiyanapp/shock-lab/commit/e14146343e4b9fc13a1e33e985e639120c273e59))
+
 ## [1.9.1](https://github.com/bamiyanapp/shock-lab/compare/v1.9.0...v1.9.1) (2026-08-15)
 
 
