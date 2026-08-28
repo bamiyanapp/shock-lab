@@ -1,4 +1,12 @@
 import { useSimulationStore } from "../store/simulationStore";
+import { clickSound, unlockNonInteractiveSoundEffects } from "../audio/soundEffects";
+
+// ボタン押下は必ずユーザー操作イベント内で発生するため、この関数呼び出しを
+// iOS Safari等の自動再生ポリシーに対するアンロックの契機としても利用する。
+function playClickSound() {
+  clickSound.play();
+  unlockNonInteractiveSoundEffects();
+}
 
 export function SimulationControls() {
   const isRunning = useSimulationStore((state) => state.isRunning);
@@ -8,7 +16,13 @@ export function SimulationControls() {
 
   if (isRunning) {
     return (
-      <button type="button" onClick={() => setRunning(false)}>
+      <button
+        type="button"
+        onClick={() => {
+          playClickSound();
+          setRunning(false);
+        }}
+      >
         一時停止
       </button>
     );
@@ -16,7 +30,13 @@ export function SimulationControls() {
 
   if (!hasStarted) {
     return (
-      <button type="button" onClick={() => setRunning(true)}>
+      <button
+        type="button"
+        onClick={() => {
+          playClickSound();
+          setRunning(true);
+        }}
+      >
         開始
       </button>
     );
@@ -24,10 +44,22 @@ export function SimulationControls() {
 
   return (
     <div style={{ display: "flex", gap: 8 }}>
-      <button type="button" onClick={() => setRunning(true)}>
+      <button
+        type="button"
+        onClick={() => {
+          playClickSound();
+          setRunning(true);
+        }}
+      >
         再開
       </button>
-      <button type="button" onClick={restartRun}>
+      <button
+        type="button"
+        onClick={() => {
+          playClickSound();
+          restartRun();
+        }}
+      >
         最初から
       </button>
     </div>

@@ -11,6 +11,7 @@ import { createScenery, createParallaxLayers } from "../physics/scenery";
 import { spawnDustBurst, advanceDustParticles, type DustParticle } from "../physics/impactEffects";
 import { computeResultRank } from "../physics/resultRank";
 import { useSimulationStore } from "../store/simulationStore";
+import { shockSound, successSound } from "../audio/soundEffects";
 import vehicleSpriteUrl from "../assets/vehicle-sprite.png";
 
 const CANVAS_WIDTH = 800;
@@ -326,6 +327,10 @@ export function VehicleCanvas() {
       });
       previousVerticalVelocityPxPerStep = result.verticalVelocityPxPerStep;
       maxImpact = result.metrics.maxImpact;
+      // 非底付き→底付きへ遷移した瞬間（衝撃音）のみ再生する。底付きが継続している間は鳴らさない。
+      if (!isBottomedOut && result.metrics.isBottomedOut) {
+        shockSound.play();
+      }
       isBottomedOut = result.metrics.isBottomedOut;
       bottomOutCount = result.metrics.bottomOutCount;
       sumAbsVerticalG += Math.abs(result.metrics.verticalG);
@@ -345,6 +350,7 @@ export function VehicleCanvas() {
       // 1回の走行で1度だけトリガーされ、再度「最初から」するまで再発火しない。
       if (!hasReachedGoal && chassis.position.x >= GOAL_LINE_X_PX) {
         hasReachedGoal = true;
+        successSound.play();
         useSimulationStore.getState().setRunning(false);
 
         const averageAbsVerticalG = verticalGSampleCount > 0 ? sumAbsVerticalG / verticalGSampleCount : 0;
