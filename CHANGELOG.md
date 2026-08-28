@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/bamiyanapp/shock-lab/compare/v1.13.1...v1.14.0) (2026-08-28)
+
+
+### Features
+
+* **pwa:** ファビコンに車両画像を設定する ([#226](https://github.com/bamiyanapp/shock-lab/issues/226)) ([3dbfebc](https://github.com/bamiyanapp/shock-lab/commit/3dbfebc2b173add9484df247ab4f5bb08ac45773)), closes [#225](https://github.com/bamiyanapp/shock-lab/issues/225)
+
 ## [1.13.1](https://github.com/bamiyanapp/shock-lab/compare/v1.13.0...v1.13.1) (2026-08-28)
 
 
