@@ -88,6 +88,50 @@ function drawDustParticle(ctx: CanvasRenderingContext2D, particle: DustParticle,
   ctx.fill();
 }
 
+// サスペンションのコイルバネを、実際のconstraintのアンカー位置（車体側）とタイヤ中心を
+// 結ぶ形で描画する。静止画スプライトへバネを描き込むと、バネの実際の伸縮・車体とタイヤの
+// 相対位置とずれて見える問題（issue #44項目3）があったため、実際の物理状態から毎フレーム
+// 座標を算出することで、見た目と実際のサスペンション挙動を常に一致させる。
+function drawSuspensionSpring(
+  ctx: CanvasRenderingContext2D,
+  topX: number,
+  topY: number,
+  bottomX: number,
+  bottomY: number
+) {
+  const dx = bottomX - topX;
+  const dy = bottomY - topY;
+  const length = Math.hypot(dx, dy);
+  if (length < 1) return;
+  const unitX = dx / length;
+  const unitY = dy / length;
+  // 伸縮方向に垂直な単位ベクトル（コイルの振れ幅方向）。
+  const perpX = -unitY;
+  const perpY = unitX;
+  const COIL_COUNT = 6;
+  const COIL_WIDTH_PX = 7;
+
+  ctx.save();
+  ctx.strokeStyle = "#94a3b8";
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(topX, topY);
+  for (let i = 1; i < COIL_COUNT; i++) {
+    const t = i / COIL_COUNT;
+    const side = i % 2 === 0 ? 1 : -1;
+    ctx.lineTo(topX + unitX * length * t + perpX * COIL_WIDTH_PX * side, topY + unitY * length * t + perpY * COIL_WIDTH_PX * side);
+  }
+  ctx.lineTo(bottomX, bottomY);
+  ctx.stroke();
+
+  ctx.fillStyle = "#475569";
+  ctx.beginPath();
+  ctx.arc(topX, topY, 3, 0, Math.PI * 2);
+  ctx.arc(bottomX, bottomY, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 function drawGoalLine(ctx: CanvasRenderingContext2D, x: number, groundScreenY: number) {
   ctx.fillStyle = "#f0fdfa";
   ctx.fillRect(x - 3, groundScreenY - 160, 6, 160);
@@ -396,6 +440,25 @@ export function VehicleCanvas() {
         );
       }
       context.restore();
+
+      const frontSpringTop = Matter.Constraint.pointAWorld(frontSuspension);
+      const frontSpringBottom = Matter.Constraint.pointBWorld(frontSuspension);
+      const rearSpringTop = Matter.Constraint.pointAWorld(rearSuspension);
+      const rearSpringBottom = Matter.Constraint.pointBWorld(rearSuspension);
+      drawSuspensionSpring(
+        context,
+        frontSpringTop.x - offsetX,
+        frontSpringTop.y,
+        frontSpringBottom.x - offsetX,
+        frontSpringBottom.y
+      );
+      drawSuspensionSpring(
+        context,
+        rearSpringTop.x - offsetX,
+        rearSpringTop.y,
+        rearSpringBottom.x - offsetX,
+        rearSpringBottom.y
+      );
 
       // 底付き（ストローク使い切り）中は画面全体を赤くフラッシュさせ、警告として体感的に伝える。
       if (useSimulationStore.getState().metrics.isBottomedOut) {
