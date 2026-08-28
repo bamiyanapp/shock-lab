@@ -1,3 +1,10 @@
+## [1.13.1](https://github.com/bamiyanapp/shock-lab/compare/v1.13.0...v1.13.1) (2026-08-28)
+
+
+### Bug Fixes
+
+* **pwa:** 更新通知バナーが実際のクラス名と不一致で表示されない不具合を修正 ([#221](https://github.com/bamiyanapp/shock-lab/issues/221)) ([cb688e3](https://github.com/bamiyanapp/shock-lab/commit/cb688e336a140ee3991c83444c0c9fb613860245)), closes [#220](https://github.com/bamiyanapp/shock-lab/issues/220)
+
 # [1.13.0](https://github.com/bamiyanapp/shock-lab/compare/v1.12.0...v1.13.0) (2026-08-28)
 
 
