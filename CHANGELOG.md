@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/bamiyanapp/shock-lab/compare/v1.11.0...v1.12.0) (2026-08-28)
+
+
+### Features
+
+* **canvas:** サスペンションのコイルバネをCanvas描画する ([#213](https://github.com/bamiyanapp/shock-lab/issues/213)) ([7768b3e](https://github.com/bamiyanapp/shock-lab/commit/7768b3e57e07638b66478b3b0ae4758cf5e4f54f))
+
 # [1.11.0](https://github.com/bamiyanapp/shock-lab/compare/v1.10.0...v1.11.0) (2026-08-21)
 
 
