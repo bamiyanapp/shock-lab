@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/bamiyanapp/shock-lab/compare/v1.12.0...v1.13.0) (2026-08-28)
+
+
+### Features
+
+* **audio:** 共有効果音（click・shock・success）を適用する ([#218](https://github.com/bamiyanapp/shock-lab/issues/218)) ([7a8e541](https://github.com/bamiyanapp/shock-lab/commit/7a8e541d1bd72d5dbf4acd8e528cdbbf91112651)), closes [#217](https://github.com/bamiyanapp/shock-lab/issues/217)
+
 # [1.12.0](https://github.com/bamiyanapp/shock-lab/compare/v1.11.0...v1.12.0) (2026-08-28)
 
 
