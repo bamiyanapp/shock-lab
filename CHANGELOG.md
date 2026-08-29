@@ -1,3 +1,10 @@
+## [1.14.1](https://github.com/bamiyanapp/shock-lab/compare/v1.14.0...v1.14.1) (2026-08-29)
+
+
+### Bug Fixes
+
+* **cd:** deployジョブでdev-standards submoduleを取得せずビルドが失敗する不具合を修正 ([#229](https://github.com/bamiyanapp/shock-lab/issues/229)) ([e501f6a](https://github.com/bamiyanapp/shock-lab/commit/e501f6a14302350566e08da7daede9310cdf57c9)), closes [#150](https://github.com/bamiyanapp/shock-lab/issues/150) [#228](https://github.com/bamiyanapp/shock-lab/issues/228)
+
 # [1.14.0](https://github.com/bamiyanapp/shock-lab/compare/v1.13.1...v1.14.0) (2026-08-28)
 
 
