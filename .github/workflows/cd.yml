@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   release:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@v2.6.0
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-cd.yml@v2.6.3
     with:
       enable_shared_release_config: true
     secrets:
@@ -35,7 +35,7 @@ jobs:
           submodules: true
       - name: Deploy to GitHub Pages
         id: deploy
-        uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v2.6.0
+        uses: bamiyanapp/dev-standards/.github/actions/deploy-github-pages@v2.6.3
         with:
           working-directory: frontend
           artifact-path: frontend/dist
