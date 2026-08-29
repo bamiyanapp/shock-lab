@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { render, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { Home } from "./Home";
 import { useSimulationStore } from "../store/simulationStore";
 import { encodeSharedConfig } from "../store/urlConfig";
@@ -38,5 +38,10 @@ describe("Home", () => {
   it("keeps the default vehicle when there is no config query param", () => {
     render(<Home />);
     expect(useSimulationStore.getState().vehicle).toEqual(VEHICLE_PRESETS[0].config);
+  });
+
+  it("shows the build-time version at the top (frontend-ui-conventions.md required item)", () => {
+    render(<Home />);
+    expect(screen.getByText(new RegExp(`^v${__APP_VERSION__}`))).toBeInTheDocument();
   });
 });
