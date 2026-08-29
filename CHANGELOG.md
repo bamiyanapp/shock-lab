@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/bamiyanapp/shock-lab/compare/v1.14.1...v1.15.0) (2026-08-29)
+
+
+### Features
+
+* **home:** トップページへバージョン・更新日時を表示する ([#237](https://github.com/bamiyanapp/shock-lab/issues/237)) ([26efd9f](https://github.com/bamiyanapp/shock-lab/commit/26efd9f98d3b250ff67d02b0b6efeea07a061a19)), closes [#236](https://github.com/bamiyanapp/shock-lab/issues/236)
+
 ## [1.14.1](https://github.com/bamiyanapp/shock-lab/compare/v1.14.0...v1.14.1) (2026-08-29)
 
 
