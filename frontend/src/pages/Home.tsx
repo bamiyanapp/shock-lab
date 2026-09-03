@@ -21,13 +21,13 @@ export function Home() {
   }, []);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16, padding: 16 }}>
+    <div className="container py-3 d-flex flex-column gap-3">
       <h1>ShockLab</h1>
       <AppVersionInfo />
       <VehicleCanvas />
       <SimulationControls />
       <ResultScreen />
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 24 }}>
+      <div className="d-flex flex-wrap gap-4">
         <ControlPanel />
         <GraphPanel />
       </div>

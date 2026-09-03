@@ -3,6 +3,10 @@
     { "source": "shared/pwa/sw.js", "target": "frontend/public/sw.js" },
     { "source": "shared/pwa/UpdateNotifier.jsx", "target": "frontend/src/components/UpdateNotifier.jsx" },
     { "source": "shared/ui/ShareButton.jsx", "target": "frontend/src/components/ShareButton.jsx" },
+    { "source": "shared/ui/common-theme.css", "target": "frontend/src/common-theme.css" },
+    { "source": "shared/ui/bootstrap-theme.css", "target": "frontend/src/bootstrap-theme.css" },
+    { "source": "shared/ui/getAppVersionDefine.js", "target": "frontend/getAppVersionDefine.js" },
+    { "source": "shared/ui/formatBuildTime.js", "target": "frontend/src/components/formatBuildTime.js" },
     { "source": "shared/sfx/click.mp3", "target": "frontend/src/assets/sounds/click.mp3" },
     { "source": "shared/sfx/shock.mp3", "target": "frontend/src/assets/sounds/shock.mp3" },
     { "source": "shared/sfx/success.mp3", "target": "frontend/src/assets/sounds/success.mp3" }

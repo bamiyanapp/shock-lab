@@ -15,11 +15,12 @@ interface SliderRowProps {
 
 function SliderRow({ label, min, max, step, value, onChange }: SliderRowProps) {
   return (
-    <label style={{ display: "block", marginBottom: 8 }}>
-      <span style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+    <label className="form-label d-block mb-3">
+      <span className="d-flex justify-content-between align-items-center gap-2 mb-1">
         {label}
         <input
           type="number"
+          className="form-control form-control-sm w-auto"
           min={min}
           max={max}
           step={step}
@@ -28,17 +29,16 @@ function SliderRow({ label, min, max, step, value, onChange }: SliderRowProps) {
             const nextValue = Number(event.target.value);
             if (!Number.isNaN(nextValue)) onChange(nextValue);
           }}
-          style={{ width: 90 }}
         />
       </span>
       <input
         type="range"
+        className="form-range"
         min={min}
         max={max}
         step={step}
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
-        style={{ display: "block", width: "100%" }}
       />
     </label>
   );
@@ -57,21 +57,22 @@ export function ControlPanel() {
   return (
     <div>
       <h2>車両パラメータ</h2>
-      <div style={{ marginBottom: 8 }}>
+      <div className="mb-3">
         <ShareButton
           label="セッティングを共有"
+          className="btn btn-outline-secondary"
           getUrl={() => buildShareUrl(vehicle, testConditions)}
         />
       </div>
-      <label style={{ display: "block", marginBottom: 8 }}>
+      <label className="form-label d-block mb-3">
         プリセット
         <select
+          className="form-select"
           defaultValue=""
           onChange={(event) => {
             const preset = VEHICLE_PRESETS.find((candidate) => candidate.id === event.target.value);
             if (preset) setVehicle(preset.config);
           }}
-          style={{ display: "block", width: "100%" }}
         >
           <option value="" disabled>
             プリセットを選択
@@ -84,8 +85,8 @@ export function ControlPanel() {
         </select>
       </label>
       <p
+        className="text-body-secondary"
         title="ζ<1: アンダーダンピング（ふわふわ、振動が続きやすい） / ζ>1: オーバーダンピング（ガチガチ、動きが硬い）"
-        style={{ color: "#94a3b8" }}
       >
         固有振動数: {naturalFrequencyHz.toFixed(2)} Hz / 減衰比 ζ: {dampingRatio.toFixed(2)}
       </p>
