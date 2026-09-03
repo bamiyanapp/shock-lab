@@ -18,6 +18,7 @@ export function SimulationControls() {
     return (
       <button
         type="button"
+        className="btn btn-secondary"
         onClick={() => {
           playClickSound();
           setRunning(false);
@@ -32,6 +33,7 @@ export function SimulationControls() {
     return (
       <button
         type="button"
+        className="btn btn-primary"
         onClick={() => {
           playClickSound();
           setRunning(true);
@@ -43,9 +45,10 @@ export function SimulationControls() {
   }
 
   return (
-    <div style={{ display: "flex", gap: 8 }}>
+    <div className="d-flex gap-2">
       <button
         type="button"
+        className="btn btn-primary"
         onClick={() => {
           playClickSound();
           setRunning(true);
@@ -55,6 +58,7 @@ export function SimulationControls() {
       </button>
       <button
         type="button"
+        className="btn btn-outline-secondary"
         onClick={() => {
           playClickSound();
           restartRun();

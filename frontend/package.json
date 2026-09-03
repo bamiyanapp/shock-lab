@@ -28,6 +28,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
     "@vitest/coverage-v8": "^4.1.10",
+    "bootstrap": "^5.3.8",
     "jsdom": "^30.0.0",
     "oxlint": "^1.71.0",
     "typescript": "~7.0.0",
