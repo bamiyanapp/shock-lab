@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/bamiyanapp/shock-lab/compare/v1.15.0...v1.16.0) (2026-09-03)
+
+
+### Features
+
+* **ui:** Bootstrap 5.3を導入し独自CSS設計を廃する ([#253](https://github.com/bamiyanapp/shock-lab/issues/253)) ([207ef7a](https://github.com/bamiyanapp/shock-lab/commit/207ef7a1ede7a1d5157e852880e06687c3bad8c8))
+
 # [1.15.0](https://github.com/bamiyanapp/shock-lab/compare/v1.14.1...v1.15.0) (2026-08-29)
 
 
