@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   ci:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.7.3
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.7.4
     with:
       # frontend単一パッケージ構成のため、backend-test固定ジョブを避けるためにpackages構成を使う。
       # node_version: jsdom v30がNode.js組み込みundiciのwebidl API（Node.js 22以降で提供）に
