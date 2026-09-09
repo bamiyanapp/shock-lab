@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "vitest run --coverage --coverage.reporter=text --coverage.reporter=json-summary"
+    "test": "vitest run --coverage --coverage.reporter=text --coverage.reporter=json-summary",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "matter-js": "^0.20.0",
@@ -19,6 +20,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@playwright/test": "1.56.1",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
