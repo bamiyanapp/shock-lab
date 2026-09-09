@@ -9,6 +9,7 @@
     { "source": "shared/ui/formatBuildTime.js", "target": "frontend/src/components/formatBuildTime.js" },
     { "source": "shared/sfx/click.mp3", "target": "frontend/src/assets/sounds/click.mp3" },
     { "source": "shared/sfx/shock.mp3", "target": "frontend/src/assets/sounds/shock.mp3" },
-    { "source": "shared/sfx/success.mp3", "target": "frontend/src/assets/sounds/success.mp3" }
+    { "source": "shared/sfx/success.mp3", "target": "frontend/src/assets/sounds/success.mp3" },
+    { "source": "shared/e2e/screenshot.js", "target": "frontend/e2e/screenshot.js" }
   ]
 }

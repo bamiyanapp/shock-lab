@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+import { configDefaults } from 'vitest/config'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import getAppVersionDefine from './getAppVersionDefine.js' // symlink
@@ -24,5 +25,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/setupTests.ts'],
+    // e2e/配下はPlaywright（test:e2e）が実行するスペックのため、vitestの既定glob
+    // （*.spec.ts等）から除外する（issue #105）。
+    exclude: [...configDefaults.exclude, 'e2e/**'],
   },
 })

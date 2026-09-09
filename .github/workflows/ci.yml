@@ -23,6 +23,10 @@ jobs:
       packages: '[{"dir":"frontend","build":true,"coverage_threshold":70,"node_version":22}]'
       enable_standards_check: true
       enable_duplication_check: true
+      # frontend/e2eのPlaywrightテストを実行し、frontend/e2e-screenshots/へ書き出した
+      # スクリーンショットをJob Summary・PRコメントへ画像として直接埋め込む
+      # （開発環境の制約「スマホオンリー」対応、issue #105）。
+      enable_e2e_test: true
       # squash merge運用（enable_auto_merge）のため、pull_requestイベントで既に検証済みの
       # 内容をpushイベント（squash merge後のmainへのpush）で再検証しない（issue #149）。
       # 「base_branchと同期済みでないとマージ不可」（up-to-date required）のブランチ保護が
