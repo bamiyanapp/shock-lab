@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/bamiyanapp/shock-lab/compare/v1.16.0...v1.17.0) (2026-09-09)
+
+
+### Features
+
+* **e2e:** PlaywrightによるE2Eテストとスクリーンショット報告を導入する ([#274](https://github.com/bamiyanapp/shock-lab/issues/274)) ([e1f7e68](https://github.com/bamiyanapp/shock-lab/commit/e1f7e68f52fc9240e330f1bfb97d07f7865f33cf))
+
 # [1.16.0](https://github.com/bamiyanapp/shock-lab/compare/v1.15.0...v1.16.0) (2026-09-03)
 
 
