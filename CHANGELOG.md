@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/bamiyanapp/shock-lab/compare/v1.18.0...v1.19.0) (2026-09-10)
+
+
+### Features
+
+* **ui:** 試験開始時にシミュレーション画面をフルスクリーン表示する ([#287](https://github.com/bamiyanapp/shock-lab/issues/287)) ([962bfe7](https://github.com/bamiyanapp/shock-lab/commit/962bfe746768ae1315c4cc29d092da7b8969b3a4))
+
 # [1.18.0](https://github.com/bamiyanapp/shock-lab/compare/v1.17.0...v1.18.0) (2026-09-10)
 
 
