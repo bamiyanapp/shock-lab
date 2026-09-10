@@ -35,6 +35,8 @@ interface SimulationState {
   metricsHistory: SimulationMetrics[];
   /** ゴール到達時のリザルト。未到達・リスタート後はnull */
   result: SimulationResult | null;
+  /** true時はクリック音・衝撃音・エンジン音等すべてのサウンドフィードバックを無音にする（issue #53） */
+  isMuted: boolean;
   setVehicle: (vehicle: Partial<VehicleConfig>) => void;
   setTestConditions: (conditions: Partial<TestConditions>) => void;
   setMetrics: (metrics: SimulationMetrics) => void;
@@ -42,6 +44,7 @@ interface SimulationState {
   setResult: (result: SimulationResult) => void;
   /** 車体位置・履歴を最初の状態へ戻し、そのまま走行を再開する（車両パラメータは維持する） */
   restartRun: () => void;
+  setMuted: (isMuted: boolean) => void;
   reset: () => void;
 }
 
@@ -64,6 +67,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   runToken: 0,
   metricsHistory: [],
   result: null,
+  isMuted: false,
   setVehicle: (vehicle) =>
     set((state) => ({
       vehicle: {
@@ -91,6 +95,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       metricsHistory: [],
       result: null,
     })),
+  setMuted: (isMuted) => set({ isMuted }),
   reset: () =>
     set({
       vehicle: DEFAULT_VEHICLE,
