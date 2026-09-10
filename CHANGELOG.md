@@ -1,3 +1,10 @@
+# [1.18.0](https://github.com/bamiyanapp/shock-lab/compare/v1.17.0...v1.18.0) (2026-09-10)
+
+
+### Features
+
+* **audio:** エンジン音とミュートトグルを追加する ([#280](https://github.com/bamiyanapp/shock-lab/issues/280)) ([dea4ac2](https://github.com/bamiyanapp/shock-lab/commit/dea4ac211e5a495f89e0d503cff303f720b54858))
+
 # [1.17.0](https://github.com/bamiyanapp/shock-lab/compare/v1.16.0...v1.17.0) (2026-09-09)
 
 
