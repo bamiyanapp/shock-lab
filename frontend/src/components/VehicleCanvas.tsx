@@ -534,5 +534,57 @@ export function VehicleCanvas() {
     };
   }, [isRunning]);
 
-  return <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} data-testid="vehicle-canvas" />;
+  // 試験開始中は画面全体を覆うフルスクリーン表示にする（issue #231）。iOS Safariは
+  // 非video要素のFullscreen API（Element.requestFullscreen）に対応していないことが
+  // あり、ブラウザ機能に依存すると主要な検証端末（iPhone）で無反応になりかねないため、
+  // ブラウザAPIを使わずCSS（position: fixedで画面全体を覆う）のみで実現している。
+  // ラッパー自体のスタイル（position・サイズ・背景色・中央寄せ）はBootstrapの
+  // ユーティリティクラスではなくインラインstyleで直接指定する。Bootstrap本体は
+  // CDN読み込みのため、読み込みに失敗・遅延した環境でも本機能自体（画面を覆う・
+  // canvasを中央に表示する）が成立するようにするため。
+  // 閉じるボタンは一時停止と同じ意味（isRunningをfalseにする）を持たせ、専用の状態を
+  // 増やさずisRunningのみを表示モードの判定に使う。
+  // canvas要素自体は常に同じ位置・同じラッパーの子として描画し続ける（isRunningの
+  // 変化でcanvasごとマウント解除・再マウントされると、初回のuseEffectで
+  // Matter.Render.create()に渡したcanvas要素がDOMから外れ、以後描画が反映されなく
+  // なるため）。
+  return (
+    <div
+      style={
+        isRunning
+          ? {
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              zIndex: 1090,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#000",
+            }
+          : undefined
+      }
+    >
+      {isRunning && (
+        <button
+          type="button"
+          className="btn btn-sm btn-light"
+          aria-label="フルスクリーンを閉じる"
+          onClick={() => useSimulationStore.getState().setRunning(false)}
+          style={{ position: "absolute", top: 0, right: 0, margin: 8 }}
+        >
+          ✕
+        </button>
+      )}
+      <canvas
+        ref={canvasRef}
+        width={CANVAS_WIDTH}
+        height={CANVAS_HEIGHT}
+        data-testid="vehicle-canvas"
+        style={isRunning ? { maxWidth: "100vw", maxHeight: "100vh", width: "auto", height: "auto" } : undefined}
+      />
+    </div>
+  );
 }
