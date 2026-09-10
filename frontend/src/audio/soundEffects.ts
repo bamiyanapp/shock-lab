@@ -1,6 +1,7 @@
 import clickSoundUrl from "../assets/sounds/click.mp3";
 import shockSoundUrl from "../assets/sounds/shock.mp3";
 import successSoundUrl from "../assets/sounds/success.mp3";
+import { useSimulationStore } from "../store/simulationStore";
 
 interface SoundEffect {
   play: () => void;
@@ -11,6 +12,9 @@ function createSoundEffect(url: string): SoundEffect {
   const audio = new Audio(url);
   return {
     play: () => {
+      // ミュート中は再生しない（issue #53）。store.getState()で都度読むのは、この
+      // モジュールがReactコンポーネント外（物理演算ループ等）からも呼ばれるため。
+      if (useSimulationStore.getState().isMuted) return;
       audio.currentTime = 0;
       // 自動再生ブロック・テスト実行環境（jsdom）等でaudio.play()が例外を投げる、
       // またはPromiseを返さないことがあるため、いずれの場合もシミュレーションは

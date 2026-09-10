@@ -12,6 +12,7 @@ import { spawnDustBurst, advanceDustParticles, type DustParticle } from "../phys
 import { computeResultRank } from "../physics/resultRank";
 import { useSimulationStore } from "../store/simulationStore";
 import { shockSound, successSound } from "../audio/soundEffects";
+import { startEngineSound, stopEngineSound, setEngineSoundSpeed } from "../audio/engineSound";
 import vehicleSpriteUrl from "../assets/vehicle-sprite.png";
 
 const CANVAS_WIDTH = 800;
@@ -307,6 +308,10 @@ export function VehicleCanvas() {
       // ホイールアニメーションも止まるようにする（駆動力の有無とは独立に進める）。
       animationTickCount += 1;
 
+      // エンジン音のピッチを実際の走行速度（m/s）へ反映する（issue #53）。
+      const currentSpeedMetersPerSecond = (chassis.velocity.x * STEPS_PER_SECOND) / PIXELS_PER_METER;
+      setEngineSoundSpeed(currentSpeedMetersPerSecond);
+
       const frontSuspensionLengthPx = Matter.Vector.magnitude(
         Matter.Vector.sub(chassis.position, frontWheel.position)
       );
@@ -518,9 +523,15 @@ export function VehicleCanvas() {
 
     if (isRunning) {
       Matter.Runner.run(runner, engine);
+      startEngineSound();
     } else {
       Matter.Runner.stop(runner);
+      stopEngineSound();
     }
+
+    return () => {
+      stopEngineSound();
+    };
   }, [isRunning]);
 
   return <canvas ref={canvasRef} width={CANVAS_WIDTH} height={CANVAS_HEIGHT} data-testid="vehicle-canvas" />;

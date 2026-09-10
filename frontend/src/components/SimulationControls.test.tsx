@@ -86,4 +86,18 @@ describe("SimulationControls", () => {
     expect(useSimulationStore.getState().runToken).toBe(runTokenBeforeRestart + 1);
     expect(useSimulationStore.getState().metricsHistory).toHaveLength(0);
   });
+
+  it("ミュートトグルでisMutedが切り替わり、表示も追従する（issue #53）", async () => {
+    const user = userEvent.setup();
+    render(<SimulationControls />);
+
+    expect(useSimulationStore.getState().isMuted).toBe(false);
+    await user.click(screen.getByRole("button", { name: "ミュート" }));
+
+    expect(useSimulationStore.getState().isMuted).toBe(true);
+    expect(screen.getByRole("button", { name: "ミュート解除" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "ミュート解除" }));
+    expect(useSimulationStore.getState().isMuted).toBe(false);
+  });
 });
