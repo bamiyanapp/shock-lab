@@ -16,13 +16,28 @@ test('起動直後のトップページを表示する', async ({ page }, testIn
   await captureScreenshot(page, testInfo, 'initial-view', '起動直後のトップページ')
 })
 
-test('開始ボタン押下でシミュレーションが走行状態になる', async ({ page }, testInfo) => {
+test('開始ボタン押下でシミュレーションがフルスクリーン表示の走行状態になる', async ({ page }, testInfo) => {
   await page.goto('/shock-lab/')
   await page.getByRole('button', { name: '開始' }).click()
-  await expect(page.getByRole('button', { name: '一時停止' })).toBeVisible()
+
+  // 試験開始中は画面全体を覆うフルスクリーン表示になる（issue #231）。
+  const closeButton = page.getByRole('button', { name: 'フルスクリーンを閉じる' })
+  await expect(closeButton).toBeVisible()
+  const canvas = page.getByTestId('vehicle-canvas')
+  await expect(canvas).toBeVisible()
+  await expect
+    .poll(() => canvas.evaluate((el) => getComputedStyle(el.parentElement!).position))
+    .toBe('fixed')
 
   // 物理シミュレーションが数tick進み、車両が動き出した状態を撮影する
   await page.waitForTimeout(1000)
 
-  await captureScreenshot(page, testInfo, 'simulation-running', 'シミュレーション実行中')
+  await captureScreenshot(page, testInfo, 'simulation-running', 'シミュレーション実行中（フルスクリーン）')
+
+  // 閉じるボタンで一時停止状態（フルスクリーン解除）に戻る
+  await closeButton.click()
+  await expect(page.getByRole('button', { name: '再開' })).toBeVisible()
+  await expect
+    .poll(() => canvas.evaluate((el) => getComputedStyle(el.parentElement!).position))
+    .not.toBe('fixed')
 })
