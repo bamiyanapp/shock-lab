@@ -29,9 +29,17 @@ jobs:
       pages: write
       id-token: write
     steps:
+      # releaseジョブがバージョン更新コミットをmainへ直接pushしているため、
+      # このワークフローの発端になったコミット（github.sha、refを省略した場合の
+      # デフォルト）ではなく、semantic-releaseでバージョン更新が反映された実際の
+      # コミット（release_commit_sha）を明示的に取得する。省略するとビルドに
+      # 埋め込まれるバージョン表示（__APP_VERSION__、getAppVersionDefine.js）が
+      # 常に1つ前のリリースのままになる
+      # （bamiyanapp/dev-standards#635、docs/cicd-pipeline-specification.md「5.」参照）
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          ref: ${{ needs.release.outputs.release_commit_sha }}
           submodules: true
       - name: Deploy to GitHub Pages
         id: deploy
