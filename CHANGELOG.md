@@ -1,3 +1,10 @@
+## [1.19.1](https://github.com/bamiyanapp/shock-lab/compare/v1.19.0...v1.19.1) (2026-10-02)
+
+
+### Bug Fixes
+
+* **cd:** deploy jobのcheckoutをrelease_commit_shaへ固定する ([#337](https://github.com/bamiyanapp/shock-lab/issues/337)) ([0d981d2](https://github.com/bamiyanapp/shock-lab/commit/0d981d2631a2fc3e37126a4fdd1655121a0f36d0)), closes [bamiyanapp/dev-standards#635](https://github.com/bamiyanapp/dev-standards/issues/635)
+
 # [1.19.0](https://github.com/bamiyanapp/shock-lab/compare/v1.18.0...v1.19.0) (2026-09-10)
 
 
