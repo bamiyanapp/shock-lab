@@ -1,3 +1,10 @@
+## [1.19.2](https://github.com/bamiyanapp/shock-lab/compare/v1.19.1...v1.19.2) (2026-10-27)
+
+
+### Bug Fixes
+
+* **ci:** dev-standardsのsymlink/copyドリフトを自動修復する ([31dd1a3](https://github.com/bamiyanapp/shock-lab/commit/31dd1a3ddc18bdfeee5205014c36694e09334aa8))
+
 ## [1.19.1](https://github.com/bamiyanapp/shock-lab/compare/v1.19.0...v1.19.1) (2026-10-02)
 
 
