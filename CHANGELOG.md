@@ -1,3 +1,10 @@
+## [1.19.3](https://github.com/bamiyanapp/shock-lab/compare/v1.19.2...v1.19.3) (2026-11-09)
+
+
+### Bug Fixes
+
+* **ci:** CIでself_ref未指定によりカバレッジ閾値チェックが無効化されていたのを修正 ([#392](https://github.com/bamiyanapp/shock-lab/issues/392)) ([6d7445c](https://github.com/bamiyanapp/shock-lab/commit/6d7445c8cd053c52e8f0fe93ba74e7040efaad96))
+
 ## [1.19.2](https://github.com/bamiyanapp/shock-lab/compare/v1.19.1...v1.19.2) (2026-10-27)
 
 
