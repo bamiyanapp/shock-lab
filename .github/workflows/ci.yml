@@ -16,6 +16,11 @@ jobs:
   ci:
     uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.121.0
     with:
+      # self_ref省略時はcoverage_threshold等のチェックが警告のみでスキップされるため、
+      # usesのタグと同じ値を明示する（dev-standards docs/reusable-workflows-reference.md参照）。
+      # Renovateはuses:のタグ更新時にこの値までは追従しないため、renovate.jsonの
+      # customManagersでself_ref行も追従対象にしている（dev-standards#1316）。
+      self_ref: v2.121.0
       # frontend単一パッケージ構成のため、backend-test固定ジョブを避けるためにpackages構成を使う。
       # node_version: jsdom v30がNode.js組み込みundiciのwebidl API（Node.js 22以降で提供）に
       # 依存するため、既定の20では`webidl.util.markAsUncloneable is not a function`で
