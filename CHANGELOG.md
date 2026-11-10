@@ -1,3 +1,10 @@
+## [1.19.5](https://github.com/bamiyanapp/shock-lab/compare/v1.19.4...v1.19.5) (2026-11-10)
+
+
+### Bug Fixes
+
+* **lint:** oxlintからESLint＋sonarjsへ移行する ([#409](https://github.com/bamiyanapp/shock-lab/issues/409)) ([120cec0](https://github.com/bamiyanapp/shock-lab/commit/120cec009bf0f86e823d5e6843a20a06d094eba0))
+
 ## [1.19.4](https://github.com/bamiyanapp/shock-lab/compare/v1.19.3...v1.19.4) (2026-11-10)
 
 
