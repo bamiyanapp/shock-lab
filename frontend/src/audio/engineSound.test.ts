@@ -33,7 +33,7 @@ class FakeOscillatorNode {
 class FakeAudioContext {
   // vi.fn()のmock.instancesはnewで呼ばれたクラスコンストラクタそのものには
   // 使えないため、生成されたインスタンスを自前で記録する。
-  static instances: FakeAudioContext[] = [];
+  static readonly instances: FakeAudioContext[] = [];
   state: "running" | "suspended" = "running";
   currentTime = 0;
   destination = {};
