@@ -1,3 +1,10 @@
+# [1.20.0](https://github.com/bamiyanapp/shock-lab/compare/v1.19.5...v1.20.0) (2026-11-10)
+
+
+### Features
+
+* **ci:** 依存更新PRへRisk Summaryを投稿するenable_dependency_risk_summaryを有効化する ([#413](https://github.com/bamiyanapp/shock-lab/issues/413)) ([507768b](https://github.com/bamiyanapp/shock-lab/commit/507768baf5794f93c51ba472f7511b583aa078ab))
+
 ## [1.19.5](https://github.com/bamiyanapp/shock-lab/compare/v1.19.4...v1.19.5) (2026-11-10)
 
 
