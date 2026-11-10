@@ -29,8 +29,13 @@ test('開始ボタン押下でシミュレーションがフルスクリーン�
     .poll(() => canvas.evaluate((el) => getComputedStyle(el.parentElement!).position))
     .toBe('fixed')
 
-  // 物理シミュレーションが数tick進み、車両が動き出した状態を撮影する
-  await page.waitForTimeout(1000)
+  // 物理シミュレーションが数tick進み、車両が動き出した状態を撮影する。固定時間の待機では
+  // なく、canvas描画が初期フレームから実際に変化したこと（アニメーションの進行）を
+  // 観測可能な条件として待つ（sonarjs/no-fixed-wait-in-tests）。
+  const initialFrame = await canvas.evaluate((el) => (el as HTMLCanvasElement).toDataURL())
+  await expect
+    .poll(() => canvas.evaluate((el) => (el as HTMLCanvasElement).toDataURL()))
+    .not.toBe(initialFrame)
 
   await captureScreenshot(page, testInfo, 'simulation-running', 'シミュレーション実行中（フルスクリーン）')
 
