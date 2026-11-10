@@ -1,3 +1,10 @@
+## [1.19.4](https://github.com/bamiyanapp/shock-lab/compare/v1.19.3...v1.19.4) (2026-11-10)
+
+
+### Bug Fixes
+
+* **ci:** CodeQLワークフローのpermissions不足によるstartup_failureを修正 ([#406](https://github.com/bamiyanapp/shock-lab/issues/406)) ([e64c160](https://github.com/bamiyanapp/shock-lab/commit/e64c160dc59aba31e9d43cced583aa7458de09d3))
+
 ## [1.19.3](https://github.com/bamiyanapp/shock-lab/compare/v1.19.2...v1.19.3) (2026-11-09)
 
 
