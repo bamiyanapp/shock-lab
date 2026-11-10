@@ -32,6 +32,11 @@ jobs:
       # スクリーンショットをJob Summary・PRコメントへ画像として直接埋め込む
       # （開発環境の制約「スマホオンリー」対応、issue #105）。
       enable_e2e_test: true
+      # Renovate等が作成した依存更新PRへ、適用リスク・維持リスク判定（Risk Summary）を
+      # PRコメントへ投稿する（モダナイズ観点「依存更新の運用・SBOM」、issue #404）。
+      # dependency-risk-summary job自体が要求する権限（pull-requests: write・issues: write）は
+      # 本ファイル冒頭のpermissions:で既に許可済みのため、追加の権限変更は不要。
+      enable_dependency_risk_summary: true
       # squash merge運用（enable_auto_merge）のため、pull_requestイベントで既に検証済みの
       # 内容をpushイベント（squash merge後のmainへのpush）で再検証しない（issue #149）。
       # 「base_branchと同期済みでないとマージ不可」（up-to-date required）のブランチ保護が
