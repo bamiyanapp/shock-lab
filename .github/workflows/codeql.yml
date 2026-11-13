@@ -12,7 +12,7 @@ on:
 
 jobs:
   codeql:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v2.121.0
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-codeql.yml@v2.123.0
     # SARIFのGitHub Securityタブへのアップロードにはsecurity-events: writeが必要。
     # 省略するとリポジトリ既定の権限（これを含まない）が上限になりstartup_failureになる
     # （dev-standards docs/code-quality-conventions.md「CodeQL」・issue #399参照）。
