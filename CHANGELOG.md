@@ -1,3 +1,10 @@
+## [1.20.1](https://github.com/bamiyanapp/shock-lab/compare/v1.20.0...v1.20.1) (2026-11-13)
+
+
+### Bug Fixes
+
+* self_refをuses:と同じv2.123.0に合わせる ([#424](https://github.com/bamiyanapp/shock-lab/issues/424)) ([850bf6a](https://github.com/bamiyanapp/shock-lab/commit/850bf6a5b34886fc0a6406885f05d6b3491bc47f))
+
 # [1.20.0](https://github.com/bamiyanapp/shock-lab/compare/v1.19.5...v1.20.0) (2026-11-10)
 
 
