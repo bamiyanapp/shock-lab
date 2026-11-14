@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   ci:
-    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.123.1
+    uses: bamiyanapp/dev-standards/.github/workflows/reusable-ci.yml@v2.123.2
     with:
       # self_ref省略時はcoverage_threshold等のチェックが警告のみでスキップされるため、
       # usesのタグと同じ値を明示する（dev-standards docs/reusable-workflows-reference.md参照）。
