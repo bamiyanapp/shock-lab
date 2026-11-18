@@ -1,8 +1,11 @@
 import Matter from "matter-js";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { SimulationSession, type SimulationEvent } from "./simulationSession";
 import { VEHICLE_PRESETS } from "../store/vehiclePresets";
 import type { TerrainType } from "../types/vehicle";
+
+// ゴールまで走る数千tickの物理計算を含み、カバレッジ計測（計装）下では既定の5秒を超えるため延ばす。
+vi.setConfig({ testTimeout: 60_000 });
 
 const MAX_STEPS = 3000 * 60;
 const sessions: SimulationSession[] = [];
