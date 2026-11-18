@@ -1,3 +1,10 @@
+# [1.22.0](https://github.com/bamiyanapp/shock-lab/compare/v1.21.0...v1.22.0) (2026-11-18)
+
+
+### Features
+
+* **run:** 走行状態を1つのphaseへ整理し、リタイア判定・HUD・バックグラウンド停止を追加する ([#480](https://github.com/bamiyanapp/shock-lab/issues/480)) ([8a6a358](https://github.com/bamiyanapp/shock-lab/commit/8a6a3581440003412009f4a3a44725214d26786a)), closes [#443](https://github.com/bamiyanapp/shock-lab/issues/443)
+
 # [1.21.0](https://github.com/bamiyanapp/shock-lab/compare/v1.20.6...v1.21.0) (2026-11-18)
 
 
