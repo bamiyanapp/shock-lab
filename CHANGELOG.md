@@ -1,3 +1,10 @@
+## [1.20.2](https://github.com/bamiyanapp/shock-lab/compare/v1.20.1...v1.20.2) (2026-11-18)
+
+
+### Bug Fixes
+
+* **ci:** self_refをusesのタグへ揃え、Renovateで同じPRへグループ化する ([#464](https://github.com/bamiyanapp/shock-lab/issues/464)) ([4d9b7df](https://github.com/bamiyanapp/shock-lab/commit/4d9b7df3f947dd9f96b3a089f7956b24e972bd0b))
+
 ## [1.20.1](https://github.com/bamiyanapp/shock-lab/compare/v1.20.0...v1.20.1) (2026-11-13)
 
 
