@@ -110,4 +110,16 @@ describe("ControlPanel", () => {
     render(<ControlPanel />);
     expect(screen.getByText(/ζが1未満: 揺れが残りやすい（ふわふわ）／1超: 動きが硬い（ガチガチ）/)).toBeInTheDocument();
   });
+
+  it("ストローク量のスライダーで車両のstrokeLengthを変えられる（issue #445）", async () => {
+    const user = userEvent.setup();
+    render(<ControlPanel />);
+
+    const strokeInput = screen.getByRole("spinbutton", { name: /ストローク量/ });
+    await user.clear(strokeInput);
+    await user.type(strokeInput, "0.3");
+    await user.tab();
+
+    expect(useSimulationStore.getState().vehicle.suspension.strokeLength).toBeCloseTo(0.3, 10);
+  });
 });

@@ -19,9 +19,6 @@ export const PARAMETER_RANGES = {
   diameter: { min: 0.4, max: 1.2, step: 0.05 },
   stiffness: { min: 100000, max: 400000, step: 10000 },
   speed: { min: 5, max: 30, step: 1 },
-  // 以下2つは現状UIに入力欄が無く、地形生成の想定範囲に合わせた安全側の値。
-  bumpHeight: { min: 0, max: 1, step: 0.01 },
-  slopeAngle: { min: -45, max: 45, step: 1 },
 } as const satisfies Record<string, ParameterRange>;
 
 export const TERRAIN_TYPES: readonly TerrainType[] = [
@@ -78,7 +75,7 @@ export function sanitizeTestConditions(input: unknown, fallback: TestConditions)
   const source = asRecord(input);
   const terrainType = TERRAIN_TYPES.find((candidate) => candidate === source.terrainType) ?? fallback.terrainType;
   return {
-    ...sanitizeGroup(source, fallback, ["speed", "bumpHeight", "slopeAngle"]),
+    ...sanitizeGroup(source, fallback, ["speed"]),
     terrainType,
   };
 }

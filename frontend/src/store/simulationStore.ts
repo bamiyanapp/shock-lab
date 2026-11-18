@@ -31,8 +31,6 @@ export const DEFAULT_VEHICLE: VehicleConfig = VEHICLE_PRESETS[0].config;
 
 export const DEFAULT_TEST_CONDITIONS: TestConditions = {
   speed: 10,
-  bumpHeight: 0.1,
-  slopeAngle: 0,
   terrainType: "smallBump",
 };
 

@@ -38,10 +38,6 @@ export type TerrainType =
 export interface TestConditions {
   /** 試験速度(m/s) */
   speed: number;
-  /** 段差高さ(m) */
-  bumpHeight: number;
-  /** スロープ角度(度) */
-  slopeAngle: number;
   /** 路面種類 */
   terrainType: TerrainType;
 }

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useSimulationStore } from "../store/simulationStore";
 import { computeSuspensionTheory } from "../physics/suspensionTheory";
 import { VEHICLE_PRESETS } from "../store/vehiclePresets";
@@ -6,58 +5,7 @@ import { buildShareUrl } from "../store/urlConfig";
 import { PARAMETER_RANGES } from "../store/parameterRanges";
 import type { VehicleConfig } from "../types/vehicle";
 import ShareButton from "./ShareButton.jsx";
-
-interface SliderRowProps {
-  label: string;
-  min: number;
-  max: number;
-  step: number;
-  value: number;
-  onChange: (value: number) => void;
-}
-
-function SliderRow({ label, min, max, step, value, onChange }: SliderRowProps) {
-  // 入力中の文字列はローカルで保持し、blur・Enterで確定する（途中の「1」「12」で毎回
-  // シミュレーションを作り直さないため。空・非数は元の値へ戻し、範囲外は丸める）。
-  const [draft, setDraft] = useState<string | null>(null);
-
-  const commitDraft = () => {
-    if (draft === null) return;
-    setDraft(null);
-    const parsed = draft.trim() === "" ? Number.NaN : Number(draft);
-    if (Number.isFinite(parsed)) onChange(Math.min(max, Math.max(min, parsed)));
-  };
-
-  return (
-    <label className="form-label d-block mb-3">
-      <span className="d-flex justify-content-between align-items-center gap-2 mb-1">
-        {label}
-        <input
-          type="number"
-          className="form-control form-control-sm w-auto"
-          min={min}
-          max={max}
-          step={step}
-          value={draft ?? value}
-          onChange={(event) => setDraft(event.target.value)}
-          onBlur={commitDraft}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") commitDraft();
-          }}
-        />
-      </span>
-      <input
-        type="range"
-        className="form-range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
-      />
-    </label>
-  );
-}
+import { SliderRow } from "./SliderRow";
 
 const CUSTOM_PRESET_ID = "custom";
 
@@ -143,6 +91,14 @@ export function ControlPanel() {
         onChange={(damperCoefficient) =>
           setVehicle({ suspension: { ...vehicle.suspension, damperCoefficient } })
         }
+      />
+      <SliderRow
+        label="ストローク量(m)"
+        min={PARAMETER_RANGES.strokeLength.min}
+        max={PARAMETER_RANGES.strokeLength.max}
+        step={PARAMETER_RANGES.strokeLength.step}
+        value={vehicle.suspension.strokeLength}
+        onChange={(strokeLength) => setVehicle({ suspension: { ...vehicle.suspension, strokeLength } })}
       />
       <SliderRow
         label="車高(m)"
