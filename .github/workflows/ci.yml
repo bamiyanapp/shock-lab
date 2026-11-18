@@ -32,6 +32,10 @@ jobs:
       # スクリーンショットをJob Summary・PRコメントへ画像として直接埋め込む
       # （開発環境の制約「スマホオンリー」対応、issue #105）。
       enable_e2e_test: true
+      # Markdownドキュメントの文章をtextlintで検査する（issue #308）。共有設定
+      # （textlint.config.cjs）はdev-standardsからsymlinkで配布されている。
+      enable_text_lint: true
+      text_lint_paths: "docs/*.md,README.md"
       # Renovate等が作成した依存更新PRへ、適用リスク・維持リスク判定（Risk Summary）を
       # PRコメントへ投稿する（モダナイズ観点「依存更新の運用・SBOM」、issue #404）。
       # dependency-risk-summary job自体が要求する権限（pull-requests: write・issues: write）は
