@@ -23,15 +23,59 @@ describe("ControlPanel", () => {
     expect(useSimulationStore.getState().vehicle).toEqual(truckPreset.config);
   });
 
-  it("updates the vehicle when a value is typed directly into the numeric input next to a slider", async () => {
+  it("updates the vehicle when a value is typed into the numeric input and confirmed (blur/Enter)", async () => {
     const user = userEvent.setup();
     render(<ControlPanel />);
 
     const weightInput = screen.getByRole("spinbutton", { name: /車重/ });
     await user.clear(weightInput);
     await user.type(weightInput, "2500");
+    // 入力中は確定しない（途中の値でシミュレーションを作り直さない）
+    expect(useSimulationStore.getState().vehicle.body.weightKg).toBe(1200);
 
+    await user.keyboard("{Enter}");
     expect(useSimulationStore.getState().vehicle.body.weightKg).toBe(2500);
+  });
+
+  it("restores the original value when the numeric input is emptied and blurred (issue #446)", async () => {
+    const user = userEvent.setup();
+    render(<ControlPanel />);
+
+    const weightInput = screen.getByRole("spinbutton", { name: /車重/ });
+    await user.clear(weightInput);
+    await user.tab();
+
+    expect(useSimulationStore.getState().vehicle.body.weightKg).toBe(1200);
+    expect(weightInput).toHaveValue(1200);
+  });
+
+  it("clamps out-of-range numeric input to the allowed range (issue #446)", async () => {
+    const user = userEvent.setup();
+    render(<ControlPanel />);
+
+    const weightInput = screen.getByRole("spinbutton", { name: /車重/ });
+    await user.clear(weightInput);
+    await user.type(weightInput, "999999");
+    await user.tab();
+
+    expect(useSimulationStore.getState().vehicle.body.weightKg).toBe(30000);
+  });
+
+  it("shows the matching preset, and 'カスタム' after a slider changes the vehicle (issue #446)", async () => {
+    const user = userEvent.setup();
+    render(<ControlPanel />);
+
+    const presetSelect = screen.getByLabelText("プリセット");
+    expect(presetSelect).toHaveValue("sedan");
+
+    await user.selectOptions(presetSelect, "truck");
+    expect(presetSelect).toHaveValue("truck");
+
+    const weightInput = screen.getByRole("spinbutton", { name: /車重/ });
+    await user.clear(weightInput);
+    await user.type(weightInput, "1234");
+    await user.tab();
+    expect(presetSelect).toHaveValue("custom");
   });
 
   it("displays the natural frequency and damping ratio computed from the current vehicle", () => {
