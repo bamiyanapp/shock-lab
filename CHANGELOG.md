@@ -1,3 +1,10 @@
+## [1.20.3](https://github.com/bamiyanapp/shock-lab/compare/v1.20.2...v1.20.3) (2026-11-18)
+
+
+### Bug Fixes
+
+* **ui:** スマホ縦持ちで待機時の横スクロールを解消し走行画面を回転表示する ([#466](https://github.com/bamiyanapp/shock-lab/issues/466)) ([1c3c36e](https://github.com/bamiyanapp/shock-lab/commit/1c3c36e7f5ae01323087b4a50ceef169d7191f58)), closes [#444](https://github.com/bamiyanapp/shock-lab/issues/444)
+
 ## [1.20.2](https://github.com/bamiyanapp/shock-lab/compare/v1.20.1...v1.20.2) (2026-11-18)
 
 
