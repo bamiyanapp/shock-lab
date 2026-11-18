@@ -3,3 +3,16 @@
 export const PIXELS_PER_METER = 60;
 /** 物理エンジンの1秒当たりのステップ数 */
 export const STEPS_PER_SECOND = 60;
+/** 重力加速度(m/s²) */
+export const GRAVITY_MS2 = 9.8;
+/** Matter.jsの質量 = kg × MASS_SCALE（Matterの数値を扱いやすい大きさにするための換算） */
+export const MASS_SCALE = 0.02;
+/** ばね下質量（1軸あたり・kg）。タイヤとホイール等の、バネの下にある質量 */
+export const UNSPRUNG_MASS_KG = 80;
+/**
+ * Matter.jsは位置更新に「力/質量×Δt²（Δtはミリ秒）」を使うため、実効重力が9.8m/s²になる
+ * engine.gravity.scaleは9.8 × 60 / 1e6 = 0.000588になる（gravity.y = 1のとき）。
+ */
+export const GRAVITY_SCALE = (GRAVITY_MS2 * PIXELS_PER_METER) / 1e6;
+/** ニュートン[N]をMatter.jsの力へ換算する係数（F_matter = F_N × MASS_SCALE × 60 / 1e6） */
+export const NEWTON_TO_MATTER_FORCE = (MASS_SCALE * PIXELS_PER_METER) / 1e6;

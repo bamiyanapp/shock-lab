@@ -1,6 +1,7 @@
 import { STEPS_PER_SECOND } from "../physics/units";
 import type { CSSProperties } from "react";
 import Matter from "matter-js";
+import type { SuspensionAxle } from "../physics/suspension";
 import type { DustParticle } from "../physics/impactEffects";
 import type { ParallaxLayer, SceneryItem } from "../physics/scenery";
 
@@ -251,16 +252,14 @@ export function drawVehicleSprite(ctx: CanvasRenderingContext2D, params: Vehicle
 
 export function drawSuspensionSprings(
   ctx: CanvasRenderingContext2D,
-  frontSuspension: Matter.Constraint,
-  rearSuspension: Matter.Constraint,
+  frontSuspension: SuspensionAxle,
+  rearSuspension: SuspensionAxle,
   offsetX: number
 ) {
-  const frontSpringTop = Matter.Constraint.pointAWorld(frontSuspension);
-  const frontSpringBottom = Matter.Constraint.pointBWorld(frontSuspension);
-  const rearSpringTop = Matter.Constraint.pointAWorld(rearSuspension);
-  const rearSpringBottom = Matter.Constraint.pointBWorld(rearSuspension);
-  drawSuspensionSpring(ctx, frontSpringTop.x - offsetX, frontSpringTop.y, frontSpringBottom.x - offsetX, frontSpringBottom.y);
-  drawSuspensionSpring(ctx, rearSpringTop.x - offsetX, rearSpringTop.y, rearSpringBottom.x - offsetX, rearSpringBottom.y);
+  for (const axle of [frontSuspension, rearSuspension]) {
+    const { top, bottom } = axle.getSpringEnds();
+    drawSuspensionSpring(ctx, top.x - offsetX, top.y, bottom.x - offsetX, bottom.y);
+  }
 }
 
 export function drawStatusOverlays(

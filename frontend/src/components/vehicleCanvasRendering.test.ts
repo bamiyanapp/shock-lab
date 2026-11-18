@@ -10,6 +10,7 @@ import {
   drawVehicleSprite,
   getFullscreenWrapperStyle,
 } from "./vehicleCanvasRendering";
+import type { SuspensionAxle } from "../physics/suspension";
 import type { DustParticle } from "../physics/impactEffects";
 
 // CanvasRenderingContext2Dの全メソッド・プロパティ代入を記録するモック。
@@ -95,13 +96,10 @@ describe("drawSuspensionSpring / drawSuspensionSprings", () => {
   });
 
   it("前後2本のバネを描く", () => {
-    const a = Matter.Bodies.rectangle(0, 0, 10, 10);
-    const b = Matter.Bodies.circle(0, 60, 5);
-    const c = Matter.Bodies.circle(40, 60, 5);
-    const front = Matter.Constraint.create({ bodyA: a, bodyB: b, length: 60 });
-    const rear = Matter.Constraint.create({ bodyA: a, bodyB: c, length: 60 });
+    const axle = (x: number) =>
+      ({ getSpringEnds: () => ({ top: { x, y: 0 }, bottom: { x, y: 60 } }) }) as unknown as SuspensionAxle;
     const { ctx, count } = createMockContext();
-    drawSuspensionSprings(ctx, front, rear, 0);
+    drawSuspensionSprings(ctx, axle(0), axle(40), 0);
     expect(count("stroke")).toBe(2);
   });
 });

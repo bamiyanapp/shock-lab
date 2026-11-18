@@ -1,100 +1,69 @@
 import { describe, expect, it } from "vitest";
-import { createVehicleBodies } from "./vehicle";
+import { createVehicleBodies, getAxleArmsPx, getSprungMassKg } from "./vehicle";
+import { MASS_SCALE, UNSPRUNG_MASS_KG } from "./units";
+import type { VehicleBodyParams } from "../types/vehicle";
+
+const suspension = { springConstant: 30000, damperCoefficient: 3000, strokeLength: 0.15, rideHeight: 0.4 };
+const tire = { diameter: 0.6, stiffness: 200000 };
+const body = (overrides: Partial<VehicleBodyParams> = {}): VehicleBodyParams => ({
+  weightKg: 1200,
+  frontWeightRatio: 0.5,
+  centerOfGravityHeight: 0.5,
+  wheelbase: 2.5,
+  ...overrides,
+});
+const create = (b: VehicleBodyParams, t = tire) => createVehicleBodies(b, t, suspension, 0, 300);
 
 describe("createVehicleBodies", () => {
   it("places the front wheel ahead of the rear wheel along the x axis", () => {
-    const { chassis, frontWheel, rearWheel } = createVehicleBodies(
-      { weightKg: 1200, frontWeightRatio: 0.5, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
-      { diameter: 0.6, stiffness: 200000 },
-      0,
-      0
-    );
-
+    const { frontWheel, rearWheel } = create(body());
     expect(frontWheel.position.x).toBeGreaterThan(rearWheel.position.x);
-    expect(chassis.position.x).toBeCloseTo((frontWheel.position.x + rearWheel.position.x) / 2, 0);
+    expect(frontWheel.position.x - rearWheel.position.x).toBeCloseTo(2.5 * 60, 5);
   });
 
-  it("keeps chassis mass within a driveable order of magnitude relative to the wheels", () => {
-    const { chassis, frontWheel } = createVehicleBodies(
-      { weightKg: 1200, frontWeightRatio: 0.5, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
-      { diameter: 0.6, stiffness: 200000 },
-      0,
-      0
-    );
-
-    // weightKgをそのままdensityに使うとchassisの質量がタイヤの1000倍以上になり、
-    // タイヤの駆動力ではほぼ前進できなくなる（回帰防止）。
-    expect(chassis.mass / frontWheel.mass).toBeLessThan(100);
+  it("starts at rest: tires touch the ground and the chassis sits at the suspension rest length", () => {
+    const { chassis, frontWheel } = create(body());
+    expect(frontWheel.position.y + (frontWheel.circleRadius ?? 0)).toBeCloseTo(300, 5);
+    expect(frontWheel.position.y - chassis.position.y).toBeCloseTo(0.4 * 60, 5);
   });
 
-  it("scales chassis mass proportionally with weightKg", () => {
-    const light = createVehicleBodies(
-      { weightKg: 600, frontWeightRatio: 0.5, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
-      { diameter: 0.6, stiffness: 200000 },
-      0,
-      0
-    );
-    const heavy = createVehicleBodies(
-      { weightKg: 1200, frontWeightRatio: 0.5, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
-      { diameter: 0.6, stiffness: 200000 },
-      0,
-      0
-    );
-
-    expect(heavy.chassis.mass).toBeCloseTo(light.chassis.mass * 2, 5);
+  it("sets masses explicitly: sprung mass on the chassis, a fixed unsprung mass per wheel", () => {
+    const { chassis, frontWheel, rearWheel } = create(body());
+    expect(chassis.mass).toBeCloseTo(getSprungMassKg(1200) * MASS_SCALE, 8);
+    expect(frontWheel.mass).toBeCloseTo(UNSPRUNG_MASS_KG * MASS_SCALE, 8);
+    expect(rearWheel.mass).toBeCloseTo(UNSPRUNG_MASS_KG * MASS_SCALE, 8);
   });
 
-  it("shifts the chassis center of mass toward the front when frontWeightRatio is high", () => {
-    const { chassis, frontWheel, rearWheel } = createVehicleBodies(
-      { weightKg: 1200, frontWeightRatio: 0.9, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
-      { diameter: 0.6, stiffness: 200000 },
-      0,
-      0
-    );
-
-    // frontWheelはchassisの+X側にあるため、前重心ほどchassisの重心（回転軸）も+X側へ寄る。
-    const midpointX = (frontWheel.position.x + rearWheel.position.x) / 2;
-    expect(chassis.position.x).toBeGreaterThan(midpointX);
+  it("scales the sprung mass with weightKg", () => {
+    const light = create(body({ weightKg: 660 }));
+    const heavy = create(body({ weightKg: 1160 }));
+    expect(heavy.chassis.mass / light.chassis.mass).toBeCloseTo(1000 / 500, 5);
   });
 
-  it("shifts the chassis center of mass toward the rear when frontWeightRatio is low", () => {
-    const { chassis, frontWheel, rearWheel } = createVehicleBodies(
-      { weightKg: 1200, frontWeightRatio: 0.1, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
-      { diameter: 0.6, stiffness: 200000 },
-      0,
-      0
-    );
-
-    const midpointX = (frontWheel.position.x + rearWheel.position.x) / 2;
-    expect(chassis.position.x).toBeLessThan(midpointX);
+  it("puts the center of mass closer to the front axle when frontWeightRatio is high", () => {
+    const arms = getAxleArmsPx(body({ frontWeightRatio: 0.7 }));
+    expect(arms.front).toBeLessThan(arms.rear);
+    expect(arms.front + arms.rear).toBeCloseTo(2.5 * 60, 5);
+    const { chassis, frontWheel, rearWheel } = create(body({ frontWeightRatio: 0.7 }));
+    expect(frontWheel.position.x - chassis.position.x).toBeLessThan(chassis.position.x - rearWheel.position.x);
   });
 
-  it("keeps the chassis center of mass centered when frontWeightRatio is balanced", () => {
-    const { chassis, frontWheel, rearWheel } = createVehicleBodies(
-      { weightKg: 1200, frontWeightRatio: 0.5, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
-      { diameter: 0.6, stiffness: 200000 },
-      0,
-      0
-    );
+  it("does not collide the chassis and the wheels with each other (same negative collision group)", () => {
+    const { chassis, frontWheel, rearWheel } = create(body());
+    expect(chassis.collisionFilter.group).toBeLessThan(0);
+    expect(frontWheel.collisionFilter.group).toBe(chassis.collisionFilter.group);
+    expect(rearWheel.collisionFilter.group).toBe(chassis.collisionFilter.group);
+  });
 
-    const midpointX = (frontWheel.position.x + rearWheel.position.x) / 2;
-    expect(chassis.position.x).toBeCloseTo(midpointX, 5);
+  it("approximates the wheel as a many-sided polygon that still reports its circleRadius", () => {
+    const { frontWheel } = create(body());
+    expect(frontWheel.circleRadius).toBeCloseTo(18, 5);
+    expect(frontWheel.vertices.length).toBeGreaterThanOrEqual(90);
   });
 
   it("increases tire restitution as tire stiffness increases", () => {
-    const soft = createVehicleBodies(
-      { weightKg: 1200, frontWeightRatio: 0.5, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
-      { diameter: 0.6, stiffness: 50000 },
-      0,
-      0
-    );
-    const stiff = createVehicleBodies(
-      { weightKg: 1200, frontWeightRatio: 0.5, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
-      { diameter: 0.6, stiffness: 400000 },
-      0,
-      0
-    );
-
+    const soft = create(body(), { diameter: 0.6, stiffness: 50000 });
+    const stiff = create(body(), { diameter: 0.6, stiffness: 400000 });
     expect(stiff.frontWheel.restitution).toBeGreaterThan(soft.frontWheel.restitution);
   });
 });
