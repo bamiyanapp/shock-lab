@@ -1,3 +1,10 @@
+## [1.20.5](https://github.com/bamiyanapp/shock-lab/compare/v1.20.4...v1.20.5) (2026-11-18)
+
+
+### Bug Fixes
+
+* **a11y:** lang・description・ζの補足文・Esc・aria-pressed・ErrorBoundaryを追加する ([#472](https://github.com/bamiyanapp/shock-lab/issues/472)) ([b9251b8](https://github.com/bamiyanapp/shock-lab/commit/b9251b8a05a82e71eba63e540032d7486409507a)), closes [#449](https://github.com/bamiyanapp/shock-lab/issues/449)
+
 ## [1.20.4](https://github.com/bamiyanapp/shock-lab/compare/v1.20.3...v1.20.4) (2026-11-18)
 
 
