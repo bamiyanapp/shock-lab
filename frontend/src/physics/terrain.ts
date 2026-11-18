@@ -56,7 +56,7 @@ export function createTerrain(terrainType: TerrainType, groundY: number): Matter
     ];
   }
 
-  const maxBumpHeight = terrainType === "hugeSpeedBump" ? 80 : 30;
+  const maxBumpHeight = terrainType === "hugeSpeedBump" ? 80 : 6;
   const bodies: Matter.Body[] = [];
   let cursor = 0;
 

@@ -3,9 +3,9 @@ import type { SimulationMetrics, TerrainType, VehicleConfig } from "../types/veh
 import type { SimulationResult } from "../store/simulationStore";
 import { createWorld } from "./world";
 import { createTerrain, COURSE_LENGTH_PX, GOAL_LINE_X_PX } from "./terrain";
-import { createVehicleBodies, type VehicleBodies } from "./vehicle";
-import { createSuspensionConstraint } from "./suspension";
-import { computeMetrics } from "./metrics";
+import { createVehicleBodies, getAxleArmsPx, getSprungMassKg, type VehicleBodies } from "./vehicle";
+import { SuspensionAxle } from "./suspension";
+import { computeMetrics, VERTICAL_G_AVERAGE_TICKS } from "./metrics";
 import { shouldApplyDrivingForce } from "./driveControl";
 import { computeAirDragDeceleration } from "./resistance";
 import { createScenery, createParallaxLayers, type SceneryItem, type ParallaxLayer } from "./scenery";
@@ -17,7 +17,6 @@ import { PIXELS_PER_METER, STEPS_PER_SECOND } from "./units";
 /** 地面のY座標(px)。地形・車両の初期位置・背景描画の基準になる */
 export const GROUND_Y = 300;
 const VEHICLE_START_X = 200;
-const VEHICLE_START_OFFSET_Y = 60;
 // 着地（非接地→接地）1回あたりに発生させる砂埃パーティクル数。
 const LANDING_DUST_PARTICLE_COUNT = 8;
 // 走行中に接地しているタイヤから、tickごとにこの確率で軽い砂埃を1粒発生させる。
@@ -51,7 +50,7 @@ export interface StepOutput {
 export class SimulationSession {
   readonly engine: Matter.Engine;
   readonly bodies: VehicleBodies;
-  readonly suspensions: { front: Matter.Constraint; rear: Matter.Constraint };
+  readonly suspensions: { front: SuspensionAxle; rear: SuspensionAxle };
   readonly scenery: SceneryItem[];
   readonly parallaxLayers: ParallaxLayer[];
   readonly wheelbasePx: number;
@@ -63,8 +62,7 @@ export class SimulationSession {
   private readonly options: SimulationSessionOptions;
   private readonly random: () => number;
   private readonly wheelContactTracker: WheelContactTracker;
-  private readonly frontRestLengthPx: number;
-  private readonly rearRestLengthPx: number;
+  private readonly recentVerticalAccelerations: number[] = [];
   private previousVerticalVelocityPxPerStep = 0;
   private maxImpact = 0;
   private isBottomedOut = false;
@@ -84,25 +82,25 @@ export class SimulationSession {
     this.bodies = createVehicleBodies(
       options.vehicle.body,
       options.vehicle.tire,
+      options.vehicle.suspension,
       VEHICLE_START_X,
-      GROUND_Y - VEHICLE_START_OFFSET_Y
+      GROUND_Y
     );
     const { chassis, frontWheel, rearWheel } = this.bodies;
+    const { body, suspension } = options.vehicle;
+    const arms = getAxleArmsPx(body);
+    const sprungMassKg = getSprungMassKg(body.weightKg);
     this.suspensions = {
-      front: createSuspensionConstraint(chassis, frontWheel, options.vehicle.suspension),
-      rear: createSuspensionConstraint(chassis, rearWheel, options.vehicle.suspension),
+      front: new SuspensionAxle(chassis, frontWheel, arms.front, suspension, sprungMassKg, body.frontWeightRatio),
+      rear: new SuspensionAxle(chassis, rearWheel, -arms.rear, suspension, sprungMassKg, 1 - body.frontWeightRatio),
     };
     Matter.World.add(this.engine.world, [
       ...terrainBodies,
       chassis,
       frontWheel,
       rearWheel,
-      this.suspensions.front,
-      this.suspensions.rear,
     ]);
 
-    this.frontRestLengthPx = this.suspensions.front.length;
-    this.rearRestLengthPx = this.suspensions.rear.length;
     this.wheelbasePx = Math.abs(frontWheel.position.x - rearWheel.position.x);
     this.wheelRadiusPx = frontWheel.circleRadius ?? 0;
 
@@ -114,7 +112,20 @@ export class SimulationSession {
     });
     Matter.Events.on(this.engine, "collisionStart", this.wheelContactTracker.handleCollisionStart);
     Matter.Events.on(this.engine, "collisionEnd", this.wheelContactTracker.handleCollisionEnd);
+    // サスペンションの力は位置更新の前、ストローク制限・横方向の拘束は位置更新の後に適用する。
+    Matter.Events.on(this.engine, "beforeUpdate", this.applySuspensionForces);
+    Matter.Events.on(this.engine, "afterUpdate", this.constrainSuspensions);
   }
+
+  private readonly applySuspensionForces = () => {
+    this.suspensions.front.applyForces();
+    this.suspensions.rear.applyForces();
+  };
+
+  private readonly constrainSuspensions = () => {
+    this.suspensions.front.constrain();
+    this.suspensions.rear.constrain();
+  };
 
   /** engineのafterUpdateで呼ぶ1tickぶんの処理 */
   afterUpdate(): StepOutput {
@@ -125,7 +136,8 @@ export class SimulationSession {
     this.animationTickCount += 1;
 
     const { chassis } = this.bodies;
-    const speedMetersPerSecond = (chassis.velocity.x * STEPS_PER_SECOND) / PIXELS_PER_METER;
+    const chassisVelocity = Matter.Body.getVelocity(chassis);
+    const speedMetersPerSecond = (chassisVelocity.x * STEPS_PER_SECOND) / PIXELS_PER_METER;
     const metrics = this.updateMetrics(events);
     this.updateDust();
     this.checkGoal(events);
@@ -141,6 +153,8 @@ export class SimulationSession {
   dispose(): void {
     Matter.Events.off(this.engine, "collisionStart", this.wheelContactTracker.handleCollisionStart);
     Matter.Events.off(this.engine, "collisionEnd", this.wheelContactTracker.handleCollisionEnd);
+    Matter.Events.off(this.engine, "beforeUpdate", this.applySuspensionForces);
+    Matter.Events.off(this.engine, "afterUpdate", this.constrainSuspensions);
     Matter.World.clear(this.engine.world, false);
     Matter.Engine.clear(this.engine);
   }
@@ -152,6 +166,10 @@ export class SimulationSession {
   // しまうため、shouldApplyDrivingForce()で判定する。
   private applyDriving(): void {
     const { chassis, frontWheel, rearWheel } = this.bodies;
+    // body.velocityは衝突解決後に更新されないため、位置の差分から速度を求める。
+    const chassisVelocity = Matter.Body.getVelocity(chassis);
+    const frontVelocity = Matter.Body.getVelocity(frontWheel);
+    const rearVelocity = Matter.Body.getVelocity(rearWheel);
     const drivingVelocityXPerStep = (this.options.getSpeed() * PIXELS_PER_METER) / STEPS_PER_SECOND;
     const canDrive = shouldApplyDrivingForce({
       isFrontWheelGrounded: this.wheelContactTracker.frontWheelContactCount > 0,
@@ -159,43 +177,41 @@ export class SimulationSession {
       chassisAngle: chassis.angle,
     });
     if (canDrive) {
-      Matter.Body.setVelocity(chassis, { x: drivingVelocityXPerStep, y: chassis.velocity.y });
-      Matter.Body.setVelocity(frontWheel, { x: drivingVelocityXPerStep, y: frontWheel.velocity.y });
-      Matter.Body.setVelocity(rearWheel, { x: drivingVelocityXPerStep, y: rearWheel.velocity.y });
-      Matter.Body.setAngularVelocity(frontWheel, drivingVelocityXPerStep / this.wheelRadiusPx);
-      Matter.Body.setAngularVelocity(rearWheel, drivingVelocityXPerStep / this.wheelRadiusPx);
+      Matter.Body.setVelocity(chassis, { x: drivingVelocityXPerStep, y: chassisVelocity.y });
+      Matter.Body.setVelocity(frontWheel, { x: drivingVelocityXPerStep, y: frontVelocity.y });
+      Matter.Body.setVelocity(rearWheel, { x: drivingVelocityXPerStep, y: rearVelocity.y });
     } else {
       // 駆動していない間（空中・転倒中）は、速度の2乗に比例する空気抵抗で自然に減速させる。
-      const dragDeceleration = computeAirDragDeceleration(chassis.velocity.x);
-      Matter.Body.setVelocity(chassis, { x: chassis.velocity.x - dragDeceleration, y: chassis.velocity.y });
+      const dragDeceleration = computeAirDragDeceleration(chassisVelocity.x);
+      Matter.Body.setVelocity(chassis, { x: chassisVelocity.x - dragDeceleration, y: chassisVelocity.y });
     }
   }
 
   private updateMetrics(events: SimulationEvent[]): SimulationMetrics {
-    const { chassis, frontWheel, rearWheel } = this.bodies;
-    const result = computeMetrics({
-      chassisVelocity: chassis.velocity,
-      previousVerticalVelocityPxPerStep: this.previousVerticalVelocityPxPerStep,
-      frontSuspensionLengthPx: Matter.Vector.magnitude(Matter.Vector.sub(chassis.position, frontWheel.position)),
-      frontSuspensionRestLengthPx: this.frontRestLengthPx,
-      rearSuspensionLengthPx: Matter.Vector.magnitude(Matter.Vector.sub(chassis.position, rearWheel.position)),
-      rearSuspensionRestLengthPx: this.rearRestLengthPx,
+    const chassisVelocity = Matter.Body.getVelocity(this.bodies.chassis);
+    this.recentVerticalAccelerations.push(chassisVelocity.y - this.previousVerticalVelocityPxPerStep);
+    if (this.recentVerticalAccelerations.length > VERTICAL_G_AVERAGE_TICKS) this.recentVerticalAccelerations.shift();
+    this.previousVerticalVelocityPxPerStep = chassisVelocity.y;
+    const metrics = computeMetrics({
+      chassisVelocity,
+      recentVerticalAccelerationsPxPerStep2: this.recentVerticalAccelerations,
+      frontStrokeM: this.suspensions.front.getCompression(),
+      rearStrokeM: this.suspensions.rear.getCompression(),
       previousMaxImpact: this.maxImpact,
       strokeLength: this.options.vehicle.suspension.strokeLength,
       previousIsBottomedOut: this.isBottomedOut,
       previousBottomOutCount: this.bottomOutCount,
     });
-    this.previousVerticalVelocityPxPerStep = result.verticalVelocityPxPerStep;
-    this.maxImpact = result.metrics.maxImpact;
+    this.maxImpact = metrics.maxImpact;
     // 非底付き→底付きへ遷移した瞬間のみ通知する。底付きが継続している間は通知しない。
-    if (!this.isBottomedOut && result.metrics.isBottomedOut) {
+    if (!this.isBottomedOut && metrics.isBottomedOut) {
       events.push({ type: "bottomOut" });
     }
-    this.isBottomedOut = result.metrics.isBottomedOut;
-    this.bottomOutCount = result.metrics.bottomOutCount;
-    this.sumAbsVerticalG += Math.abs(result.metrics.verticalG);
+    this.isBottomedOut = metrics.isBottomedOut;
+    this.bottomOutCount = metrics.bottomOutCount;
+    this.sumAbsVerticalG += Math.abs(metrics.verticalG);
     this.verticalGSampleCount += 1;
-    return result.metrics;
+    return metrics;
   }
 
   // 走行中に接地しているタイヤから、確率的に軽い砂埃を発生させ続ける（見た目の演出用途）。

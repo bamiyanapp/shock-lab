@@ -80,10 +80,12 @@ describe("ControlPanel", () => {
 
   it("displays the natural frequency and damping ratio computed from the current vehicle", () => {
     render(<ControlPanel />);
+    // ばね上質量 = 車重 - 160kg、4輪ぶんのバネ・ダンパーで支える（docs/physics-model.md）。
     const { weightKg } = useSimulationStore.getState().vehicle.body;
     const { springConstant, damperCoefficient } = useSimulationStore.getState().vehicle.suspension;
-    const expectedFrequencyHz = ((1 / (2 * Math.PI)) * Math.sqrt(springConstant / weightKg)).toFixed(2);
-    const expectedDampingRatio = (damperCoefficient / (2 * Math.sqrt(springConstant * weightKg))).toFixed(2);
+    const sprungMassKg = weightKg - 160;
+    const expectedFrequencyHz = ((1 / (2 * Math.PI)) * Math.sqrt((4 * springConstant) / sprungMassKg)).toFixed(2);
+    const expectedDampingRatio = ((4 * damperCoefficient) / (2 * Math.sqrt(4 * springConstant * sprungMassKg))).toFixed(2);
 
     expect(
       screen.getByText(`固有振動数: ${expectedFrequencyHz} Hz / 減衰比 ζ: ${expectedDampingRatio}`)

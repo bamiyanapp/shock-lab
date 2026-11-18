@@ -32,7 +32,7 @@ export const VEHICLE_PRESETS: VehiclePreset[] = [
     label: "スポーツカー",
     config: {
       body: { weightKg: 1400, frontWeightRatio: 0.5, centerOfGravityHeight: 0.35, wheelbase: 2.6 },
-      suspension: { springConstant: 60000, damperCoefficient: 6000, strokeLength: 0.1, rideHeight: 0.25 },
+      suspension: { springConstant: 60000, damperCoefficient: 6000, strokeLength: 0.12, rideHeight: 0.25 },
       tire: { diameter: 0.65, stiffness: 250000 },
     },
   },

@@ -19,8 +19,10 @@ export interface ResultStats {
 export function computeResultRank(stats: ResultStats): ResultRank {
   const { maxImpact, bottomOutCount, averageAbsVerticalG } = stats;
 
-  if (bottomOutCount === 0 && maxImpact < 2.0 && averageAbsVerticalG < 0.3) return "S";
-  if (bottomOutCount === 0 && maxImpact < 3.5 && averageAbsVerticalG < 0.5) return "A";
-  if (bottomOutCount <= 2 && maxImpact < 5.0) return "B";
+  // 閾値はdocs/physics-model.mdの計測表（5プリセット×路面）に基づく。段差の無い平坦路・
+  // 標準セッティングがS、小さな段差がA〜B、底付きする設定がCになるようにしている。
+  if (bottomOutCount === 0 && maxImpact < 0.3 && averageAbsVerticalG < 0.05) return "S";
+  if (bottomOutCount === 0 && maxImpact < 1.0 && averageAbsVerticalG < 0.3) return "A";
+  if (bottomOutCount <= 2 && maxImpact < 3.0) return "B";
   return "C";
 }

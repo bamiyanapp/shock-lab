@@ -51,14 +51,15 @@ describe("SimulationSession", () => {
     expect(session.hasReachedGoal).toBe(true);
   });
 
-  // リファクタリング前（VehicleCanvasの実装）で計測した値（33.7秒）との一致を確認する特性テスト。
-  // 物理モデルを意図して変更する場合のみ、この範囲を見直すこと。
-  it("セダン既定値・smallBump・10m/sのゴールタイムが従来の実測値（約33.7秒）の範囲に入る", () => {
+  // ゴールタイムの特性テスト（回帰防止）。サスペンション物理モデル再設計（issue #442）前は
+  // 33.7秒（段差で減速）だったが、新モデルでは段差を減速せず越えるため、コース長÷試験速度
+  // （約32.2秒）に近い値になる。物理モデル・地形を意図して変更する場合のみ範囲を見直すこと。
+  it("セダン既定値・smallBump・10m/sのゴールタイムがコース長÷速度（約32秒）に近い", () => {
     const goalEvents = runUntilGoal(createSession("smallBump"));
     const goal = goalEvents[0];
     if (goal?.type !== "goal") throw new Error("goalイベントが発生しませんでした");
-    expect(goal.result.elapsedSeconds).toBeGreaterThanOrEqual(33);
-    expect(goal.result.elapsedSeconds).toBeLessThanOrEqual(35);
+    expect(goal.result.elapsedSeconds).toBeGreaterThanOrEqual(31.5);
+    expect(goal.result.elapsedSeconds).toBeLessThanOrEqual(33.5);
   });
 
   it("dispose後は物理ワールドの剛体が空になる", () => {

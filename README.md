@@ -17,4 +17,5 @@ npm run dev
 ## ドキュメント
 
 - [CI/CDパイプライン仕様](docs/cicd-pipeline-specification.md)
+- [物理モデル仕様](docs/physics-model.md)
 - [frontend README](frontend/README.md)
