@@ -1,3 +1,10 @@
+## [1.24.1](https://github.com/bamiyanapp/shock-lab/compare/v1.24.0...v1.24.1) (2026-11-18)
+
+
+### Bug Fixes
+
+* **ci:** self_refをusesのタグ(v2.143.0)へ再び揃える ([#490](https://github.com/bamiyanapp/shock-lab/issues/490)) ([a4e6a45](https://github.com/bamiyanapp/shock-lab/commit/a4e6a4584e15e65864c0487c8a51e65347cc9d74)), closes [#470](https://github.com/bamiyanapp/shock-lab/issues/470) [#451](https://github.com/bamiyanapp/shock-lab/issues/451)
+
 # [1.24.0](https://github.com/bamiyanapp/shock-lab/compare/v1.23.0...v1.24.0) (2026-11-18)
 
 
