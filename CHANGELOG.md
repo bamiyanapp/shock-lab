@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/bamiyanapp/shock-lab/compare/v1.20.6...v1.21.0) (2026-11-18)
+
+
+### Features
+
+* **physics:** サスペンションを明示的なバネ・ダンパー力にして物理モデルを再設計する ([#478](https://github.com/bamiyanapp/shock-lab/issues/478)) ([6fed42d](https://github.com/bamiyanapp/shock-lab/commit/6fed42d39dc6c02a8c2b75f9d97b66378d4430e5)), closes [#442](https://github.com/bamiyanapp/shock-lab/issues/442)
+
 ## [1.20.6](https://github.com/bamiyanapp/shock-lab/compare/v1.20.5...v1.20.6) (2026-11-18)
 
 
