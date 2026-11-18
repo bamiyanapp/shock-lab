@@ -1,10 +1,12 @@
 import { create } from "zustand";
 import type {
+  HistorySample,
   VehicleConfig,
   TestConditions,
   SimulationMetrics,
 } from "../types/vehicle";
 import { VEHICLE_PRESETS } from "./vehiclePresets";
+import { MAX_HISTORY_SAMPLES } from "../physics/units";
 import { sanitizeTestConditions, sanitizeVehicleConfig } from "./parameterRanges";
 import type { ResultRank, ResultStats } from "../physics/resultRank";
 
@@ -41,14 +43,16 @@ interface SimulationState {
   phase: RunPhase;
   /** インクリメントするとVehicleCanvas側のシミュレーション世界が再構築され、車体位置が最初からになる */
   runToken: number;
-  metricsHistory: SimulationMetrics[];
+  /** グラフ用の履歴（10Hz・最大3000サンプル）。走行距離で並ぶ */
+  metricsHistory: HistorySample[];
   /** ゴール到達時のリザルト。未到達・リスタート後はnull */
   result: SimulationResult | null;
   /** true時はクリック音・衝撃音・エンジン音等すべてのサウンドフィードバックを無音にする（issue #53） */
   isMuted: boolean;
   setVehicle: (vehicle: Partial<VehicleConfig>) => void;
   setTestConditions: (conditions: Partial<TestConditions>) => void;
-  setMetrics: (metrics: SimulationMetrics) => void;
+  /** 現在値と履歴の1サンプルを反映する（10Hzで呼ぶ）。サンプルが無ければ現在値のみ */
+  setMetrics: (metrics: SimulationMetrics, sample?: HistorySample | null) => void;
   /** idle → running */
   startRun: () => void;
   /** running → paused（一時停止・閉じるボタン・バックグラウンド化） */
@@ -111,10 +115,10 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       testConditions: sanitizeTestConditions({ ...state.testConditions, ...conditions }, state.testConditions),
       ...resetRunState(state.runToken),
     })),
-  setMetrics: (metrics) =>
+  setMetrics: (metrics, sample) =>
     set((state) => ({
       metrics,
-      metricsHistory: [...state.metricsHistory, metrics].slice(-200),
+      metricsHistory: sample ? [...state.metricsHistory, sample].slice(-MAX_HISTORY_SAMPLES) : state.metricsHistory,
     })),
   startRun: () => set((state) => (state.phase === "idle" ? { phase: "running" } : {})),
   pauseRun: () => set((state) => (state.phase === "running" ? { phase: "paused" } : {})),

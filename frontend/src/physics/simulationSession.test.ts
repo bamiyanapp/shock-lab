@@ -1,6 +1,7 @@
 import Matter from "matter-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SimulationSession, type SimulationEvent } from "./simulationSession";
+import { MAX_HISTORY_SAMPLES } from "./units";
 import { VEHICLE_PRESETS } from "../store/vehiclePresets";
 import type { TerrainType } from "../types/vehicle";
 
@@ -154,6 +155,46 @@ describe("SimulationSession", () => {
       for (let i = 0; i < 600; i += 1) {
         expect(goalSession.stepForTest().events.some((event) => event.type === "retire")).toBe(false);
       }
+    });
+  });
+
+  describe("グラフ用の履歴（issue #447）", () => {
+    it("600tick進めると履歴が100件（6tickごと＝10Hz）になり、sampleは6tickごとにだけ返る", () => {
+      const session = createSession("flat", 10);
+      let sampleCount = 0;
+      for (let i = 0; i < 600; i += 1) {
+        if (session.stepForTest().sample) sampleCount += 1;
+      }
+      expect(session.history).toHaveLength(100);
+      expect(sampleCount).toBe(100);
+      expect(session.history[99].timeSec).toBeCloseTo(10, 5);
+    });
+
+    it("距離は走行とともに増え、latestMetricsが直近tickの値を指す", () => {
+      const session = createSession("flat", 10);
+      let last = session.stepForTest();
+      for (let i = 0; i < 59; i += 1) last = session.stepForTest();
+      expect(session.latestMetrics).toBe(last.metrics);
+      expect(session.history[session.history.length - 1].distanceM).toBeGreaterThan(5);
+    });
+
+    it("区間内で1tickだけのピークは、間引き後のサンプルに残る", () => {
+      const session = createSession("flat", 0);
+      for (let i = 0; i < 6 * 20; i += 1) session.stepForTest();
+      const before = session.history.length;
+      // 区間（6tick）の途中で車体へ上向きの速度を1回だけ与え、鋭いピークを作る
+      session.stepForTest();
+      Matter.Body.setVelocity(session.bodies.chassis, { x: 0, y: -3 });
+      for (let i = 0; i < 12; i += 1) session.stepForTest();
+      const peak = Math.max(...session.history.slice(before).map((sample) => Math.abs(sample.verticalG)));
+      expect(peak).toBeGreaterThan(0.2);
+    });
+
+    it("3001件目で先頭が捨てられる", () => {
+      const session = createSession("flat", 0);
+      for (let i = 0; i < MAX_HISTORY_SAMPLES * 6 + 6; i += 1) session.stepForTest();
+      expect(session.history).toHaveLength(MAX_HISTORY_SAMPLES);
+      expect(session.history[0].timeSec).toBeCloseTo(0.2, 5);
     });
   });
 });

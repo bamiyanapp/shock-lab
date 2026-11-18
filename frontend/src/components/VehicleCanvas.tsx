@@ -72,9 +72,11 @@ export function VehicleCanvas() {
 
     // セッションの1tick結果を、ストア・効果音へ橋渡しする。
     const handleAfterUpdate = () => {
-      const { metrics, speedMetersPerSecond, events } = session.afterUpdate();
+      const { metrics, sample, speedMetersPerSecond, events } = session.afterUpdate();
       setEngineSoundSpeed(speedMetersPerSecond);
-      useSimulationStore.getState().setMetrics(metrics);
+      // ストアへの反映は10Hz（履歴のサンプルが確定したtickのみ）。底付き・ゴール等のイベントと
+      // canvasの描画はセッションから直接読むため、発生tickで即時に処理できる。
+      if (sample) useSimulationStore.getState().setMetrics(metrics, sample);
       for (const event of events) {
         if (event.type === "bottomOut") {
           shockSound.play();
@@ -94,7 +96,7 @@ export function VehicleCanvas() {
       // 大きな上下Gを検知した間だけ、カメラを左右に数px微振動させて衝撃を体感的に伝える。
       // 縦方向の揺れは、地形・車体スプライト等の自前描画がworld Y座標をそのまま画面Yとして
       // 扱っている前提を崩してしまうため、横方向のみに限定する。
-      const verticalG = useSimulationStore.getState().metrics.verticalG;
+      const verticalG = session.latestMetrics.verticalG;
       // カメラ振動の見た目の演出用途のみで、セキュリティ上の意味は無い（sonarjs/pseudo-random）。
       const shakeOffsetX =
         Math.abs(verticalG) > IMPACT_SHAKE_THRESHOLD_G
@@ -137,7 +139,7 @@ export function VehicleCanvas() {
         context,
         CANVAS_WIDTH,
         CANVAS_HEIGHT,
-        useSimulationStore.getState().metrics.isBottomedOut,
+        session.latestMetrics.isBottomedOut,
         session.hasReachedGoal
       );
     };

@@ -48,6 +48,19 @@ export interface VehicleConfig {
   tire: TireParams;
 }
 
+/** グラフ用の履歴の1サンプル（10Hz）。値は区間内（6tick）で絶対値が最大だったもの */
+export interface HistorySample {
+  /** 走行開始からの経過時間(秒) */
+  timeSec: number;
+  /** スタート地点からの走行距離(m) */
+  distanceM: number;
+  verticalG: number;
+  frontStroke: number;
+  rearStroke: number;
+  /** 区間内に底付きがあったか */
+  isBottomedOut: boolean;
+}
+
 export interface SimulationMetrics {
   /** 車速(m/s) */
   speed: number;

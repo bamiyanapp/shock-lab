@@ -1,5 +1,5 @@
 import Matter from "matter-js";
-import type { SimulationMetrics, TerrainType, VehicleConfig } from "../types/vehicle";
+import type { HistorySample, SimulationMetrics, TerrainType, VehicleConfig } from "../types/vehicle";
 import type { RetireReason, SimulationResult } from "../store/simulationStore";
 import { createWorld } from "./world";
 import { createTerrain, COURSE_LENGTH_PX, GOAL_LINE_X_PX } from "./terrain";
@@ -12,7 +12,7 @@ import { createScenery, createParallaxLayers, type SceneryItem, type ParallaxLay
 import { spawnDustBurst, advanceDustParticles, type DustParticle } from "./impactEffects";
 import { computeResultRank } from "./resultRank";
 import { WheelContactTracker } from "./wheelContactTracker";
-import { PIXELS_PER_METER, STEPS_PER_SECOND } from "./units";
+import { HISTORY_SAMPLE_TICKS, MAX_HISTORY_SAMPLES, PIXELS_PER_METER, STEPS_PER_SECOND } from "./units";
 
 /** 地面のY座標(px)。地形・車両の初期位置・背景描画の基準になる */
 export const GROUND_Y = 300;
@@ -49,6 +49,8 @@ export type SimulationEvent =
 
 export interface StepOutput {
   metrics: SimulationMetrics;
+  /** このtickで履歴のサンプルが確定したときのみ設定する（6tickごと） */
+  sample: HistorySample | null;
   /** 現在の走行速度(m/s)。エンジン音のピッチ等に使う */
   speedMetersPerSecond: number;
   events: SimulationEvent[];
@@ -72,6 +74,18 @@ export class SimulationSession {
   hasReachedGoal = false;
   /** ゴールまたはリタイアで終了したか。終了後はリタイア判定を行わない */
   hasFinished = false;
+  /** 直近tickのメトリクス。canvasの描画（フラッシュ・カメラ振動）がストアを介さず読む */
+  latestMetrics: SimulationMetrics = {
+    speed: 0,
+    suspensionStroke: 0,
+    rearSuspensionStroke: 0,
+    verticalG: 0,
+    maxImpact: 0,
+    isBottomedOut: false,
+    bottomOutCount: 0,
+  };
+  /** グラフ用の履歴（10Hz・最大3000サンプル） */
+  readonly history: HistorySample[] = [];
 
   private readonly options: SimulationSessionOptions;
   private readonly random: () => number;
@@ -80,6 +94,11 @@ export class SimulationSession {
   private readonly startX: number;
   private readonly recentChassisX: number[] = [];
   private overturnedTicks = 0;
+  // 履歴の区間（6tick）内の、絶対値が最大だった値
+  private windowVerticalG = 0;
+  private windowFrontStroke = 0;
+  private windowRearStroke = 0;
+  private windowBottomedOut = false;
   private previousVerticalVelocityPxPerStep = 0;
   private maxImpact = 0;
   private isBottomedOut = false;
@@ -160,7 +179,34 @@ export class SimulationSession {
     this.updateDust();
     this.checkGoal(events);
     this.checkRetire(events);
-    return { metrics, speedMetersPerSecond, events };
+    this.latestMetrics = metrics;
+    return { metrics, sample: this.recordHistory(metrics), speedMetersPerSecond, events };
+  }
+
+  // 区間内の最大値を保ち、6tickごとに1サンプルへまとめる（間引きで衝撃のピークを落とさない）。
+  private recordHistory(metrics: SimulationMetrics): HistorySample | null {
+    const keepLarger = (current: number, next: number) => (Math.abs(next) > Math.abs(current) ? next : current);
+    this.windowVerticalG = keepLarger(this.windowVerticalG, metrics.verticalG);
+    this.windowFrontStroke = keepLarger(this.windowFrontStroke, metrics.suspensionStroke);
+    this.windowRearStroke = keepLarger(this.windowRearStroke, metrics.rearSuspensionStroke);
+    this.windowBottomedOut ||= metrics.isBottomedOut;
+    if (this.animationTickCount % HISTORY_SAMPLE_TICKS !== 0) return null;
+
+    const sample: HistorySample = {
+      timeSec: this.animationTickCount / STEPS_PER_SECOND,
+      distanceM: Math.max(0, (this.bodies.chassis.position.x - this.startX) / PIXELS_PER_METER),
+      verticalG: this.windowVerticalG,
+      frontStroke: this.windowFrontStroke,
+      rearStroke: this.windowRearStroke,
+      isBottomedOut: this.windowBottomedOut,
+    };
+    this.windowVerticalG = 0;
+    this.windowFrontStroke = 0;
+    this.windowRearStroke = 0;
+    this.windowBottomedOut = false;
+    this.history.push(sample);
+    if (this.history.length > MAX_HISTORY_SAMPLES) this.history.shift();
+    return sample;
   }
 
   /** テスト用: Matter.Engine.update(engine, 1000/60)とafterUpdate()を1回ずつ実行する */
