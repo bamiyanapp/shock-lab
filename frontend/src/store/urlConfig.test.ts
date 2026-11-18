@@ -3,7 +3,7 @@ import { encodeSharedConfig, decodeSharedConfig, buildShareUrl } from "./urlConf
 import { VEHICLE_PRESETS } from "./vehiclePresets";
 
 const vehicle = VEHICLE_PRESETS[0].config;
-const testConditions = { speed: 12, bumpHeight: 0.2, slopeAngle: 5, terrainType: "largeBump" as const };
+const testConditions = { speed: 12, terrainType: "largeBump" as const };
 
 describe("encodeSharedConfig / decodeSharedConfig", () => {
   it("round-trips vehicle and testConditions through encode/decode", () => {

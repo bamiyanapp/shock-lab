@@ -169,6 +169,17 @@ describe("サスペンション物理モデル", () => {
     });
   });
 
+  it.each(["flat", "smallBump", "largeBump", "hugeSpeedBump", "washboard", "jumpRamp"] as const)(
+    "路面 %s: セダン既定値が600tick進んでもNaN・Infinityが出ない（issue #445）",
+    (terrain) => {
+      const session = createSession(SEDAN, terrain, 10);
+      for (let i = 0; i < 600; i += 1) {
+        const { metrics } = session.stepForTest();
+        expect(Number.isFinite(session.bodies.chassis.position.x + session.bodies.chassis.position.y + metrics.verticalG)).toBe(true);
+      }
+    }
+  );
+
   it("9. ストロークは常に-strokeLength〜+strokeLengthの範囲内", () => {
     for (const terrain of ["smallBump", "hugeSpeedBump"] as const) {
       const session = createSession(SEDAN, terrain, 10);

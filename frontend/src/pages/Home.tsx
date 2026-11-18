@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { AppVersionInfo } from "../components/AppVersionInfo";
 import { VehicleCanvas } from "../components/VehicleCanvas";
+import { TestConditionsPanel } from "../components/TestConditionsPanel";
 import { ControlPanel } from "../components/ControlPanel";
 import { GraphPanel } from "../components/GraphPanel";
 import { SimulationControls } from "../components/SimulationControls";
@@ -28,7 +29,10 @@ export function Home() {
       <SimulationControls />
       <ResultScreen />
       <div className="d-flex flex-wrap gap-4">
-        <ControlPanel />
+        <div>
+          <TestConditionsPanel />
+          <ControlPanel />
+        </div>
         <GraphPanel />
       </div>
     </div>

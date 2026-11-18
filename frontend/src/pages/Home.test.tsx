@@ -23,7 +23,7 @@ describe("Home", () => {
   it("applies a shared config from the URL's config query param on mount", async () => {
     const truckPreset = VEHICLE_PRESETS.find((preset) => preset.id === "truck");
     if (!truckPreset) throw new Error("truck preset not found");
-    const testConditions = { speed: 15, bumpHeight: 0.3, slopeAngle: 10, terrainType: "jumpRamp" as const };
+    const testConditions = { speed: 15, terrainType: "jumpRamp" as const };
     const encoded = encodeSharedConfig(truckPreset.config, testConditions);
     window.history.pushState({}, "", `/?config=${encoded}`);
 
