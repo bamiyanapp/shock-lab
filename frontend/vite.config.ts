@@ -27,5 +27,12 @@ export default defineConfig({
     // e2e/配下はPlaywright（test:e2e）が実行するスペックのため、vitestの既定glob
     // （*.spec.ts等）から除外する（issue #105）。
     exclude: [...configDefaults.exclude, 'e2e/**'],
+    coverage: {
+      // 既定ではテストから読み込まれたファイルだけが集計対象になり、テストの無い中核コード
+      // （VehicleCanvas等）が計測外のままカバレッジが高く見えるため、src配下を全て対象にする
+      // （issue #450）。dev-standards由来のsymlinkもプロダクトに組み込まれて動くため除外しない。
+      include: ['src/**/*.{ts,tsx,jsx,js}'],
+      exclude: ['src/**/*.test.*', 'src/setupTests.ts', 'src/vite-env.d.ts', 'src/main.tsx'],
+    },
   },
 })
