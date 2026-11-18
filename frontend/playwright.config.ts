@@ -21,6 +21,13 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      testIgnore: /mobile\.spec\.ts/,
+    },
+    {
+      // 検証端末（iPhone）の縦持ちを模す。ブラウザはchromiumのまま使う（issue #444）。
+      name: 'mobile-chromium',
+      use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium' },
+      testMatch: /mobile\.spec\.ts/,
     },
   ],
   webServer: {

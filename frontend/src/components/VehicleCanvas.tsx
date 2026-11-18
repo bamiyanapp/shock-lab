@@ -23,7 +23,9 @@ import {
   drawSuspensionSprings,
   drawStatusOverlays,
   getFullscreenWrapperStyle,
+  getCanvasStyle,
 } from "./vehicleCanvasRendering";
+import { useIsPortrait } from "../hooks/useIsPortrait";
 import { CloseFullscreenButton } from "./VehicleCanvasFullscreen";
 
 const CANVAS_WIDTH = 800;
@@ -48,6 +50,7 @@ export function VehicleCanvas() {
   const terrainType = useSimulationStore((state) => state.testConditions.terrainType);
   const isRunning = useSimulationStore((state) => state.isRunning);
   const runToken = useSimulationStore((state) => state.runToken);
+  const isPortrait = useIsPortrait();
 
   const engineRef = useRef<Matter.Engine | null>(null);
   const runnerRef = useRef<Matter.Runner | null>(null);
@@ -328,7 +331,7 @@ export function VehicleCanvas() {
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
         data-testid="vehicle-canvas"
-        style={isRunning ? { maxWidth: "100vw", maxHeight: "100vh", width: "auto", height: "auto" } : undefined}
+        style={getCanvasStyle(isRunning, isPortrait)}
       />
     </div>
   );
