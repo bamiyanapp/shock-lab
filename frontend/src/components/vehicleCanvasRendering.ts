@@ -8,8 +8,9 @@ import type { ParallaxLayer, SceneryItem } from "../physics/scenery";
 // あり、ブラウザ機能に依存すると主要な検証端末（iPhone）で無反応になりかねないため、
 // ブラウザAPIを使わずCSS（position: fixedで画面全体を覆う）のみで実現している。
 // スタイル（position・サイズ・背景色・中央寄せ）はBootstrapのユーティリティクラスではなく
-// インラインstyleで直接指定する。Bootstrap本体はCDN読み込みのため、読み込みに失敗・遅延
-// した環境でも本機能自体（画面を覆う・canvasを中央に表示する）が成立するようにするため。
+// インラインstyleで直接指定する。Bootstrapのクラス名に依存せず、スタイルの読み込み順や
+// 将来のテーマ変更の影響を受けずに本機能自体（画面を覆う・canvasを中央に表示する）が
+// 成立するようにするため。
 export function getFullscreenWrapperStyle(isRunning: boolean): CSSProperties | undefined {
   if (!isRunning) return undefined;
   return {

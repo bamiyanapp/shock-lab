@@ -2,7 +2,7 @@
 // キャッシュ戦略・precacheUrls等を変更した際は必ずcacheVersionを上げ、activate時に
 // 旧キャッシュを確実に破棄させること（詳細はdev-standards/docs/service-worker-update-pattern.md）。
 self.SW_CONFIG = {
-  cacheVersion: "v1",
+  cacheVersion: "v2",
   // GitHub Pagesのプロジェクトページ配信のため、パスは/shock-lab/サブパス基準にする。
   precacheUrls: ["/shock-lab/"],
   // バックエンドAPIを持たないため空。
