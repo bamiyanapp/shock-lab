@@ -18,7 +18,8 @@ function MuteToggle() {
     <button
       type="button"
       className="btn btn-outline-secondary"
-      aria-label={isMuted ? "ミュート解除" : "ミュート"}
+      aria-label="ミュート"
+      aria-pressed={isMuted}
       onClick={() => {
         setMuted(!isMuted);
         applyEngineSoundMuted();

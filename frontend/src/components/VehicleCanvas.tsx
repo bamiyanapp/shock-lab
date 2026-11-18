@@ -319,6 +319,16 @@ export function VehicleCanvas() {
     };
   }, [isRunning]);
 
+  // フルスクリーン表示中はEscキーで一時停止（閉じるボタンと同じ操作）できるようにする。
+  useEffect(() => {
+    if (!isRunning) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") useSimulationStore.getState().setRunning(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isRunning]);
+
   // canvas要素自体は常に同じ位置・同じラッパーの子として描画し続ける（isRunningの
   // 変化でcanvasごとマウント解除・再マウントされると、初回のuseEffectで
   // Matter.Render.create()に渡したcanvas要素がDOMから外れ、以後描画が反映されなく
@@ -330,6 +340,8 @@ export function VehicleCanvas() {
         ref={canvasRef}
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
+        role="img"
+        aria-label="車両走行シミュレーション"
         data-testid="vehicle-canvas"
         style={getCanvasStyle(isRunning, isPortrait)}
       />

@@ -84,11 +84,12 @@ export function ControlPanel() {
           ))}
         </select>
       </label>
-      <p
-        className="text-body-secondary"
-        title="ζ<1: アンダーダンピング（ふわふわ、振動が続きやすい） / ζ>1: オーバーダンピング（ガチガチ、動きが硬い）"
-      >
+      <p className="text-body-secondary mb-1">
         固有振動数: {naturalFrequencyHz.toFixed(2)} Hz / 減衰比 ζ: {dampingRatio.toFixed(2)}
+      </p>
+      {/* タッチ端末にはホバーが無くtitle属性を読めないため、補足文として常時表示する（issue #449）。 */}
+      <p className="text-body-secondary small">
+        ζが1未満: 揺れが残りやすい（ふわふわ）／1超: 動きが硬い（ガチガチ）
       </p>
       <SliderRow
         label="車重(kg)"

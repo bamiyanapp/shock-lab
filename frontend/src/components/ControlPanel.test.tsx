@@ -59,4 +59,9 @@ describe("ControlPanel", () => {
     expect(await screen.findByRole("button", { name: "コピーしました" })).toBeInTheDocument();
     expect(await navigator.clipboard.readText()).toBe(expectedUrl);
   });
+
+  it("減衰比ζの補足文をtitle属性ではなく本文として常時表示する（issue #449）", () => {
+    render(<ControlPanel />);
+    expect(screen.getByText(/ζが1未満: 揺れが残りやすい（ふわふわ）／1超: 動きが硬い（ガチガチ）/)).toBeInTheDocument();
+  });
 });
