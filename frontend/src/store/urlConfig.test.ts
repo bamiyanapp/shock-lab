@@ -23,6 +23,29 @@ describe("encodeSharedConfig / decodeSharedConfig", () => {
   });
 });
 
+describe("decodeSharedConfig with broken values (issue #446)", () => {
+  const encodeRaw = (value: unknown) => btoa(encodeURIComponent(JSON.stringify(value)));
+
+  it("sanitizes missing fields, out-of-range numbers and unknown terrain types without throwing", () => {
+    const decoded = decodeSharedConfig(
+      encodeRaw({
+        vehicle: { body: { weightKg: 0 }, suspension: { springConstant: "x" } },
+        testConditions: { speed: 9999, terrainType: "x" },
+      })
+    );
+    expect(decoded?.vehicle.body.weightKg).toBe(500);
+    expect(decoded?.vehicle.suspension.springConstant).toBe(vehicle.suspension.springConstant);
+    expect(decoded?.vehicle.tire).toEqual(vehicle.tire);
+    expect(decoded?.testConditions.speed).toBe(30);
+    expect(decoded?.testConditions.terrainType).toBe("smallBump");
+  });
+
+  it("returns null when vehicle or testConditions is not an object", () => {
+    expect(decodeSharedConfig(encodeRaw({ vehicle: 1, testConditions: {} }))).toBeNull();
+    expect(decodeSharedConfig(encodeRaw({ vehicle: {}, testConditions: null }))).toBeNull();
+  });
+});
+
 describe("buildShareUrl", () => {
   it("builds a URL whose config query param decodes back to the given config", () => {
     const url = new URL(buildShareUrl(vehicle, testConditions));

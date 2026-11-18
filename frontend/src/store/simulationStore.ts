@@ -5,6 +5,7 @@ import type {
   SimulationMetrics,
 } from "../types/vehicle";
 import { VEHICLE_PRESETS } from "./vehiclePresets";
+import { sanitizeTestConditions, sanitizeVehicleConfig } from "./parameterRanges";
 import type { ResultRank, ResultStats } from "../physics/resultRank";
 
 /** ゴール到達時にVehicleCanvasが集計し、ストアへ書き込むリザルト情報 */
@@ -14,9 +15,9 @@ export interface SimulationResult extends ResultStats {
   elapsedSeconds: number;
 }
 
-const DEFAULT_VEHICLE: VehicleConfig = VEHICLE_PRESETS[0].config;
+export const DEFAULT_VEHICLE: VehicleConfig = VEHICLE_PRESETS[0].config;
 
-const DEFAULT_TEST_CONDITIONS: TestConditions = {
+export const DEFAULT_TEST_CONDITIONS: TestConditions = {
   speed: 10,
   bumpHeight: 0.1,
   slopeAngle: 0,
@@ -69,15 +70,21 @@ export const useSimulationStore = create<SimulationState>((set) => ({
   result: null,
   isMuted: false,
   setVehicle: (vehicle) =>
+    // マージ後の値を必ず検証してから保存する（入力欄・共有URL・プリセットの共通の入口）。
     set((state) => ({
-      vehicle: {
-        body: { ...state.vehicle.body, ...vehicle.body },
-        suspension: { ...state.vehicle.suspension, ...vehicle.suspension },
-        tire: { ...state.vehicle.tire, ...vehicle.tire },
-      },
+      vehicle: sanitizeVehicleConfig(
+        {
+          body: { ...state.vehicle.body, ...vehicle.body },
+          suspension: { ...state.vehicle.suspension, ...vehicle.suspension },
+          tire: { ...state.vehicle.tire, ...vehicle.tire },
+        },
+        state.vehicle
+      ),
     })),
   setTestConditions: (conditions) =>
-    set((state) => ({ testConditions: { ...state.testConditions, ...conditions } })),
+    set((state) => ({
+      testConditions: sanitizeTestConditions({ ...state.testConditions, ...conditions }, state.testConditions),
+    })),
   setMetrics: (metrics) =>
     set((state) => ({
       metrics,
