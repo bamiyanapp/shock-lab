@@ -1,6 +1,6 @@
 import { useSimulationStore } from "../store/simulationStore";
 import { clickSound, unlockNonInteractiveSoundEffects } from "../audio/soundEffects";
-import { applyEngineSoundMuted } from "../audio/engineSound";
+import { MuteToggle } from "./MuteToggle";
 
 // ボタン押下は必ずユーザー操作イベント内で発生するため、この関数呼び出しを
 // iOS Safari等の自動再生ポリシーに対するアンロックの契機としても利用する。
@@ -9,91 +9,40 @@ function playClickSound() {
   unlockNonInteractiveSoundEffects();
 }
 
-// クリック音・衝撃音・エンジン音等すべてのサウンドフィードバックのミュートトグル（issue #53）。
-function MuteToggle() {
-  const isMuted = useSimulationStore((state) => state.isMuted);
-  const setMuted = useSimulationStore((state) => state.setMuted);
-
-  return (
-    <button
-      type="button"
-      className="btn btn-outline-secondary"
-      aria-label="ミュート"
-      aria-pressed={isMuted}
-      onClick={() => {
-        setMuted(!isMuted);
-        applyEngineSoundMuted();
-      }}
-    >
-      {isMuted ? "🔇" : "🔊"}
-    </button>
-  );
-}
-
 export function SimulationControls() {
-  const isRunning = useSimulationStore((state) => state.isRunning);
-  const hasStarted = useSimulationStore((state) => state.hasStarted);
-  const setRunning = useSimulationStore((state) => state.setRunning);
+  const phase = useSimulationStore((state) => state.phase);
+  const startRun = useSimulationStore((state) => state.startRun);
+  const pauseRun = useSimulationStore((state) => state.pauseRun);
+  const resumeRun = useSimulationStore((state) => state.resumeRun);
   const restartRun = useSimulationStore((state) => state.restartRun);
 
-  if (isRunning) {
-    return (
-      <div className="d-flex gap-2">
-        <button
-          type="button"
-          className="btn btn-secondary"
-          onClick={() => {
-            playClickSound();
-            setRunning(false);
-          }}
-        >
-          一時停止
-        </button>
-        <MuteToggle />
-      </div>
-    );
-  }
-
-  if (!hasStarted) {
-    return (
-      <div className="d-flex gap-2">
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => {
-            playClickSound();
-            setRunning(true);
-          }}
-        >
-          開始
-        </button>
-        <MuteToggle />
-      </div>
-    );
-  }
+  const withClick = (action: () => void) => () => {
+    playClickSound();
+    action();
+  };
 
   return (
     <div className="d-flex gap-2">
-      <button
-        type="button"
-        className="btn btn-primary"
-        onClick={() => {
-          playClickSound();
-          setRunning(true);
-        }}
-      >
-        再開
-      </button>
-      <button
-        type="button"
-        className="btn btn-outline-secondary"
-        onClick={() => {
-          playClickSound();
-          restartRun();
-        }}
-      >
-        最初から
-      </button>
+      {phase === "running" && (
+        <button type="button" className="btn btn-secondary" onClick={withClick(pauseRun)}>
+          一時停止
+        </button>
+      )}
+      {phase === "idle" && (
+        <button type="button" className="btn btn-primary" onClick={withClick(startRun)}>
+          開始
+        </button>
+      )}
+      {phase === "paused" && (
+        <button type="button" className="btn btn-primary" onClick={withClick(resumeRun)}>
+          再開
+        </button>
+      )}
+      {(phase === "paused" || phase === "finished") && (
+        <button type="button" className="btn btn-outline-secondary" onClick={withClick(restartRun)}>
+          最初から
+        </button>
+      )}
       <MuteToggle />
     </div>
   );

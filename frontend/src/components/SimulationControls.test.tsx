@@ -11,7 +11,7 @@ describe("SimulationControls", () => {
 
   it("starts stopped and shows a 開始 button", () => {
     render(<SimulationControls />);
-    expect(useSimulationStore.getState().isRunning).toBe(false);
+    expect(useSimulationStore.getState().phase).not.toBe("running");
     expect(screen.getByRole("button", { name: "開始" })).toBeInTheDocument();
   });
 
@@ -20,11 +20,11 @@ describe("SimulationControls", () => {
     render(<SimulationControls />);
 
     await user.click(screen.getByRole("button", { name: "開始" }));
-    expect(useSimulationStore.getState().isRunning).toBe(true);
+    expect(useSimulationStore.getState().phase).toBe("running");
     expect(screen.getByRole("button", { name: "一時停止" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "一時停止" }));
-    expect(useSimulationStore.getState().isRunning).toBe(false);
+    expect(useSimulationStore.getState().phase).not.toBe("running");
   });
 
   it("shows separate 再開/最初から buttons after pausing instead of 開始", async () => {
@@ -58,7 +58,7 @@ describe("SimulationControls", () => {
 
     await user.click(screen.getByRole("button", { name: "再開" }));
 
-    expect(useSimulationStore.getState().isRunning).toBe(true);
+    expect(useSimulationStore.getState().phase).toBe("running");
     expect(useSimulationStore.getState().runToken).toBe(runTokenBeforeResume);
     expect(useSimulationStore.getState().metricsHistory).toHaveLength(1);
   });
@@ -82,7 +82,7 @@ describe("SimulationControls", () => {
 
     await user.click(screen.getByRole("button", { name: "最初から" }));
 
-    expect(useSimulationStore.getState().isRunning).toBe(true);
+    expect(useSimulationStore.getState().phase).toBe("running");
     expect(useSimulationStore.getState().runToken).toBe(runTokenBeforeRestart + 1);
     expect(useSimulationStore.getState().metricsHistory).toHaveLength(0);
   });

@@ -1,3 +1,4 @@
+import Matter from "matter-js";
 import { afterEach, describe, expect, it } from "vitest";
 import { SimulationSession, type SimulationEvent } from "./simulationSession";
 import { VEHICLE_PRESETS } from "../store/vehiclePresets";
@@ -67,5 +68,89 @@ describe("SimulationSession", () => {
     expect(session.engine.world.bodies.length).toBeGreaterThan(0);
     session.dispose();
     expect(session.engine.world.bodies).toHaveLength(0);
+  });
+
+  describe("リタイア判定（issue #443）", () => {
+    function retireEvents(session: SimulationSession, maxTicks: number) {
+      for (let i = 0; i < maxTicks; i += 1) {
+        const retire = session.stepForTest().events.find((event) => event.type === "retire");
+        if (retire?.type === "retire") return { retire, tick: i + 1 };
+      }
+      return null;
+    }
+
+    it("overturned: 車体の傾きがπ/2を超えた状態が連続120tick続くと発火する", () => {
+      const session = createSession("flat", 10);
+      for (let i = 0; i < 400 && !session.hasFinished; i += 1) {
+        Matter.Body.setAngle(session.bodies.chassis, Math.PI * 0.8);
+        const retire = session.stepForTest().events.find((event) => event.type === "retire");
+        if (retire?.type === "retire") {
+          expect(retire.reason).toBe("overturned");
+          expect(retire.result.outcome).toBe("retire");
+          expect(retire.result.rank).toBeNull();
+          expect(session.animationTickCount).toBeGreaterThanOrEqual(120);
+          expect(session.animationTickCount).toBeLessThan(130);
+          return;
+        }
+      }
+      throw new Error("overturnedで終了しませんでした");
+    });
+
+    it("overturned: 傾きが途中で戻ると連続カウントはリセットされ、発火しない", () => {
+      const session = createSession("flat", 10);
+      for (let i = 0; i < 119; i += 1) {
+        Matter.Body.setAngle(session.bodies.chassis, Math.PI * 0.8);
+        session.stepForTest();
+      }
+      Matter.Body.setAngle(session.bodies.chassis, 0);
+      session.stepForTest();
+      for (let i = 0; i < 119; i += 1) {
+        Matter.Body.setAngle(session.bodies.chassis, Math.PI * 0.8);
+        expect(session.stepForTest().events.some((event) => event.type === "retire")).toBe(false);
+      }
+    });
+
+    it("stuck: 速度0で5秒(300tick)前進できないと、300tick目以降に発火する（開始直後は判定しない）", () => {
+      const session = createSession("flat", 0);
+      const found = retireEvents(session, 400);
+      expect(found?.retire.reason).toBe("stuck");
+      expect(found?.tick).toBeGreaterThan(300);
+      expect(found?.retire.result.distanceMeters).toBeLessThan(0.5);
+    });
+
+    it("fellOff: 車体が地面より600px以上下へ落ちると発火する", () => {
+      const session = createSession("flat", 10);
+      session.stepForTest();
+      Matter.Body.setPosition(session.bodies.chassis, { x: 400, y: 300 + 700 });
+      const retire = session.stepForTest().events.find((event) => event.type === "retire");
+      expect(retire?.type === "retire" && retire.reason).toBe("fellOff");
+    });
+
+    it("timeout: 走行tickが上限を超えると発火する（上限は引数で短くできる）", () => {
+      const session = new SimulationSession({
+        vehicle: VEHICLE_PRESETS[0].config,
+        terrainType: "flat",
+        getSpeed: () => 10,
+        random: () => 0.5,
+        timeoutTicks: 60,
+      });
+      sessions.push(session);
+      const found = retireEvents(session, 200);
+      expect(found?.retire.reason).toBe("timeout");
+      expect(found?.tick).toBe(61);
+    });
+
+    it("終了後は再度発火せず、ゴールしてもretireイベントは出ない", () => {
+      const session = createSession("flat", 0);
+      expect(retireEvents(session, 400)).not.toBeNull();
+      for (let i = 0; i < 400; i += 1) {
+        expect(session.stepForTest().events.some((event) => event.type === "retire" || event.type === "goal")).toBe(false);
+      }
+      const goalSession = createSession("flat", 10);
+      runUntilGoal(goalSession);
+      for (let i = 0; i < 600; i += 1) {
+        expect(goalSession.stepForTest().events.some((event) => event.type === "retire")).toBe(false);
+      }
+    });
   });
 });

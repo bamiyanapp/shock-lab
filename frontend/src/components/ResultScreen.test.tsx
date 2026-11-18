@@ -4,6 +4,25 @@ import userEvent from "@testing-library/user-event";
 import { ResultScreen } from "./ResultScreen";
 import { useSimulationStore } from "../store/simulationStore";
 
+import type { SimulationResult } from "../store/simulationStore";
+
+const goalResult = (overrides: Partial<SimulationResult> = {}): SimulationResult => ({
+  outcome: "goal",
+  rank: "A",
+  maxImpact: 2.5,
+  bottomOutCount: 1,
+  averageAbsVerticalG: 0.42,
+  elapsedSeconds: 12.3,
+  distanceMeters: 190,
+  ...overrides,
+});
+
+// 走行中の状態からゴール・リタイアで終了させる。
+function finishWith(result: SimulationResult) {
+  useSimulationStore.getState().startRun();
+  useSimulationStore.getState().finishRun(result);
+}
+
 describe("ResultScreen", () => {
   beforeEach(() => {
     useSimulationStore.getState().reset();
@@ -15,13 +34,7 @@ describe("ResultScreen", () => {
   });
 
   it("shows the rank and stats once a result is set", () => {
-    useSimulationStore.getState().setResult({
-      rank: "A",
-      maxImpact: 2.5,
-      bottomOutCount: 1,
-      averageAbsVerticalG: 0.42,
-      elapsedSeconds: 12.3,
-    });
+    finishWith(goalResult());
 
     render(<ResultScreen />);
 
@@ -34,18 +47,27 @@ describe("ResultScreen", () => {
 
   it("もう一度 restarts the run and clears the result", async () => {
     const user = userEvent.setup();
-    useSimulationStore.getState().setResult({
-      rank: "S",
-      maxImpact: 1.0,
-      bottomOutCount: 0,
-      averageAbsVerticalG: 0.1,
-      elapsedSeconds: 10,
-    });
+    finishWith(goalResult());
     render(<ResultScreen />);
 
     await user.click(screen.getByRole("button", { name: "もう一度" }));
 
     expect(useSimulationStore.getState().result).toBeNull();
-    expect(useSimulationStore.getState().isRunning).toBe(true);
+    expect(useSimulationStore.getState().phase).toBe("running");
+  });
+
+  it.each([
+    ["overturned", "リタイア（転倒）"],
+    ["stuck", "リタイア（走行不能）"],
+    ["fellOff", "リタイア（コースアウト）"],
+    ["timeout", "リタイア（時間切れ）"],
+  ] as const)("shows the retire reason (%s) with the distance and no rank (issue #443)", (reason, title) => {
+    finishWith(goalResult({ outcome: "retire", retireReason: reason, rank: null, distanceMeters: 123.4 }));
+    render(<ResultScreen />);
+
+    expect(screen.getByText(title)).toBeInTheDocument();
+    expect(screen.getByText("到達距離: 123 m")).toBeInTheDocument();
+    expect(screen.getByText("最大衝撃: 2.50 G")).toBeInTheDocument();
+    expect(screen.queryByText("走破タイム: 12.3 秒")).not.toBeInTheDocument();
   });
 });
