@@ -46,3 +46,12 @@ test('開始ボタン押下でシミュレーションがフルスクリーン�
     .poll(() => canvas.evaluate((el) => getComputedStyle(el.parentElement!).position))
     .not.toBe('fixed')
 })
+
+test('走行中にEscキーを押すと一時停止する（issue #449）', async ({ page }) => {
+  await page.goto('/shock-lab/')
+  await page.getByRole('button', { name: '開始' }).click()
+  await expect(page.getByRole('button', { name: 'フルスクリーンを閉じる' })).toBeVisible()
+
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('button', { name: '再開' })).toBeVisible()
+})

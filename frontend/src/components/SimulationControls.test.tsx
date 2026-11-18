@@ -91,13 +91,16 @@ describe("SimulationControls", () => {
     const user = userEvent.setup();
     render(<SimulationControls />);
 
+    const muteButton = screen.getByRole("button", { name: "ミュート" });
     expect(useSimulationStore.getState().isMuted).toBe(false);
-    await user.click(screen.getByRole("button", { name: "ミュート" }));
+    expect(muteButton).toHaveAttribute("aria-pressed", "false");
 
+    await user.click(muteButton);
     expect(useSimulationStore.getState().isMuted).toBe(true);
-    expect(screen.getByRole("button", { name: "ミュート解除" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "ミュート" })).toHaveAttribute("aria-pressed", "true");
 
-    await user.click(screen.getByRole("button", { name: "ミュート解除" }));
+    await user.click(screen.getByRole("button", { name: "ミュート" }));
     expect(useSimulationStore.getState().isMuted).toBe(false);
+    expect(screen.getByRole("button", { name: "ミュート" })).toHaveAttribute("aria-pressed", "false");
   });
 });
