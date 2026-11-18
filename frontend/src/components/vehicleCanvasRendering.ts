@@ -1,3 +1,4 @@
+import { STEPS_PER_SECOND } from "../physics/units";
 import type { CSSProperties } from "react";
 import Matter from "matter-js";
 import type { DustParticle } from "../physics/impactEffects";
@@ -33,7 +34,6 @@ const VEHICLE_SPRITE_FRAME_COUNT = 12;
 const VEHICLE_SPRITE_FRAME_WIDTH = 600;
 const VEHICLE_SPRITE_FRAME_HEIGHT = 404;
 const VEHICLE_SPRITE_ASPECT_RATIO = VEHICLE_SPRITE_FRAME_HEIGHT / VEHICLE_SPRITE_FRAME_WIDTH;
-const STEPS_PER_SECOND = 60;
 // 1秒間に何フレーム進めるか（12フレームで1周＝1秒サイクルのホイールアニメーション）。
 const VEHICLE_SPRITE_FPS = 12;
 const VEHICLE_SPRITE_STEPS_PER_FRAME = STEPS_PER_SECOND / VEHICLE_SPRITE_FPS;

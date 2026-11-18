@@ -1,7 +1,6 @@
+import { PIXELS_PER_METER, STEPS_PER_SECOND } from "./units";
 import type { SimulationMetrics } from "../types/vehicle";
 
-const PIXELS_PER_METER = 60;
-const STEPS_PER_SECOND = 60;
 const GRAVITY_MS2 = 9.8;
 
 export interface MetricsSample {

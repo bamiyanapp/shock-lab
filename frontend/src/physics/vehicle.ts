@@ -1,4 +1,5 @@
 import Matter from "matter-js";
+import { PIXELS_PER_METER } from "./units";
 import type { VehicleBodyParams, TireParams } from "../types/vehicle";
 
 export interface VehicleBodies {
@@ -7,7 +8,6 @@ export interface VehicleBodies {
   rearWheel: Matter.Body;
 }
 
-const PIXELS_PER_METER = 60;
 // weightKgをそのままdensity（質量/面積）に使うと、タイヤ（Matter.jsの既定density 0.001）に対し
 // chassisの質量が桁違いに重くなり、タイヤの駆動力ではほぼ前進できなくなる。基準車重における
 // chassis densityをタイヤの数倍程度に正規化し、車重の変化に応じて比例スケールさせる。

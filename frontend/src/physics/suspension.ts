@@ -1,3 +1,4 @@
+import { PIXELS_PER_METER } from "./units";
 import Matter from "matter-js";
 import type { SuspensionParams } from "../types/vehicle";
 
@@ -15,7 +16,7 @@ export function createSuspensionConstraint(
     bodyA: chassis,
     bodyB: wheel,
     pointA: { x: wheel.position.x - chassis.position.x, y: 0 },
-    length: params.rideHeight * 60,
+    length: params.rideHeight * PIXELS_PER_METER,
     stiffness: Math.min(params.springConstant / 100000, 1),
     damping: Math.min(params.damperCoefficient / 10000, 1),
   });
