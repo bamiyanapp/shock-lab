@@ -1,3 +1,10 @@
+# [1.24.0](https://github.com/bamiyanapp/shock-lab/compare/v1.23.0...v1.24.0) (2026-11-18)
+
+
+### Features
+
+* **graph:** 履歴を10Hzで全区間残し、グラフを2つに分けて走行距離で読めるようにする ([#484](https://github.com/bamiyanapp/shock-lab/issues/484)) ([abaf1b2](https://github.com/bamiyanapp/shock-lab/commit/abaf1b249d677e12e3850752605670db44cf0d0c)), closes [#447](https://github.com/bamiyanapp/shock-lab/issues/447)
+
 # [1.23.0](https://github.com/bamiyanapp/shock-lab/compare/v1.22.0...v1.23.0) (2026-11-18)
 
 
