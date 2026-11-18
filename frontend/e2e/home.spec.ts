@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, shotName } from './fixtures'
 import { captureScreenshot } from './screenshot.js' // symlink
 
 // トップページの基本シナリオ（起動→初期表示→シミュレーション開始）をスクリーンショットで
@@ -13,7 +13,7 @@ test('起動直後のトップページを表示する', async ({ page }, testIn
   await expect(page.getByRole('heading', { name: 'ShockLab' })).toBeVisible()
   await expect(page.getByRole('button', { name: '開始' })).toBeVisible()
 
-  await captureScreenshot(page, testInfo, 'initial-view', '起動直後のトップページ')
+  await captureScreenshot(page, testInfo, shotName(testInfo, 'initial-view'), '起動直後のトップページ')
 })
 
 test('開始ボタン押下でシミュレーションがフルスクリーン表示の走行状態になる', async ({ page }, testInfo) => {
@@ -37,7 +37,7 @@ test('開始ボタン押下でシミュレーションがフルスクリーン�
     .poll(() => canvas.evaluate((el) => (el as HTMLCanvasElement).toDataURL()))
     .not.toBe(initialFrame)
 
-  await captureScreenshot(page, testInfo, 'simulation-running', 'シミュレーション実行中（フルスクリーン）')
+  await captureScreenshot(page, testInfo, shotName(testInfo, 'simulation-running'), 'シミュレーション実行中（フルスクリーン）')
 
   // 閉じるボタンで一時停止状態（フルスクリーン解除）に戻る
   await closeButton.click()

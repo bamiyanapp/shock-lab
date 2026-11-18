@@ -11,6 +11,9 @@ const HUD_TEXT_STYLE = {
   pointerEvents: "none",
 } as const;
 const KMH_PER_MS = 3.6;
+// 縦持ちでは回転したcanvasのレイアウト上の箱がHUDの位置に重なり、後から描画されるcanvasが
+// タップを奪うため、HUDをcanvasより前面に置く（モバイルE2Eで検出）。
+const HUD_Z_INDEX = 1;
 
 // 閉じるボタン（✕）は一時停止と同じ意味（走行状態をpausedにする）を持たせ、専用の状態を
 // 増やさず走行状態のみを表示モードの判定に使う。
@@ -35,12 +38,12 @@ export function FullscreenHud({ onPause }: { onPause: () => void }) {
 
   return (
     <>
-      <div style={{ position: "absolute", top: 0, left: 0, margin: 8, ...HUD_TEXT_STYLE }}>
+      <div style={{ position: "absolute", top: 0, left: 0, margin: 8, zIndex: HUD_Z_INDEX, ...HUD_TEXT_STYLE }}>
         <div>速度: {(metrics.speed * KMH_PER_MS).toFixed(0)} km/h</div>
         <div>上下G: {metrics.verticalG.toFixed(2)} G</div>
         <div>底付き: {metrics.bottomOutCount} 回</div>
       </div>
-      <div className="d-flex gap-2" style={{ position: "absolute", top: 0, right: 0, margin: 8 }}>
+      <div className="d-flex gap-2" style={{ position: "absolute", top: 0, right: 0, margin: 8, zIndex: HUD_Z_INDEX }}>
         <MuteToggle className="btn btn-light" style={HUD_BUTTON_STYLE} />
         <CloseFullscreenButton onClose={onPause} />
       </div>

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, shotName } from './fixtures'
 import { captureScreenshot } from './screenshot.js' // symlink
 
 // スマホ縦持ち（iPhone 13相当）での表示崩れを検知する（issue #444）。
@@ -12,7 +12,7 @@ test('待機画面で横スクロールが発生しない', async ({ page }, tes
   }))
   expect(scrollWidth).toBeLessThanOrEqual(clientWidth)
 
-  await captureScreenshot(page, testInfo, 'mobile-initial-view', 'スマホ縦持ち: 起動直後')
+  await captureScreenshot(page, testInfo, shotName(testInfo, 'mobile-initial-view'), 'スマホ縦持ち: 起動直後')
 })
 
 test('走行中は縦持ちでもcanvasが画面の長辺いっぱいに表示される', async ({ page }, testInfo) => {
@@ -30,5 +30,5 @@ test('走行中は縦持ちでもcanvasが画面の長辺いっぱいに表示�
     })
     .toBeGreaterThanOrEqual(longSide * 0.9)
 
-  await captureScreenshot(page, testInfo, 'mobile-simulation-running', 'スマホ縦持ち: 走行中')
+  await captureScreenshot(page, testInfo, shotName(testInfo, 'mobile-simulation-running'), 'スマホ縦持ち: 走行中')
 })

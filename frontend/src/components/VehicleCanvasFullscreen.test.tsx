@@ -48,4 +48,10 @@ describe("FullscreenHud（issue #443）", () => {
     await userEvent.click(pause);
     expect(onPause).toHaveBeenCalledTimes(1);
   });
+
+  it("HUDはcanvasより前面に置く（縦持ちで回転したcanvasにタップを奪われないため）", () => {
+    render(<FullscreenHud onPause={() => {}} />);
+    const hudRight = screen.getByRole("button", { name: "ミュート" }).parentElement;
+    expect(hudRight).toHaveStyle({ zIndex: "1" });
+  });
 });
