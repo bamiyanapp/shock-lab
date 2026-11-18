@@ -16,3 +16,7 @@ export const UNSPRUNG_MASS_KG = 80;
 export const GRAVITY_SCALE = (GRAVITY_MS2 * PIXELS_PER_METER) / 1e6;
 /** ニュートン[N]をMatter.jsの力へ換算する係数（F_matter = F_N × MASS_SCALE × 60 / 1e6） */
 export const NEWTON_TO_MATTER_FORCE = (MASS_SCALE * PIXELS_PER_METER) / 1e6;
+/** 履歴を1サンプルにまとめるtick数（10Hz）。ストアへの反映もこの頻度で行う */
+export const HISTORY_SAMPLE_TICKS = 6;
+/** 履歴の上限（10Hzで5分） */
+export const MAX_HISTORY_SAMPLES = 3000;

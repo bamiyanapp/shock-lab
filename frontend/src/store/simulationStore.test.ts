@@ -16,23 +16,27 @@ describe("useSimulationStore", () => {
     expect(after.suspension).toEqual(before.suspension);
   });
 
-  it("appends metrics to history and caps it at 200 entries", () => {
-    for (let i = 0; i < 250; i += 1) {
-      useSimulationStore.getState().setMetrics({
-        speed: i,
-        suspensionStroke: 0,
-        rearSuspensionStroke: 0,
-        verticalG: 0,
-        maxImpact: 0,
-        isBottomedOut: false,
-        bottomOutCount: 0,
-      });
+  it("appends history samples and caps them at 3000 entries (10Hz x 5 minutes)", () => {
+    const metrics = useSimulationStore.getState().metrics;
+    for (let i = 0; i < 3050; i += 1) {
+      useSimulationStore.getState().setMetrics(
+        { ...metrics, speed: i },
+        { timeSec: i / 10, distanceM: i, verticalG: 0, frontStroke: 0, rearStroke: 0, isBottomedOut: false }
+      );
     }
 
-    const { metricsHistory, metrics } = useSimulationStore.getState();
-    expect(metricsHistory).toHaveLength(200);
-    expect(metrics.speed).toBe(249);
-    expect(metricsHistory[metricsHistory.length - 1].speed).toBe(249);
+    const { metricsHistory, metrics: current } = useSimulationStore.getState();
+    expect(metricsHistory).toHaveLength(3000);
+    expect(current.speed).toBe(3049);
+    expect(metricsHistory[0].distanceM).toBe(50);
+    expect(metricsHistory[metricsHistory.length - 1].distanceM).toBe(3049);
+  });
+
+  it("updates only the current metrics when no history sample is given", () => {
+    const metrics = useSimulationStore.getState().metrics;
+    useSimulationStore.getState().setMetrics({ ...metrics, speed: 7 });
+    expect(useSimulationStore.getState().metrics.speed).toBe(7);
+    expect(useSimulationStore.getState().metricsHistory).toHaveLength(0);
   });
 
   const result = {

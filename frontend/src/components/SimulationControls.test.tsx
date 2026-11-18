@@ -44,7 +44,8 @@ describe("SimulationControls", () => {
     render(<SimulationControls />);
 
     await user.click(screen.getByRole("button", { name: "開始" }));
-    useSimulationStore.getState().setMetrics({
+    useSimulationStore.getState().setMetrics(
+      {
       speed: 5,
       suspensionStroke: 0,
       rearSuspensionStroke: 0,
@@ -52,7 +53,9 @@ describe("SimulationControls", () => {
       maxImpact: 0,
       isBottomedOut: false,
       bottomOutCount: 0,
-    });
+    },
+      { timeSec: 0.1, distanceM: 1, verticalG: 0, frontStroke: 0, rearStroke: 0, isBottomedOut: false }
+    );
     await user.click(screen.getByRole("button", { name: "一時停止" }));
     const runTokenBeforeResume = useSimulationStore.getState().runToken;
 
@@ -68,7 +71,8 @@ describe("SimulationControls", () => {
     render(<SimulationControls />);
 
     await user.click(screen.getByRole("button", { name: "開始" }));
-    useSimulationStore.getState().setMetrics({
+    useSimulationStore.getState().setMetrics(
+      {
       speed: 5,
       suspensionStroke: 0,
       rearSuspensionStroke: 0,
@@ -76,7 +80,9 @@ describe("SimulationControls", () => {
       maxImpact: 0,
       isBottomedOut: false,
       bottomOutCount: 0,
-    });
+    },
+      { timeSec: 0.1, distanceM: 1, verticalG: 0, frontStroke: 0, rearStroke: 0, isBottomedOut: false }
+    );
     await user.click(screen.getByRole("button", { name: "一時停止" }));
     const runTokenBeforeRestart = useSimulationStore.getState().runToken;
 
