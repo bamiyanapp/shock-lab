@@ -23,8 +23,8 @@ import {
   drawSuspensionSprings,
   drawStatusOverlays,
   getFullscreenWrapperStyle,
-  getCanvasStyle,
 } from "./vehicleCanvasRendering";
+import { getCanvasStyle } from "./canvasLayout";
 import { useIsPortrait } from "../hooks/useIsPortrait";
 import { CloseFullscreenButton } from "./VehicleCanvasFullscreen";
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCanvasStyle } from "./vehicleCanvasRendering";
+import { getCanvasStyle } from "./canvasLayout";
 
 describe("getCanvasStyle", () => {
   it("待機中は画面幅に収める", () => {
