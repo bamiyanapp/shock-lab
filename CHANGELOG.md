@@ -1,3 +1,10 @@
+## [1.20.6](https://github.com/bamiyanapp/shock-lab/compare/v1.20.5...v1.20.6) (2026-11-18)
+
+
+### Bug Fixes
+
+* **input:** 入力値と共有URLを検証し、不正値でシミュレーションが壊れないようにする ([#476](https://github.com/bamiyanapp/shock-lab/issues/476)) ([617ef5f](https://github.com/bamiyanapp/shock-lab/commit/617ef5fa77b08b9f199544df84a73d7d47e01270)), closes [#446](https://github.com/bamiyanapp/shock-lab/issues/446)
+
 ## [1.20.5](https://github.com/bamiyanapp/shock-lab/compare/v1.20.4...v1.20.5) (2026-11-18)
 
 
