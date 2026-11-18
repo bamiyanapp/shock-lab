@@ -1,3 +1,10 @@
+## [1.20.4](https://github.com/bamiyanapp/shock-lab/compare/v1.20.3...v1.20.4) (2026-11-18)
+
+
+### Bug Fixes
+
+* **pwa:** BootstrapをCDNではなくバンドルしてオフラインでもスタイルを効かせる ([#468](https://github.com/bamiyanapp/shock-lab/issues/468)) ([3cb385e](https://github.com/bamiyanapp/shock-lab/commit/3cb385e0bcb3f4d51c021f2a968efec496d831a2)), closes [#448](https://github.com/bamiyanapp/shock-lab/issues/448)
+
 ## [1.20.3](https://github.com/bamiyanapp/shock-lab/compare/v1.20.2...v1.20.3) (2026-11-18)
 
 
