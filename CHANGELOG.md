@@ -1,3 +1,10 @@
+# [1.23.0](https://github.com/bamiyanapp/shock-lab/compare/v1.22.0...v1.23.0) (2026-11-18)
+
+
+### Features
+
+* **terrain:** 路面種類と試験速度を選べるようにし、6種の地形を実装する ([#482](https://github.com/bamiyanapp/shock-lab/issues/482)) ([587432f](https://github.com/bamiyanapp/shock-lab/commit/587432f95db02c7d6e2c26e7d9dadc0edb6f6464)), closes [#445](https://github.com/bamiyanapp/shock-lab/issues/445)
+
 # [1.22.0](https://github.com/bamiyanapp/shock-lab/compare/v1.21.0...v1.22.0) (2026-11-18)
 
 
