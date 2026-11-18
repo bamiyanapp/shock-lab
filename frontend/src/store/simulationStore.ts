@@ -8,11 +8,23 @@ import { VEHICLE_PRESETS } from "./vehiclePresets";
 import { sanitizeTestConditions, sanitizeVehicleConfig } from "./parameterRanges";
 import type { ResultRank, ResultStats } from "../physics/resultRank";
 
-/** ゴール到達時にVehicleCanvasが集計し、ストアへ書き込むリザルト情報 */
+/** 走行の状態。idle=未開始、running=走行中、paused=一時停止、finished=ゴールまたはリタイアで終了 */
+export type RunPhase = "idle" | "running" | "paused" | "finished";
+
+/** リタイアの理由。overturned=転倒、stuck=走行不能、fellOff=コースアウト、timeout=時間切れ */
+export type RetireReason = "overturned" | "stuck" | "fellOff" | "timeout";
+
+/** 走行の終了時（ゴールまたはリタイア）にVehicleCanvasが集計し、ストアへ書き込むリザルト情報 */
 export interface SimulationResult extends ResultStats {
-  rank: ResultRank;
-  /** 走破タイム(秒)。ランク判定には使わない参考値（詳細はphysics/resultRank.ts参照） */
+  outcome: "goal" | "retire";
+  /** リタイアの理由。outcomeがretireのときのみ設定する */
+  retireReason?: RetireReason;
+  /** ランク。リタイア時は判定しないためnull */
+  rank: ResultRank | null;
+  /** 走行時間(秒)。ランク判定には使わない参考値（詳細はphysics/resultRank.ts参照） */
   elapsedSeconds: number;
+  /** スタート地点からの到達距離(m) */
+  distanceMeters: number;
 }
 
 export const DEFAULT_VEHICLE: VehicleConfig = VEHICLE_PRESETS[0].config;
@@ -28,9 +40,7 @@ interface SimulationState {
   vehicle: VehicleConfig;
   testConditions: TestConditions;
   metrics: SimulationMetrics;
-  isRunning: boolean;
-  /** 一度でも開始ボタンが押されたかどうか。一時停止後に「開始」ではなく「再開/最初から」を出し分けるために使う */
-  hasStarted: boolean;
+  phase: RunPhase;
   /** インクリメントするとVehicleCanvas側のシミュレーション世界が再構築され、車体位置が最初からになる */
   runToken: number;
   metricsHistory: SimulationMetrics[];
@@ -41,8 +51,14 @@ interface SimulationState {
   setVehicle: (vehicle: Partial<VehicleConfig>) => void;
   setTestConditions: (conditions: Partial<TestConditions>) => void;
   setMetrics: (metrics: SimulationMetrics) => void;
-  setRunning: (isRunning: boolean) => void;
-  setResult: (result: SimulationResult) => void;
+  /** idle → running */
+  startRun: () => void;
+  /** running → paused（一時停止・閉じるボタン・バックグラウンド化） */
+  pauseRun: () => void;
+  /** paused → running */
+  resumeRun: () => void;
+  /** running → finished（ゴールまたはリタイア。resultを設定する） */
+  finishRun: (result: SimulationResult) => void;
   /** 車体位置・履歴を最初の状態へ戻し、そのまま走行を再開する（車両パラメータは維持する） */
   restartRun: () => void;
   setMuted: (isMuted: boolean) => void;
@@ -59,12 +75,22 @@ const INITIAL_METRICS: SimulationMetrics = {
   bottomOutCount: 0,
 };
 
+/** 設定を変えたときに、走行の状態を未開始へ戻す（ワールドを作り直させ、前の走行の値を残さない） */
+function resetRunState(runToken: number) {
+  return {
+    phase: "idle" as const,
+    runToken: runToken + 1,
+    metrics: INITIAL_METRICS,
+    metricsHistory: [],
+    result: null,
+  };
+}
+
 export const useSimulationStore = create<SimulationState>((set) => ({
   vehicle: DEFAULT_VEHICLE,
   testConditions: DEFAULT_TEST_CONDITIONS,
   metrics: INITIAL_METRICS,
-  isRunning: false,
-  hasStarted: false,
+  phase: "idle",
   runToken: 0,
   metricsHistory: [],
   result: null,
@@ -80,28 +106,23 @@ export const useSimulationStore = create<SimulationState>((set) => ({
         },
         state.vehicle
       ),
+      ...resetRunState(state.runToken),
     })),
   setTestConditions: (conditions) =>
     set((state) => ({
       testConditions: sanitizeTestConditions({ ...state.testConditions, ...conditions }, state.testConditions),
+      ...resetRunState(state.runToken),
     })),
   setMetrics: (metrics) =>
     set((state) => ({
       metrics,
       metricsHistory: [...state.metricsHistory, metrics].slice(-200),
     })),
-  setRunning: (isRunning) =>
-    set((state) => ({ isRunning, hasStarted: state.hasStarted || isRunning })),
-  setResult: (result) => set({ result }),
-  restartRun: () =>
-    set((state) => ({
-      runToken: state.runToken + 1,
-      isRunning: true,
-      hasStarted: true,
-      metrics: INITIAL_METRICS,
-      metricsHistory: [],
-      result: null,
-    })),
+  startRun: () => set((state) => (state.phase === "idle" ? { phase: "running" } : {})),
+  pauseRun: () => set((state) => (state.phase === "running" ? { phase: "paused" } : {})),
+  resumeRun: () => set((state) => (state.phase === "paused" ? { phase: "running" } : {})),
+  finishRun: (result) => set((state) => (state.phase === "running" ? { phase: "finished", result } : {})),
+  restartRun: () => set((state) => ({ ...resetRunState(state.runToken), phase: "running" })),
   setMuted: (isMuted) => set({ isMuted }),
   reset: () =>
     set({
@@ -109,8 +130,7 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       testConditions: DEFAULT_TEST_CONDITIONS,
       metrics: INITIAL_METRICS,
       metricsHistory: [],
-      isRunning: false,
-      hasStarted: false,
+      phase: "idle",
       runToken: 0,
       result: null,
     }),

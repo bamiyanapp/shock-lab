@@ -55,3 +55,19 @@ test('走行中にEscキーを押すと一時停止する（issue #449）', asyn
   await page.keyboard.press('Escape')
   await expect(page.getByRole('button', { name: '再開' })).toBeVisible()
 })
+
+test('開始→一時停止→再開/最初から→スライダー変更で開始に戻る（issue #443）', async ({ page }) => {
+  await page.goto('/shock-lab/')
+  await page.getByRole('button', { name: '開始' }).click()
+  await page.getByRole('button', { name: 'フルスクリーンを閉じる' }).click()
+
+  await expect(page.getByRole('button', { name: '再開' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '最初から' })).toBeVisible()
+
+  // 一時停止中に設定を変えると、状態が食い違わず「開始」に戻る
+  const weight = page.getByRole('spinbutton', { name: /車重/ })
+  await weight.fill('1500')
+  await weight.blur()
+  await expect(page.getByRole('button', { name: '開始' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '再開' })).toHaveCount(0)
+})

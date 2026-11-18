@@ -17,7 +17,8 @@ import {
 } from "./vehicleCanvasRendering";
 import { getCanvasStyle } from "./canvasLayout";
 import { useIsPortrait } from "../hooks/useIsPortrait";
-import { CloseFullscreenButton } from "./VehicleCanvasFullscreen";
+import { usePauseWhenHidden } from "../hooks/usePauseWhenHidden";
+import { FullscreenHud } from "./VehicleCanvasFullscreen";
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 400;
@@ -30,11 +31,10 @@ vehicleSprite.src = vehicleSpriteUrl;
 
 export function VehicleCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const vehicle = useSimulationStore((state) => state.vehicle);
-  const terrainType = useSimulationStore((state) => state.testConditions.terrainType);
-  const isRunning = useSimulationStore((state) => state.isRunning);
+  const isRunning = useSimulationStore((state) => state.phase === "running");
   const runToken = useSimulationStore((state) => state.runToken);
   const isPortrait = useIsPortrait();
+  usePauseWhenHidden();
 
   const engineRef = useRef<Matter.Engine | null>(null);
   const runnerRef = useRef<Matter.Runner | null>(null);
@@ -42,9 +42,11 @@ export function VehicleCanvas() {
   useEffect(() => {
     if (!canvasRef.current) return;
 
+    // 構築に使う車両・路面はここで読む。設定の変更はストアがrunTokenを進めることで再構築を起こす。
+    const { vehicle, testConditions } = useSimulationStore.getState();
     const session = new SimulationSession({
       vehicle,
-      terrainType,
+      terrainType: testConditions.terrainType,
       getSpeed: () => useSimulationStore.getState().testConditions.speed,
     });
     const { engine } = session;
@@ -77,9 +79,9 @@ export function VehicleCanvas() {
         if (event.type === "bottomOut") {
           shockSound.play();
         } else {
-          successSound.play();
-          useSimulationStore.getState().setRunning(false);
-          useSimulationStore.getState().setResult(event.result);
+          // ゴールのみ成功音を鳴らす。リタイア時は鳴らさない。
+          if (event.type === "goal") successSound.play();
+          useSimulationStore.getState().finishRun(event.result);
         }
       }
     };
@@ -143,7 +145,7 @@ export function VehicleCanvas() {
 
     const runner = Matter.Runner.create();
     runnerRef.current = runner;
-    if (useSimulationStore.getState().isRunning) {
+    if (useSimulationStore.getState().phase === "running") {
       Matter.Runner.run(runner, engine);
     }
     Matter.Render.run(render);
@@ -159,7 +161,7 @@ export function VehicleCanvas() {
       engineRef.current = null;
       runnerRef.current = null;
     };
-  }, [vehicle, terrainType, runToken]);
+  }, [runToken]);
 
   useEffect(() => {
     const engine = engineRef.current;
@@ -183,7 +185,7 @@ export function VehicleCanvas() {
   useEffect(() => {
     if (!isRunning) return;
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") useSimulationStore.getState().setRunning(false);
+      if (event.key === "Escape") useSimulationStore.getState().pauseRun();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -195,7 +197,7 @@ export function VehicleCanvas() {
   // なるため）。フルスクリーン表示自体の設計はVehicleCanvasFullscreen.tsx参照。
   return (
     <div style={getFullscreenWrapperStyle(isRunning)}>
-      {isRunning && <CloseFullscreenButton onClose={() => useSimulationStore.getState().setRunning(false)} />}
+      {isRunning && <FullscreenHud onPause={() => useSimulationStore.getState().pauseRun()} />}
       <canvas
         ref={canvasRef}
         width={CANVAS_WIDTH}

@@ -1,6 +1,6 @@
 import Matter from "matter-js";
 import type { SimulationMetrics, TerrainType, VehicleConfig } from "../types/vehicle";
-import type { SimulationResult } from "../store/simulationStore";
+import type { RetireReason, SimulationResult } from "../store/simulationStore";
 import { createWorld } from "./world";
 import { createTerrain, COURSE_LENGTH_PX, GOAL_LINE_X_PX } from "./terrain";
 import { createVehicleBodies, getAxleArmsPx, getSprungMassKg, type VehicleBodies } from "./vehicle";
@@ -22,6 +22,14 @@ const LANDING_DUST_PARTICLE_COUNT = 8;
 // 走行中に接地しているタイヤから、tickごとにこの確率で軽い砂埃を1粒発生させる。
 const ROLLING_DUST_SPAWN_PROBABILITY = 0.15;
 
+// リタイア判定の閾値（tick数・距離）。1tick = 1/60秒。
+const OVERTURN_ANGLE_RAD = Math.PI / 2;
+const OVERTURN_TICKS = 120; // 2秒
+const STUCK_WINDOW_TICKS = 300; // 5秒
+const STUCK_MIN_PROGRESS_M = 0.5;
+const FELL_OFF_DEPTH_PX = 600;
+const DEFAULT_TIMEOUT_TICKS = 10800; // 3分
+
 export interface SimulationSessionOptions {
   vehicle: VehicleConfig;
   terrainType: TerrainType;
@@ -29,11 +37,15 @@ export interface SimulationSessionOptions {
   getSpeed: () => number;
   /** 乱数源。テストでは固定値を返す関数を渡す */
   random?: () => number;
+  /** 走行tickがこれを超えたら時間切れでリタイアにする。テストで短くするために指定できる */
+  timeoutTicks?: number;
 }
 
 export type SimulationEvent =
   | { type: "bottomOut" } // 非底付き→底付きへ遷移した瞬間
-  | { type: "goal"; result: SimulationResult };
+  | { type: "goal"; result: SimulationResult }
+  // 走行不能で終了した。resultのoutcomeはretireで、rankは判定しない（null）
+  | { type: "retire"; reason: RetireReason; result: SimulationResult };
 
 export interface StepOutput {
   metrics: SimulationMetrics;
@@ -58,11 +70,16 @@ export class SimulationSession {
   dustParticles: DustParticle[] = [];
   animationTickCount = 0;
   hasReachedGoal = false;
+  /** ゴールまたはリタイアで終了したか。終了後はリタイア判定を行わない */
+  hasFinished = false;
 
   private readonly options: SimulationSessionOptions;
   private readonly random: () => number;
   private readonly wheelContactTracker: WheelContactTracker;
   private readonly recentVerticalAccelerations: number[] = [];
+  private readonly startX: number;
+  private readonly recentChassisX: number[] = [];
+  private overturnedTicks = 0;
   private previousVerticalVelocityPxPerStep = 0;
   private maxImpact = 0;
   private isBottomedOut = false;
@@ -74,6 +91,7 @@ export class SimulationSession {
   constructor(options: SimulationSessionOptions) {
     this.options = options;
     this.random = options.random ?? Math.random;
+    this.startX = VEHICLE_START_X;
     this.engine = createWorld();
 
     const terrainBodies = createTerrain(options.terrainType, GROUND_Y);
@@ -141,6 +159,7 @@ export class SimulationSession {
     const metrics = this.updateMetrics(events);
     this.updateDust();
     this.checkGoal(events);
+    this.checkRetire(events);
     return { metrics, speedMetersPerSecond, events };
   }
 
@@ -228,17 +247,56 @@ export class SimulationSession {
 
   // ゴールライン到達を検知する。1回の走行で1度だけ発火し、作り直すまで再発火しない。
   private checkGoal(events: SimulationEvent[]): void {
-    if (this.hasReachedGoal || this.bodies.chassis.position.x < GOAL_LINE_X_PX) return;
+    if (this.hasFinished || this.bodies.chassis.position.x < GOAL_LINE_X_PX) return;
     this.hasReachedGoal = true;
+    this.hasFinished = true;
     const averageAbsVerticalG = this.verticalGSampleCount > 0 ? this.sumAbsVerticalG / this.verticalGSampleCount : 0;
     const stats = { maxImpact: this.maxImpact, bottomOutCount: this.bottomOutCount, averageAbsVerticalG };
     events.push({
       type: "goal",
-      result: {
-        rank: computeResultRank(stats),
-        ...stats,
-        elapsedSeconds: this.animationTickCount / STEPS_PER_SECOND,
-      },
+      result: this.buildResult("goal", computeResultRank(stats)),
     });
+  }
+
+  private buildResult(outcome: "goal" | "retire", rank: SimulationResult["rank"], retireReason?: RetireReason): SimulationResult {
+    const averageAbsVerticalG = this.verticalGSampleCount > 0 ? this.sumAbsVerticalG / this.verticalGSampleCount : 0;
+    return {
+      outcome,
+      ...(retireReason ? { retireReason } : {}),
+      rank,
+      maxImpact: this.maxImpact,
+      bottomOutCount: this.bottomOutCount,
+      averageAbsVerticalG,
+      elapsedSeconds: this.animationTickCount / STEPS_PER_SECOND,
+      distanceMeters: Math.max(0, (this.bodies.chassis.position.x - this.startX) / PIXELS_PER_METER),
+    };
+  }
+
+  // 走行不能（転倒・立ち往生・コースアウト・時間切れ）を検知し、1回だけretireイベントを出す。
+  private checkRetire(events: SimulationEvent[]): void {
+    if (this.hasFinished) return;
+    const reason = this.detectRetireReason();
+    if (!reason) return;
+    this.hasFinished = true;
+    events.push({ type: "retire", reason, result: this.buildResult("retire", null, reason) });
+  }
+
+  private detectRetireReason(): RetireReason | null {
+    const { chassis } = this.bodies;
+    this.overturnedTicks = Math.abs(chassis.angle) > OVERTURN_ANGLE_RAD ? this.overturnedTicks + 1 : 0;
+    if (this.overturnedTicks >= OVERTURN_TICKS) return "overturned";
+    if (chassis.position.y > GROUND_Y + FELL_OFF_DEPTH_PX) return "fellOff";
+
+    this.recentChassisX.push(chassis.position.x);
+    // 直近STUCK_WINDOW_TICKS tickの前進量で判定する（開始直後の窓が埋まるまでは判定しない）。
+    if (this.recentChassisX.length > STUCK_WINDOW_TICKS + 1) this.recentChassisX.shift();
+    if (
+      this.recentChassisX.length > STUCK_WINDOW_TICKS &&
+      (chassis.position.x - this.recentChassisX[0]) / PIXELS_PER_METER < STUCK_MIN_PROGRESS_M
+    ) {
+      return "stuck";
+    }
+    if (this.animationTickCount > (this.options.timeoutTicks ?? DEFAULT_TIMEOUT_TICKS)) return "timeout";
+    return null;
   }
 }
