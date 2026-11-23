@@ -1,3 +1,10 @@
+## [1.25.2](https://github.com/bamiyanapp/shock-lab/compare/v1.25.1...v1.25.2) (2026-11-23)
+
+
+### Bug Fixes
+
+* **physics:** judge overturn by the normalized orientation ([#519](https://github.com/bamiyanapp/shock-lab/issues/519)) ([#529](https://github.com/bamiyanapp/shock-lab/issues/529)) ([0c73cfe](https://github.com/bamiyanapp/shock-lab/commit/0c73cfe3f86920a467b254e83ef09130999d7764)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514) [#510](https://github.com/bamiyanapp/shock-lab/issues/510) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#520](https://github.com/bamiyanapp/shock-lab/issues/520)
+
 ## [1.25.1](https://github.com/bamiyanapp/shock-lab/compare/v1.25.0...v1.25.1) (2026-11-23)
 
 
