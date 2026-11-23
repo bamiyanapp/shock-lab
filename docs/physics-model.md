@@ -41,7 +41,8 @@ Matter.Constraintのstiffness・dampingは使わない。バネ・ダンパー�
 - `suspensionStroke`・`rearSuspensionStroke`は前後の圧縮量`x`とする。
 - `verticalG`は車体の上下加速度を直近6tickで移動平均し、9.8で割った値とする。静止時は0になる。
 - `maxImpact`は移動平均後の`|verticalG|`の最大値とする。
-- 前後いずれかが`x >= strokeLength`なら底付きとする。非底付きから底付きに変わった瞬間だけ1回と数える。
+- 前後いずれかの圧縮量が`strokeLength`の98%以上になると、底付きに入る。85%未満へ戻るまで底付き中とする（ヒステリシス）。非底付きから底付きに変わった瞬間だけ1回と数える。
+- ヒステリシスの理由: バンプストップ付近で縮みと戻りを繰り返す跳ね返りのちらつきが、1回の衝撃を何度も数えていたため（issue #520）。定数は`physics/metrics.ts`の`BOTTOM_OUT_ENTER_RATIO`・`BOTTOM_OUT_EXIT_RATIO`。
 
 ## 理論値表示
 

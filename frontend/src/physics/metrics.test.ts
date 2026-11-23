@@ -59,7 +59,9 @@ describe("computeMetrics", () => {
   it("flags a bottom-out when either the front or the rear stroke reaches strokeLength", () => {
     expect(computeMetrics({ ...restSample, frontStrokeM: 0.15 }).isBottomedOut).toBe(true);
     expect(computeMetrics({ ...restSample, rearStrokeM: 0.15 }).isBottomedOut).toBe(true);
-    expect(computeMetrics({ ...restSample, frontStrokeM: 0.149, rearStrokeM: 0.149 }).isBottomedOut).toBe(false);
+    expect(computeMetrics({ ...restSample, frontStrokeM: 0.14, rearStrokeM: 0.14 }).isBottomedOut).toBe(false);
+    // 浮動小数点の誤差でわずかに手前になっても、限界到達として扱う。
+    expect(computeMetrics({ ...restSample, frontStrokeM: 0.1499999 }).isBottomedOut).toBe(true);
   });
 
   it("counts a bottom-out only on the transition into bottoming out, not while it continues", () => {
@@ -72,5 +74,19 @@ describe("computeMetrics", () => {
       previousBottomOutCount: 1,
     });
     expect(continuing.bottomOutCount).toBe(1);
+  });
+
+  it("keeps bottomed-out until the stroke relaxes below the exit ratio, so rebound chatter is one bottom-out", () => {
+    const base = { ...restSample, previousIsBottomedOut: true, previousBottomOutCount: 1 };
+    // 限界から少し戻っただけ（0.9）なら、底付き中のまま。数え直さない。
+    const slightlyRelaxed = computeMetrics({ ...base, frontStrokeM: 0.135 });
+    expect(slightlyRelaxed.isBottomedOut).toBe(true);
+    expect(slightlyRelaxed.bottomOutCount).toBe(1);
+    // 十分に戻る（0.8）と底付きが終わる。
+    const relaxed = computeMetrics({ ...base, frontStrokeM: 0.12 });
+    expect(relaxed.isBottomedOut).toBe(false);
+    // 戻った後に再び限界へ達すれば、新しい底付きとして数える。
+    const again = computeMetrics({ ...restSample, frontStrokeM: 0.15, previousIsBottomedOut: false, previousBottomOutCount: 1 });
+    expect(again.bottomOutCount).toBe(2);
   });
 });
