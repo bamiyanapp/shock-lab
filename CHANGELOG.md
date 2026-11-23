@@ -1,3 +1,10 @@
+# [1.25.0](https://github.com/bamiyanapp/shock-lab/compare/v1.24.3...v1.25.0) (2026-11-23)
+
+
+### Features
+
+* **ui:** show units beside slider values; kN/m, kN·s/m and cm display ([#510](https://github.com/bamiyanapp/shock-lab/issues/510), [#518](https://github.com/bamiyanapp/shock-lab/issues/518)) ([#525](https://github.com/bamiyanapp/shock-lab/issues/525)) ([a04e15b](https://github.com/bamiyanapp/shock-lab/commit/a04e15b651b4f103bfa6667de6a5f2cf245c9b2c)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514)
+
 ## [1.24.3](https://github.com/bamiyanapp/shock-lab/compare/v1.24.2...v1.24.3) (2026-11-23)
 
 
