@@ -12,7 +12,7 @@ import { createScenery, createParallaxLayers, type SceneryItem, type ParallaxLay
 import { spawnDustBurst, advanceDustParticles, type DustParticle } from "./impactEffects";
 import { computeResultRank } from "./resultRank";
 import { WheelContactTracker } from "./wheelContactTracker";
-import { HISTORY_SAMPLE_TICKS, MAX_HISTORY_SAMPLES, PIXELS_PER_METER, STEPS_PER_SECOND } from "./units";
+import { HISTORY_SAMPLE_TICKS, MAX_HISTORY_SAMPLES, PIXELS_PER_METER, STEPS_PER_SECOND, normalizeAngleRad } from "./units";
 
 /** 地面のY座標(px)。地形・車両の初期位置・背景描画の基準になる */
 export const GROUND_Y = 300;
@@ -332,7 +332,9 @@ export class SimulationSession {
 
   private detectRetireReason(): RetireReason | null {
     const { chassis } = this.bodies;
-    this.overturnedTicks = Math.abs(chassis.angle) > OVERTURN_ANGLE_RAD ? this.overturnedTicks + 1 : 0;
+    // angleは回転数ぶん増え続けるため、正規化した向きで判定する。一回転して正しい向きで着地した
+    // 車体を、転倒とみなさないため（issue #519）。
+    this.overturnedTicks = Math.abs(normalizeAngleRad(chassis.angle)) > OVERTURN_ANGLE_RAD ? this.overturnedTicks + 1 : 0;
     if (this.overturnedTicks >= OVERTURN_TICKS) return "overturned";
     if (chassis.position.y > GROUND_Y + FELL_OFF_DEPTH_PX) return "fellOff";
 
