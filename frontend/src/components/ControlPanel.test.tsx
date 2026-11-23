@@ -2,9 +2,20 @@ import { describe, expect, it, beforeEach } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ControlPanel } from "./ControlPanel";
+import { SuspensionPanel } from "./SuspensionPanel";
 import { useSimulationStore } from "../store/simulationStore";
 import { VEHICLE_PRESETS } from "../store/vehiclePresets";
 import { buildShareUrl } from "../store/urlConfig";
+
+// 車両パラメータとサスペンション設定は別のタブだが、車両の設定（ストア）は共通のため、両方を描いて検証する。
+function Panels() {
+  return (
+    <>
+      <ControlPanel />
+      <SuspensionPanel />
+    </>
+  );
+}
 
 describe("ControlPanel", () => {
   beforeEach(() => {
@@ -13,7 +24,7 @@ describe("ControlPanel", () => {
 
   it("applies the selected preset's vehicle config to the store", async () => {
     const user = userEvent.setup();
-    render(<ControlPanel />);
+    render(<Panels />);
 
     const truckPreset = VEHICLE_PRESETS.find((preset) => preset.id === "truck");
     if (!truckPreset) throw new Error("truck preset not found");
@@ -24,7 +35,7 @@ describe("ControlPanel", () => {
   });
 
   it("updates the vehicle when the slider is moved, and shows the value with its unit (issue #536)", () => {
-    render(<ControlPanel />);
+    render(<Panels />);
 
     const weightSlider = screen.getByRole("slider", { name: /車重/ });
     expect(weightSlider).toHaveAttribute("aria-valuetext", "1200 kg");
@@ -35,12 +46,12 @@ describe("ControlPanel", () => {
   });
 
   it("has no numeric input: values are shown, and only the slider changes them (issue #536)", () => {
-    render(<ControlPanel />);
+    render(<Panels />);
     expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
   });
 
   it("keeps the slider inside the allowed range (issue #446)", () => {
-    render(<ControlPanel />);
+    render(<Panels />);
 
     const weightSlider = screen.getByRole("slider", { name: /車重/ });
     fireEvent.change(weightSlider, { target: { value: "999999" } });
@@ -50,7 +61,7 @@ describe("ControlPanel", () => {
 
   it("shows the matching preset, and 'カスタム' after a slider changes the vehicle (issue #446)", async () => {
     const user = userEvent.setup();
-    render(<ControlPanel />);
+    render(<Panels />);
 
     const presetSelect = screen.getByLabelText("プリセット");
     expect(presetSelect).toHaveValue("sedan");
@@ -63,7 +74,7 @@ describe("ControlPanel", () => {
   });
 
   it("displays the natural frequency and damping ratio computed from the current vehicle", () => {
-    render(<ControlPanel />);
+    render(<Panels />);
     // ばね上質量 = 車重 - 160kg、4輪ぶんのバネ・ダンパーで支える（docs/physics-model.md）。
     const { weightKg } = useSimulationStore.getState().vehicle.body;
     const { springConstant, damperCoefficient } = useSimulationStore.getState().vehicle.suspension;
@@ -78,7 +89,7 @@ describe("ControlPanel", () => {
 
   it("opens a QR share modal with the current settings' URL and copies it to the clipboard", async () => {
     const user = userEvent.setup();
-    render(<ControlPanel />);
+    render(<Panels />);
     const { vehicle, testConditions } = useSimulationStore.getState();
     const expectedUrl = buildShareUrl(vehicle, testConditions);
 
@@ -91,12 +102,12 @@ describe("ControlPanel", () => {
   });
 
   it("減衰比ζの補足文をtitle属性ではなく本文として常時表示する（issue #449）", () => {
-    render(<ControlPanel />);
+    render(<Panels />);
     expect(screen.getByText(/ζが1未満: 揺れが残りやすい（ふわふわ）／1超: 動きが硬い（ガチガチ）/)).toBeInTheDocument();
   });
 
   it("ストローク量のスライダーで車両のstrokeLengthを変えられる（issue #445）", () => {
-    render(<ControlPanel />);
+    render(<Panels />);
 
     // 表示はcm、内部はm
     const strokeSlider = screen.getByRole("slider", { name: /ストローク量/ });
@@ -107,7 +118,7 @@ describe("ControlPanel", () => {
   });
 
   it("バネ定数はkN/m、ダンパー減衰はkN・s/m、バネ取り付け位置はcmで表示し、内部の単位で保持する（issue #510・#518）", () => {
-    render(<ControlPanel />);
+    render(<Panels />);
 
     const springSlider = screen.getByRole("slider", { name: /バネ定数/ });
     expect(springSlider).toHaveAttribute("aria-valuetext", "30 kN/m");
@@ -128,7 +139,7 @@ describe("ControlPanel", () => {
 
   it("駆動方式を、ラジオボタンで選べて、車両の設定へ反映される（issue #535・#552）", async () => {
     const user = userEvent.setup();
-    render(<ControlPanel />);
+    render(<Panels />);
 
     expect(screen.getByRole("group", { name: "駆動方式" })).toBeInTheDocument();
     expect(screen.getAllByRole("radio", { name: /（4WD）|（FF）|（FR）/ })).toHaveLength(3);
@@ -145,7 +156,7 @@ describe("ControlPanel", () => {
   });
 
   it("ホイールベースをスライダーで変えられ、mで表示する（issue #541）", () => {
-    render(<ControlPanel />);
+    render(<Panels />);
 
     const slider = screen.getByRole("slider", { name: /ホイールベース/ });
     expect(slider).toHaveAttribute("aria-valuetext", "2.5 m");
@@ -157,7 +168,7 @@ describe("ControlPanel", () => {
   });
 
   it("実際の車高と静止時のたわみを、読み取り専用で表示する。取り付け位置を上げると車高が上がる（issue #557）", () => {
-    render(<ControlPanel />);
+    render(<Panels />);
     const readout = screen.getByTestId("static-state");
     expect(readout).toHaveTextContent(/実際の車高: \d+\.\d cm/);
     expect(readout).toHaveTextContent(/静止時のたわみ: 前\d+\.\d cm/);
@@ -170,12 +181,28 @@ describe("ControlPanel", () => {
   });
 
   it("低いバネ定数・重い車重で、初めから底付きになる場合は、警告を表示する（issue #557）", () => {
-    render(<ControlPanel />);
+    render(<Panels />);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByRole("slider", { name: /バネ定数/ }), { target: { value: "5000" } });
     fireEvent.change(screen.getByRole("slider", { name: /車重/ }), { target: { value: "5000" } });
 
     expect(screen.getByRole("alert")).toHaveTextContent("走れません");
+  });
+
+  it("車両パラメータとサスペンション設定は、別のパネルに分かれている（issue #572）", () => {
+    const { unmount } = render(<ControlPanel />);
+    expect(screen.getByRole("slider", { name: /車重/ })).toBeInTheDocument();
+    expect(screen.getByRole("slider", { name: /ホイールベース/ })).toBeInTheDocument();
+    expect(screen.queryByRole("slider", { name: /バネ定数/ })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("static-state")).not.toBeInTheDocument();
+    unmount();
+
+    render(<SuspensionPanel />);
+    for (const name of [/バネ定数/, /ダンパー減衰/, /ストローク量/, /バネ取り付け位置/]) {
+      expect(screen.getByRole("slider", { name })).toBeInTheDocument();
+    }
+    expect(screen.getByTestId("static-state")).toBeInTheDocument();
+    expect(screen.queryByRole("slider", { name: /車重/ })).not.toBeInTheDocument();
   });
 });
