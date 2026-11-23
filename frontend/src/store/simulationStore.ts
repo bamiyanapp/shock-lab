@@ -1,3 +1,4 @@
+import { computeStaticState } from "../physics/vehicleGeometry";
 import { create } from "zustand";
 import type {
   HistorySample,
@@ -120,11 +121,20 @@ export const useSimulationStore = create<SimulationState>((set) => ({
       metrics,
       metricsHistory: sample ? [...state.metricsHistory, sample].slice(-MAX_HISTORY_SAMPLES) : state.metricsHistory,
     })),
-  startRun: () => set((state) => (state.phase === "idle" ? { phase: "running" } : {})),
+  // 初めから底付きになる設定（バネ定数が低い・車重が重い等）では、走れないため開始しない（issue #557）。
+  startRun: () =>
+    set((state) =>
+      state.phase === "idle" && !computeStaticState(state.vehicle).isBottomedOutAtStart ? { phase: "running" } : {}
+    ),
   pauseRun: () => set((state) => (state.phase === "running" ? { phase: "paused" } : {})),
   resumeRun: () => set((state) => (state.phase === "paused" ? { phase: "running" } : {})),
   finishRun: (result) => set((state) => (state.phase === "running" ? { phase: "finished", result } : {})),
-  restartRun: () => set((state) => ({ ...resetRunState(state.runToken), phase: "running" })),
+  restartRun: () =>
+    set((state) =>
+      computeStaticState(state.vehicle).isBottomedOutAtStart
+        ? { ...resetRunState(state.runToken) }
+        : { ...resetRunState(state.runToken), phase: "running" }
+    ),
   setMuted: (isMuted) => set({ isMuted }),
   reset: () =>
     set({

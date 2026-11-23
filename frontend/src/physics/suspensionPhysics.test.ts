@@ -1,3 +1,4 @@
+import { computeStaticState } from "./vehicleGeometry";
 import Matter from "matter-js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SimulationSession } from "./simulationSession";
@@ -61,16 +62,18 @@ describe("サスペンション物理モデル", () => {
     expect(Math.abs(body.position.y - 294) / 294).toBeLessThan(0.05);
   });
 
-  it("2. 静止: セダン既定値・flat・速度0で180tick後、前後とも圧縮量が0付近でGも小さい", () => {
+  it("2. 静止: セダン既定値・flat・速度0で180tick後、前後とも静止時のたわみの位置で釣り合い、Gも小さい（issue #557）", () => {
     const session = createSession(SEDAN, "flat", 0);
+    const { sagFrontM, sagRearM } = computeStaticState(SEDAN);
     const recentAbsG: number[] = [];
     let last = session.stepForTest().metrics;
     for (let i = 1; i < 180; i += 1) {
       last = session.stepForTest().metrics;
       if (i >= 120) recentAbsG.push(Math.abs(last.verticalG));
     }
-    expect(Math.abs(last.suspensionStroke)).toBeLessThan(0.01);
-    expect(Math.abs(last.rearSuspensionStroke)).toBeLessThan(0.01);
+    // 圧縮量は、静止時のたわみに等しい（釣り合いの位置から動かない）。
+    expect(Math.abs(last.suspensionStroke - sagFrontM)).toBeLessThan(0.01);
+    expect(Math.abs(last.rearSuspensionStroke - sagRearM)).toBeLessThan(0.01);
     expect(recentAbsG.reduce((a, b) => a + b, 0) / recentAbsG.length).toBeLessThan(0.02);
   });
 
@@ -103,17 +106,16 @@ describe("サスペンション物理モデル", () => {
     expect(settleTicks(3000)).toBeLessThan(settleTicks(1000));
   });
 
-  it("6. 底付き: hugeSpeedBumpでバネ5000は底付き1回以上、strokeLengthを0.30にしても底付き回数は増えない", () => {
+  it("6. 底付き: smallBumpで、ストロークが小さい（バンプ用の余裕が無い）と底付きし、十分に大きいと底付きしない（issue #557）", () => {
     const bottomOuts = (suspension: Partial<VehicleConfig["suspension"]>) => {
-      const session = createSession(config({ suspension }), "hugeSpeedBump", 10);
+      const session = createSession(config({ suspension }), "smallBump", 10);
       let count = 0;
       for (let i = 0; i < 1500; i += 1) count = session.stepForTest().metrics.bottomOutCount;
       return count;
     };
-    const soft = bottomOuts({ springConstant: 5000 });
-    expect(soft).toBeGreaterThanOrEqual(1);
-    expect(bottomOuts({ springConstant: 5000, strokeLength: 0.3 })).toBeLessThanOrEqual(soft);
-    expect(bottomOuts({ strokeLength: 0.3 })).toBeLessThanOrEqual(bottomOuts({ strokeLength: 0.15 }));
+    // 静止時のたわみ（約9cm）を引いた、バンプで使える圧縮量が、ストロークで決まる。
+    expect(bottomOuts({ strokeLength: 0.12 })).toBeGreaterThanOrEqual(1);
+    expect(bottomOuts({ strokeLength: 0.4 })).toBe(0);
   });
 
   it("7. 飽和なし: smallBumpでバネ100000と200000、ダンパー10000と20000の最大衝撃が異なる", () => {
@@ -156,7 +158,7 @@ describe("サスペンション物理モデル", () => {
         ["suspension", "springConstant"],
         ["suspension", "damperCoefficient"],
         ["suspension", "strokeLength"],
-        ["suspension", "rideHeight"],
+        ["suspension", "mountHeight"],
         ["tire", "diameter"],
         ["tire", "stiffness"],
       ] as const

@@ -129,4 +129,17 @@ describe("useSimulationStore", () => {
       expect(useSimulationStore.getState().result).toBeNull();
     });
   });
+
+  it("初めから底付きになる設定（低いバネ定数・重い車重）では、開始できない（issue #557）", () => {
+    const store = useSimulationStore.getState();
+    store.setVehicle({ suspension: { ...store.vehicle.suspension, springConstant: 5000 }, body: { ...store.vehicle.body, weightKg: 5000 } });
+
+    useSimulationStore.getState().startRun();
+    expect(useSimulationStore.getState().phase).toBe("idle");
+
+    // 設定を直すと、開始できる。
+    useSimulationStore.getState().reset();
+    useSimulationStore.getState().startRun();
+    expect(useSimulationStore.getState().phase).toBe("running");
+  });
 });

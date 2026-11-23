@@ -21,8 +21,11 @@ export interface SuspensionParams {
   damperCoefficient: number;
   /** ストローク量(m) */
   strokeLength: number;
-  /** 車高(m) */
-  rideHeight: number;
+  /**
+   * バネ取り付け位置(m、0〜0.5)。バネの自由長 = 0.30m + この値。実際の車高は、自由長から、
+   * バネ定数・車重で決まる静止時のたわみを引いた値になる（issue #557）。
+   */
+  mountHeight: number;
 }
 
 export interface TireParams {

@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createVehicleBodies, getAxleArmsPx, getSprungMassKg } from "./vehicle";
 import { MASS_SCALE, UNSPRUNG_MASS_KG } from "./units";
+import { computeStaticState } from "./vehicleGeometry";
 import type { VehicleBodyParams } from "../types/vehicle";
 
-const suspension = { springConstant: 30000, damperCoefficient: 3000, strokeLength: 0.15, rideHeight: 0.4 };
+const suspension = { springConstant: 30000, damperCoefficient: 3000, strokeLength: 0.25, mountHeight: 0.19 };
 const tire = { diameter: 0.6, stiffness: 200000 };
 const body = (overrides: Partial<VehicleBodyParams> = {}): VehicleBodyParams => ({
   weightKg: 1200,
@@ -22,10 +23,14 @@ describe("createVehicleBodies", () => {
     expect(frontWheel.position.x - rearWheel.position.x).toBeCloseTo(2.5 * 60, 5);
   });
 
-  it("starts at rest: tires touch the ground and the chassis sits at the suspension rest length", () => {
+  it("starts at equilibrium: tires touch the ground and the chassis sits at the loaded ride height (issue #557)", () => {
     const { chassis, frontWheel } = create(body());
+    const { rideHeightM } = computeStaticState({ body: body(), suspension, tire });
     expect(frontWheel.position.y + (frontWheel.circleRadius ?? 0)).toBeCloseTo(300, 5);
-    expect(frontWheel.position.y - chassis.position.y).toBeCloseTo(0.4 * 60, 5);
+    expect(frontWheel.position.y - chassis.position.y).toBeCloseTo(rideHeightM * 60, 5);
+    // 自由長（0.49m）より、静止時のたわみのぶん低い。
+    expect(rideHeightM).toBeLessThan(0.3 + 0.19);
+    expect(chassis.angle).toBe(0);
   });
 
   it("sets masses explicitly: sprung mass on the chassis, a fixed unsprung mass per wheel", () => {

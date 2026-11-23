@@ -1,5 +1,6 @@
 import { useSimulationStore } from "../store/simulationStore";
 import { computeSuspensionTheory } from "../physics/suspensionTheory";
+import { computeStaticState } from "../physics/vehicleGeometry";
 import { VEHICLE_PRESETS } from "../store/vehiclePresets";
 import { buildShareUrl } from "../store/urlConfig";
 import { DRIVE_TYPES, PARAMETER_RANGES } from "../store/parameterRanges";
@@ -23,10 +24,16 @@ function findMatchingPresetId(vehicle: VehicleConfig): string {
   return match?.id ?? CUSTOM_PRESET_ID;
 }
 
+// メートルをセンチへ。小数1桁で、誤差を見せない。
+function formatCm(meters: number): string {
+  return (meters * 100).toFixed(1);
+}
+
 export function ControlPanel() {
   const vehicle = useSimulationStore((state) => state.vehicle);
   const setVehicle = useSimulationStore((state) => state.setVehicle);
   const testConditions = useSimulationStore((state) => state.testConditions);
+  const staticState = computeStaticState(vehicle);
   const { naturalFrequencyHz, dampingRatio } = computeSuspensionTheory(
     vehicle.suspension.springConstant,
     vehicle.suspension.damperCoefficient,
@@ -140,15 +147,25 @@ export function ControlPanel() {
         onChange={(strokeLength) => setVehicle({ suspension: { ...vehicle.suspension, strokeLength } })}
       />
       <SliderRow
-        label="車高"
+        label="バネ取り付け位置"
         unit="cm"
         displayScale={100}
-        min={PARAMETER_RANGES.rideHeight.min}
-        max={PARAMETER_RANGES.rideHeight.max}
-        step={PARAMETER_RANGES.rideHeight.step}
-        value={vehicle.suspension.rideHeight}
-        onChange={(rideHeight) => setVehicle({ suspension: { ...vehicle.suspension, rideHeight } })}
+        min={PARAMETER_RANGES.mountHeight.min}
+        max={PARAMETER_RANGES.mountHeight.max}
+        step={PARAMETER_RANGES.mountHeight.step}
+        value={vehicle.suspension.mountHeight}
+        onChange={(mountHeight) => setVehicle({ suspension: { ...vehicle.suspension, mountHeight } })}
       />
+      {/* 実際の車高は、取り付け位置・バネ定数・ストローク量・車重から決まる値で、読み取り専用（issue #557）。 */}
+      <p className="text-body-secondary mb-1" data-testid="static-state">
+        実際の車高: {formatCm(staticState.rideHeightM)} cm（静止時のたわみ: 前{formatCm(staticState.sagFrontM)} cm・後
+        {formatCm(staticState.sagRearM)} cm）
+      </p>
+      {staticState.isBottomedOutAtStart && (
+        <p className="text-danger" role="alert">
+          バネがたわみきっていて、走れません。バネ定数を上げるか、車重を下げるか、ストローク量を増やしてください。
+        </p>
+      )}
     </div>
   );
 }

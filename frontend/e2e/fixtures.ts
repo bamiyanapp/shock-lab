@@ -19,7 +19,7 @@ export { expect }
 // セダン（標準）の既定の車両設定。共有URLの組み立てに使う。
 export const SEDAN_VEHICLE = {
   body: { weightKg: 1200, frontWeightRatio: 0.55, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
-  suspension: { springConstant: 30000, damperCoefficient: 3000, strokeLength: 0.15, rideHeight: 0.4 },
+  suspension: { springConstant: 30000, damperCoefficient: 3000, strokeLength: 0.25, mountHeight: 0.19 },
   tire: { diameter: 0.6, stiffness: 200000 },
 }
 

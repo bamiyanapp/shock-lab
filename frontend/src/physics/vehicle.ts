@@ -1,6 +1,9 @@
 import Matter from "matter-js";
 import { MASS_SCALE, PIXELS_PER_METER, UNSPRUNG_MASS_KG } from "./units";
+import { computeStaticState, getAxleArmsPx, getSprungMassKg } from "./vehicleGeometry";
 import type { VehicleBodyParams, TireParams, SuspensionParams } from "../types/vehicle";
+
+export { getAxleArmsPx, getSprungMassKg };
 
 export interface VehicleBodies {
   chassis: Matter.Body;
@@ -8,7 +11,7 @@ export interface VehicleBodies {
   rearWheel: Matter.Body;
 }
 
-// 車体の当たり判定矩形の高さ。サスペンションの静止長（車高スライダー下限0.1m=6px）でも
+// 車体の当たり判定矩形の高さ。実際の車高が低い（バネ取り付け位置0cm、たわみが大きい）場合でも
 // 車体とタイヤが重ならないよう薄くしている（見た目はスプライト描画のため影響しない）。
 const CHASSIS_HEIGHT_PX = 20;
 // 自車の車体・タイヤは互いに衝突させない（同じ負のgroupを持つ剛体同士は衝突しない）。
@@ -34,17 +37,6 @@ function createWheel(
   return wheel;
 }
 
-/** ばね上質量(kg)。車重から前後2軸ぶんのばね下質量を引いた値 */
-export function getSprungMassKg(weightKg: number): number {
-  return Math.max(1, weightKg - 2 * UNSPRUNG_MASS_KG);
-}
-
-/** 車体の重心から前軸・後軸までの水平距離(px)。前重心ほど前軸に近くなる */
-export function getAxleArmsPx(body: VehicleBodyParams): { front: number; rear: number } {
-  const wheelbasePx = body.wheelbase * PIXELS_PER_METER;
-  return { front: wheelbasePx * (1 - body.frontWeightRatio), rear: wheelbasePx * body.frontWeightRatio };
-}
-
 /**
  * 車体・前輪・後輪の剛体を、静止状態（タイヤが地面に接し、サスペンションが静止長）で生成する。
  * サスペンションでの接続はSuspensionAxleが行う。
@@ -57,13 +49,18 @@ export function createVehicleBodies(
   groundY: number
 ): VehicleBodies {
   const wheelRadiusPx = (tire.diameter / 2) * PIXELS_PER_METER;
-  const restLengthPx = suspension.rideHeight * PIXELS_PER_METER;
+  // 釣り合いの位置（静止時のたわみのぶん縮んだ状態）から始める。開始直後の揺れで、最大衝撃・
+  // ランクが汚れないようにするため（issue #557）。
+  const staticState = computeStaticState({ body, suspension, tire });
   const arms = getAxleArmsPx(body);
   const wheelCenterY = groundY - wheelRadiusPx;
   const collisionFilter = { group: OWN_BODIES_COLLISION_GROUP };
 
   const chassisWidthPx = body.wheelbase * PIXELS_PER_METER + 60;
-  const chassis = Matter.Bodies.rectangle(originX, wheelCenterY - restLengthPx, chassisWidthPx, CHASSIS_HEIGHT_PX, {
+  // 車体は水平に置く。重心から、前後の平均の車高だけ上に置く（前後のたわみの差は、
+  // 取り付け点の高さの差で吸収する。computeAnchorOffsetsPxを参照）。
+  const initialCentreY = wheelCenterY - staticState.rideHeightM * PIXELS_PER_METER;
+  const chassis = Matter.Bodies.rectangle(originX, initialCentreY, chassisWidthPx, CHASSIS_HEIGHT_PX, {
     friction: 0.5,
     frictionAir: 0,
     collisionFilter,
@@ -75,7 +72,7 @@ export function createVehicleBodies(
     Math.min(1, (body.centerOfGravityHeight - REFERENCE_COG_HEIGHT_M) / REFERENCE_COG_HEIGHT_M)
   );
   Matter.Body.setCentre(chassis, { x: 0, y: -cogHeightBiasRatio * CHASSIS_HEIGHT_PX * 0.3 }, true);
-  Matter.Body.setPosition(chassis, { x: originX, y: wheelCenterY - restLengthPx });
+  Matter.Body.setPosition(chassis, { x: originX, y: initialCentreY });
   Matter.Body.setMass(chassis, getSprungMassKg(body.weightKg) * MASS_SCALE);
 
   // タイヤ剛性が高いほど衝撃を跳ね返しやすく、低いほど吸収して跳ねにくくなることを

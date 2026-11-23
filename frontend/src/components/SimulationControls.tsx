@@ -1,5 +1,6 @@
 import { useSimulationStore } from "../store/simulationStore";
 import { clickSound, unlockNonInteractiveSoundEffects } from "../audio/soundEffects";
+import { computeStaticState } from "../physics/vehicleGeometry";
 import { MuteToggle } from "./MuteToggle";
 
 // ボタン押下は必ずユーザー操作イベント内で発生するため、この関数呼び出しを
@@ -15,6 +16,8 @@ export function SimulationControls() {
   const pauseRun = useSimulationStore((state) => state.pauseRun);
   const resumeRun = useSimulationStore((state) => state.resumeRun);
   const restartRun = useSimulationStore((state) => state.restartRun);
+  // 初めから底付きになる設定は走れないため、開始できない（issue #557）。
+  const cannotRun = useSimulationStore((state) => computeStaticState(state.vehicle).isBottomedOutAtStart);
 
   const withClick = (action: () => void) => () => {
     playClickSound();
@@ -29,7 +32,7 @@ export function SimulationControls() {
         </button>
       )}
       {phase === "idle" && (
-        <button type="button" className="btn btn-primary" onClick={withClick(startRun)}>
+        <button type="button" className="btn btn-primary" onClick={withClick(startRun)} disabled={cannotRun}>
           開始
         </button>
       )}
@@ -39,7 +42,7 @@ export function SimulationControls() {
         </button>
       )}
       {(phase === "paused" || phase === "finished") && (
-        <button type="button" className="btn btn-outline-secondary" onClick={withClick(restartRun)}>
+        <button type="button" className="btn btn-outline-secondary" onClick={withClick(restartRun)} disabled={cannotRun}>
           最初から
         </button>
       )}
