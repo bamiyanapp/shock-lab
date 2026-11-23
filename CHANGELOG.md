@@ -1,3 +1,10 @@
+# [1.38.0](https://github.com/bamiyanapp/shock-lab/compare/v1.37.0...v1.38.0) (2026-11-23)
+
+
+### Features
+
+* **ui:** リザルトをボタンで開くビューにまとめ、設定のタブを1行にする ([#576](https://github.com/bamiyanapp/shock-lab/issues/576)) ([#577](https://github.com/bamiyanapp/shock-lab/issues/577)) ([fd993ea](https://github.com/bamiyanapp/shock-lab/commit/fd993eaa6c47fd496558f19781a11d6baff21c75)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514) [#510](https://github.com/bamiyanapp/shock-lab/issues/510) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#520](https://github.com/bamiyanapp/shock-lab/issues/520) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#509](https://github.com/bamiyanapp/shock-lab/issues/509) [#513](https://github.com/bamiyanapp/shock-lab/issues/513) [#533](https://github.com/bamiyanapp/shock-lab/issues/533) [#536](https://github.com/bamiyanapp/shock-lab/issues/536) [#535](https://github.com/bamiyanapp/shock-lab/issues/535) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#539](https://github.com/bamiyanapp/shock-lab/issues/539) [#541](https://github.com/bamiyanapp/shock-lab/issues/541) [#516](https://github.com/bamiyanapp/shock-lab/issues/516) [#553](https://github.com/bamiyanapp/shock-lab/issues/553) [#557](https://github.com/bamiyanapp/shock-lab/issues/557) [#552](https://github.com/bamiyanapp/shock-lab/issues/552) [#551](https://github.com/bamiyanapp/shock-lab/issues/551) [#551](https://github.com/bamiyanapp/shock-lab/issues/551) [#550](https://github.com/bamiyanapp/shock-lab/issues/550) [#566](https://github.com/bamiyanapp/shock-lab/issues/566) [#569](https://github.com/bamiyanapp/shock-lab/issues/569) [#570](https://github.com/bamiyanapp/shock-lab/issues/570) [#572](https://github.com/bamiyanapp/shock-lab/issues/572)
+
 # [1.37.0](https://github.com/bamiyanapp/shock-lab/compare/v1.36.2...v1.37.0) (2026-11-23)
 
 
