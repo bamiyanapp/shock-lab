@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/bamiyanapp/shock-lab/compare/v1.26.1...v1.27.0) (2026-11-23)
+
+
+### Features
+
+* **ui:** change tuning values by slider only, show numbers read-only ([#536](https://github.com/bamiyanapp/shock-lab/issues/536)) ([#537](https://github.com/bamiyanapp/shock-lab/issues/537)) ([326a12b](https://github.com/bamiyanapp/shock-lab/commit/326a12b0384840a68a6d814faa6dd6921e91119a)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514) [#510](https://github.com/bamiyanapp/shock-lab/issues/510) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#520](https://github.com/bamiyanapp/shock-lab/issues/520) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#509](https://github.com/bamiyanapp/shock-lab/issues/509) [#513](https://github.com/bamiyanapp/shock-lab/issues/513) [#533](https://github.com/bamiyanapp/shock-lab/issues/533)
+
 ## [1.26.1](https://github.com/bamiyanapp/shock-lab/compare/v1.26.0...v1.26.1) (2026-11-23)
 
 
