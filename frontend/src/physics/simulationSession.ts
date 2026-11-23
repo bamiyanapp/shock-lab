@@ -6,7 +6,7 @@ import { createTerrain, COURSE_LENGTH_PX, GOAL_LINE_X_PX } from "./terrain";
 import { createVehicleBodies, getAxleArmsPx, getSprungMassKg, type VehicleBodies } from "./vehicle";
 import { SuspensionAxle } from "./suspension";
 import { computeMetrics, VERTICAL_G_AVERAGE_TICKS } from "./metrics";
-import { shouldApplyDrivingForce } from "./driveControl";
+import { DRIVE_ACCELERATION_MS2, computeDrivenVelocityX, shouldApplyDrivingForce } from "./driveControl";
 import { computeAirDragDeceleration } from "./resistance";
 import { createScenery, createParallaxLayers, type SceneryItem, type ParallaxLayer } from "./scenery";
 import { spawnDustBurst, advanceDustParticles, type DustParticle } from "./impactEffects";
@@ -227,18 +227,19 @@ export class SimulationSession {
     Matter.Engine.clear(this.engine);
   }
 
-  // 試験速度に応じた水平速度を車体・タイヤへ直接与えて前進させる（垂直速度は重力・
-  // サスペンションによる挙動を保つため変更しない）。タイヤの角速度による摩擦駆動は、
-  // Matter.jsの既定重力スケールでは垂直抗力が小さく摩擦力が不足するため採用していない。
-  // 無条件に適用するとタイヤが地面から離れていても・転倒していても一定速度を保って
-  // しまうため、shouldApplyDrivingForce()で判定する。
+  // 停止状態から、試験速度（目標速度）へ向かって一定の加速度で加速させる（issue #516）。水平速度を
+  // 車体・タイヤへ同じ量だけ足して前進させる（垂直速度は重力・サスペンションによる挙動を保つため
+  // 変更しない）。タイヤの角速度による摩擦駆動は、Matter.jsの既定重力スケールでは垂直抗力が小さく
+  // 摩擦力が不足するため採用していない。速度を目標へ置き換えず加算にするため、段差・斜面で落ちた
+  // 速度は、駆動で回復するまで落ちたままになる。駆動輪が接地していない間・転倒中は
+  // shouldApplyDrivingForce()が偽になり、加速しない。
   private applyDriving(): void {
     const { chassis, frontWheel, rearWheel } = this.bodies;
     // body.velocityは衝突解決後に更新されないため、位置の差分から速度を求める。
     const chassisVelocity = Matter.Body.getVelocity(chassis);
     const frontVelocity = Matter.Body.getVelocity(frontWheel);
     const rearVelocity = Matter.Body.getVelocity(rearWheel);
-    const drivingVelocityXPerStep = (this.options.getSpeed() * PIXELS_PER_METER) / STEPS_PER_SECOND;
+    const targetVelocityXPerStep = (this.options.getSpeed() * PIXELS_PER_METER) / STEPS_PER_SECOND;
     const canDrive = shouldApplyDrivingForce({
       isFrontWheelGrounded: this.wheelContactTracker.frontWheelContactCount > 0,
       isRearWheelGrounded: this.wheelContactTracker.rearWheelContactCount > 0,
@@ -246,9 +247,12 @@ export class SimulationSession {
       driveType: this.options.vehicle.body.driveType,
     });
     if (canDrive) {
-      Matter.Body.setVelocity(chassis, { x: drivingVelocityXPerStep, y: chassisVelocity.y });
-      Matter.Body.setVelocity(frontWheel, { x: drivingVelocityXPerStep, y: frontVelocity.y });
-      Matter.Body.setVelocity(rearWheel, { x: drivingVelocityXPerStep, y: rearVelocity.y });
+      const accelerationPerStep2 = (DRIVE_ACCELERATION_MS2 * PIXELS_PER_METER) / (STEPS_PER_SECOND * STEPS_PER_SECOND);
+      const drivenVelocityX = computeDrivenVelocityX(chassisVelocity.x, targetVelocityXPerStep, accelerationPerStep2);
+      const deltaX = drivenVelocityX - chassisVelocity.x;
+      Matter.Body.setVelocity(chassis, { x: chassisVelocity.x + deltaX, y: chassisVelocity.y });
+      Matter.Body.setVelocity(frontWheel, { x: frontVelocity.x + deltaX, y: frontVelocity.y });
+      Matter.Body.setVelocity(rearWheel, { x: rearVelocity.x + deltaX, y: rearVelocity.y });
     } else {
       // 駆動していない間（空中・転倒中）は、速度の2乗に比例する空気抵抗で自然に減速させる。
       const dragDeceleration = computeAirDragDeceleration(chassisVelocity.x);

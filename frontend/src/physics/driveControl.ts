@@ -35,3 +35,25 @@ export function shouldApplyDrivingForce(conditions: DriveConditions): boolean {
   const isOverturned = Math.abs(normalizeAngleRad(conditions.chassisAngle)) > OVERTURN_ANGLE_THRESHOLD_RAD;
   return isDrivenWheelGrounded(conditions) && !isOverturned;
 }
+
+/**
+ * 駆動による加速度(m/s²)。停止状態から目標速度（試験速度）まで、この加速度で加速する（issue #516）。
+ * 5m/s なら約1.3秒、30m/s なら約7.5秒で目標速度に達する。
+ */
+export const DRIVE_ACCELERATION_MS2 = 4;
+
+/**
+ * 駆動を適用する1tickぶんの、水平速度(px/step)を計算する純粋関数。
+ * - 目標速度に達するまで、一定の加速度で加速する。目標速度を超えて加速しない
+ * - すでに目標速度以上（下り坂・段差の勢いなど）なら、駆動力は足さない（ブレーキもかけない）
+ * 速度を直接目標へ置き換えず加算にしているため、段差・斜面で落ちた速度は、駆動で回復するまで
+ * 落ちたままになる（段差・斜面で減速する）。
+ */
+export function computeDrivenVelocityX(
+  currentVelocityXPerStep: number,
+  targetVelocityXPerStep: number,
+  accelerationPerStep2: number
+): number {
+  if (currentVelocityXPerStep >= targetVelocityXPerStep) return currentVelocityXPerStep;
+  return Math.min(targetVelocityXPerStep, currentVelocityXPerStep + accelerationPerStep2);
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldApplyDrivingForce, OVERTURN_ANGLE_THRESHOLD_RAD } from "./driveControl";
+import { computeDrivenVelocityX, shouldApplyDrivingForce, OVERTURN_ANGLE_THRESHOLD_RAD } from "./driveControl";
 
 describe("shouldApplyDrivingForce", () => {
   it("drives when at least one wheel is grounded and the chassis is upright", () => {
@@ -74,5 +74,25 @@ describe("shouldApplyDrivingForce", () => {
 
   it("1回転半（3π）の逆さまは、駆動しない", () => {
     expect(shouldApplyDrivingForce({ isFrontWheelGrounded: true, isRearWheelGrounded: true, chassisAngle: Math.PI * 3 })).toBe(false);
+  });
+});
+
+describe("computeDrivenVelocityX（issue #516）", () => {
+  it("目標速度より遅ければ、加速度ぶんだけ加速する", () => {
+    expect(computeDrivenVelocityX(0, 10, 0.07)).toBeCloseTo(0.07, 10);
+    expect(computeDrivenVelocityX(5, 10, 0.07)).toBeCloseTo(5.07, 10);
+  });
+
+  it("目標速度を超えて加速しない（ちょうど目標で止まる）", () => {
+    expect(computeDrivenVelocityX(9.98, 10, 0.07)).toBe(10);
+  });
+
+  it("目標速度以上なら、駆動力を足さず、速度も変えない（ブレーキもかけない）", () => {
+    expect(computeDrivenVelocityX(10, 10, 0.07)).toBe(10);
+    expect(computeDrivenVelocityX(12, 10, 0.07)).toBe(12);
+  });
+
+  it("目標速度0（停止指示）では、加速しない", () => {
+    expect(computeDrivenVelocityX(0, 0, 0.07)).toBe(0);
   });
 });
