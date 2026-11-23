@@ -4,19 +4,17 @@ import { VehicleCanvas } from "../components/VehicleCanvas";
 import { TestConditionsPanel } from "../components/TestConditionsPanel";
 import { ControlPanel } from "../components/ControlPanel";
 import { SuspensionPanel } from "../components/SuspensionPanel";
-import { GraphPanel } from "../components/GraphPanel";
 import { SimulationControls } from "../components/SimulationControls";
 import { SettingsPanels, SettingsTabList } from "../components/SettingsTabs";
 import { useSettingsTabs } from "../components/useSettingsTabs";
 import type { SettingsTab } from "../components/useSettingsTabs";
-import { ResultScreen } from "../components/ResultScreen";
 import { useSimulationStore } from "../store/simulationStore";
 import { decodeSharedConfig, SHARED_CONFIG_QUERY_PARAM } from "../store/urlConfig";
 
 const SETTINGS_TABS: SettingsTab[] = [
   { id: "conditions", label: "試験条件", content: <TestConditionsPanel /> },
-  { id: "vehicle", label: "車両パラメータ", content: <ControlPanel /> },
-  { id: "suspension", label: "サスペンション設定", content: <SuspensionPanel /> },
+  { id: "vehicle", label: "車両", content: <ControlPanel /> },
+  { id: "suspension", label: "サスペンション", content: <SuspensionPanel /> },
 ];
 
 export function Home() {
@@ -44,16 +42,11 @@ export function Home() {
         <SimulationControls />
         <SettingsTabList tabs={SETTINGS_TABS} activeIndex={settingsTabs.activeIndex} onSelect={settingsTabs.goTo} />
       </div>
-      <ResultScreen />
       <SettingsPanels
         tabs={SETTINGS_TABS}
         scrollerRef={settingsTabs.scrollerRef}
         onScroll={settingsTabs.handleScroll}
       />
-      {/* メトリクスは、走行後だけ表示する。flexの横並びの中に置き、GraphPanelの幅の指定を保つ。 */}
-      <div className="d-flex">
-        <GraphPanel />
-      </div>
     </div>
   );
 }

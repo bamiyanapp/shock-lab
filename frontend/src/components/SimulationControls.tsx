@@ -2,6 +2,7 @@ import { useSimulationStore } from "../store/simulationStore";
 import { clickSound, unlockNonInteractiveSoundEffects } from "../audio/soundEffects";
 import { computeStaticState } from "../physics/vehicleGeometry";
 import { MuteToggle } from "./MuteToggle";
+import { ResultViewer } from "./ResultViewer";
 
 // ボタン押下は必ずユーザー操作イベント内で発生するため、この関数呼び出しを
 // iOS Safari等の自動再生ポリシーに対するアンロックの契機としても利用する。
@@ -47,6 +48,7 @@ export function SimulationControls() {
         </button>
       )}
       <MuteToggle />
+      <ResultViewer />
     </div>
   );
 }
