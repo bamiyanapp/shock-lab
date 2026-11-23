@@ -64,6 +64,8 @@ export interface StepOutput {
 export class SimulationSession {
   readonly engine: Matter.Engine;
   readonly bodies: VehicleBodies;
+  /** 地面・障害物の静的ボディ。描画は物理と同じ頂点から行い、見た目と当たり判定を一致させる */
+  readonly terrainBodies: Matter.Body[];
   readonly suspensions: { front: SuspensionAxle; rear: SuspensionAxle };
   readonly scenery: SceneryItem[];
   readonly parallaxLayers: ParallaxLayer[];
@@ -114,6 +116,7 @@ export class SimulationSession {
     this.engine = createWorld();
 
     const terrainBodies = createTerrain(options.terrainType, GROUND_Y);
+    this.terrainBodies = terrainBodies;
     this.scenery = createScenery(COURSE_LENGTH_PX);
     this.parallaxLayers = createParallaxLayers(COURSE_LENGTH_PX);
     this.bodies = createVehicleBodies(

@@ -5,6 +5,7 @@ import {
   drawDustParticles,
   drawGoalLine,
   drawStatusOverlays,
+  drawTerrain,
   drawSuspensionSpring,
   drawSuspensionSprings,
   drawVehicleSprite,
@@ -70,6 +71,33 @@ describe("drawBackground", () => {
     const { ctx, count } = createMockContext();
     drawBackground(ctx, [{ speedFactor: 1, items: [{ kind: "cloud", worldX: 100 }] }], [], 0, 800, 300);
     expect(count("ellipse")).toBe(3);
+  });
+});
+
+describe("drawTerrain", () => {
+  it("物理ボディの頂点を、カメラのずれ分だけ動かして描く", () => {
+    const body = Matter.Bodies.rectangle(100, 200, 40, 20, { isStatic: true });
+    const moveTo = vi.fn();
+    const ctx = { beginPath: vi.fn(), moveTo, lineTo: vi.fn(), closePath: vi.fn(), fill: vi.fn() } as unknown as CanvasRenderingContext2D;
+    drawTerrain(ctx, [body], 50, 800);
+    const first = body.vertices[0];
+    expect(moveTo).toHaveBeenCalledWith(first.x - 50, first.y);
+  });
+
+  it("画面外のボディは描かない", () => {
+    const body = Matter.Bodies.rectangle(5000, 200, 40, 20, { isStatic: true });
+    const { ctx, count } = createMockContext();
+    drawTerrain(ctx, [body], 0, 800);
+    expect(count("fill")).toBe(0);
+  });
+
+  it("複数パーツのボディは、全体を表す先頭を除いて各パーツを描く", () => {
+    const a = Matter.Bodies.rectangle(100, 200, 40, 20);
+    const b = Matter.Bodies.rectangle(140, 200, 40, 20);
+    const compound = Matter.Body.create({ parts: [a, b], isStatic: true });
+    const { ctx, count } = createMockContext();
+    drawTerrain(ctx, [compound], 0, 800);
+    expect(count("fill")).toBe(2);
   });
 });
 
