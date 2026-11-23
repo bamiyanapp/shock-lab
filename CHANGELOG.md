@@ -1,3 +1,10 @@
+## [1.26.1](https://github.com/bamiyanapp/shock-lab/compare/v1.26.0...v1.26.1) (2026-11-23)
+
+
+### Bug Fixes
+
+* **ci:** add workflow_dispatch to CD so a failed deploy can be redone ([#533](https://github.com/bamiyanapp/shock-lab/issues/533)) ([ce66ecc](https://github.com/bamiyanapp/shock-lab/commit/ce66ecc433afa5b8a28eddc0a5f3682c43a242f8)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514) [#510](https://github.com/bamiyanapp/shock-lab/issues/510) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#520](https://github.com/bamiyanapp/shock-lab/issues/520) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#509](https://github.com/bamiyanapp/shock-lab/issues/509) [#513](https://github.com/bamiyanapp/shock-lab/issues/513)
+
 # [1.26.0](https://github.com/bamiyanapp/shock-lab/compare/v1.25.2...v1.26.0) (2026-11-23)
 
 
