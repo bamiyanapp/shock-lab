@@ -70,3 +70,18 @@ test('開始→一時停止→再開/最初から→スライダー変更で開�
   await expect(page.getByRole('button', { name: '開始' })).toBeVisible()
   await expect(page.getByRole('button', { name: '再開' })).toHaveCount(0)
 })
+
+// プレビュー（canvas・操作・タブ見出し）の固定と、設定のタブ切り替え（issue #550）。
+test('下へスクロールしてもプレビューは画面上端に残り、タブで車両パラメータへ切り替わる', async ({ page }) => {
+  await page.goto('/shock-lab/')
+  const preview = page.getByTestId('preview-area')
+  await expect(preview).toBeVisible()
+
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+  await expect.poll(() => preview.evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBeLessThanOrEqual(1)
+  await expect(page.getByRole('button', { name: '開始' })).toBeInViewport()
+
+  await page.getByRole('tab', { name: '車両パラメータ' }).click()
+  await expect(page.getByRole('tab', { name: '車両パラメータ' })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('slider', { name: /バネ取り付け位置/ })).toBeInViewport()
+})
