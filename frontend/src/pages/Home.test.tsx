@@ -44,4 +44,23 @@ describe("Home", () => {
     render(<Home />);
     expect(screen.getByText(new RegExp(`^v${__APP_VERSION__}`))).toBeInTheDocument();
   });
+
+  it("プレビュー（キャンバス・操作・タブ見出し）を固定領域に置き、設定のパネルは、その外に置く（issue #550）", () => {
+    render(<Home />);
+    const preview = screen.getByTestId("preview-area");
+    expect(preview).toHaveClass("sticky-top");
+    expect(preview).toContainElement(screen.getByTestId("vehicle-canvas-stub"));
+    expect(preview).toContainElement(screen.getByRole("button", { name: "開始" }));
+    expect(preview).toContainElement(screen.getByRole("tablist"));
+    expect(preview).not.toContainElement(screen.getByTestId("settings-scroller"));
+  });
+
+  it("試験条件と車両パラメータが、タブで切り替えられる設定のパネルに入っている（issue #550）", () => {
+    render(<Home />);
+    expect(screen.getByRole("tab", { name: "試験条件" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "車両パラメータ" })).toBeInTheDocument();
+    const scroller = screen.getByTestId("settings-scroller");
+    expect(scroller).toContainElement(screen.getByRole("group", { name: "路面" }));
+    expect(scroller).toContainElement(screen.getByRole("group", { name: "駆動方式" }));
+  });
 });

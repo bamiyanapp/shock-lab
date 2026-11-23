@@ -3,7 +3,7 @@ import { getCanvasStyle } from "./canvasLayout";
 
 describe("getCanvasStyle", () => {
   it("待機中は画面幅に収める", () => {
-    expect(getCanvasStyle(false, true)).toEqual({ maxWidth: "100%", height: "auto" });
+    expect(getCanvasStyle(false, true)).toMatchObject({ maxWidth: "100%", height: "auto", maxHeight: expect.stringContaining("0.4") });
   });
 
   it("走行中の横持ちは回転しない", () => {
