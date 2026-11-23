@@ -45,14 +45,30 @@ describe("Home", () => {
     expect(screen.getByText(new RegExp(`^v${__APP_VERSION__}`))).toBeInTheDocument();
   });
 
-  it("プレビュー（キャンバス・操作・タブ見出し）を固定領域に置き、設定のパネルは、その外に置く（issue #550）", () => {
+  it("プレビュー（キャンバス・タブ見出し）を固定領域に置き、設定のパネルは、その外に置く（issue #550）", () => {
     render(<Home />);
     const preview = screen.getByTestId("preview-area");
     expect(preview).toHaveClass("sticky-top");
     expect(preview).toContainElement(screen.getByTestId("vehicle-canvas-stub"));
-    expect(preview).toContainElement(screen.getByRole("button", { name: "開始" }));
     expect(preview).toContainElement(screen.getByRole("tablist"));
     expect(preview).not.toContainElement(screen.getByTestId("settings-scroller"));
+  });
+
+  it("操作ボタン（開始など）は、固定領域の外の上部にある（issue #583）", () => {
+    render(<Home />);
+    const preview = screen.getByTestId("preview-area");
+    const controls = screen.getByTestId("controls-area");
+    expect(controls).toContainElement(screen.getByRole("button", { name: "開始" }));
+    expect(preview).not.toContainElement(controls);
+    // 画面の並びで、固定領域より前にある
+    expect(controls.compareDocumentPosition(preview) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("パネルの中に、見出し（試験条件など）を置かない。タブ見出しが、その役割を持つ（issue #583）", () => {
+    render(<Home />);
+    expect(screen.queryByRole("heading", { name: "試験条件" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "車両パラメータ" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "サスペンション設定" })).not.toBeInTheDocument();
   });
 
   it("試験条件と車両パラメータが、タブで切り替えられる設定のパネルに入っている（issue #550）", () => {

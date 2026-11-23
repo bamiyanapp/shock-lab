@@ -35,11 +35,14 @@ export function Home() {
     <div className="container py-3 d-flex flex-column gap-3">
       <h1>ShockLab</h1>
       <AppVersionInfo />
-      {/* プレビュー（キャンバスと操作）と、設定のタブ見出しは、画面の上に固定する。設定のパネルだけが
+      {/* 操作ボタンは、画面の上部に置き、固定の範囲には含めない（issue #583）。 */}
+      <div className="d-flex justify-content-center" data-testid="controls-area">
+        <SimulationControls />
+      </div>
+      {/* プレビュー（キャンバス）と、設定のタブ見出しは、画面の上に固定する。設定のパネルだけが
           スクロールする（issue #550）。 */}
       <div className="sticky-top bg-body pb-2 d-flex flex-column gap-2 align-items-center" data-testid="preview-area">
         <VehicleCanvas />
-        <SimulationControls />
         <SettingsTabList tabs={SETTINGS_TABS} activeIndex={settingsTabs.activeIndex} onSelect={settingsTabs.goTo} />
       </div>
       <SettingsPanels
