@@ -1,3 +1,10 @@
+# [1.33.0](https://github.com/bamiyanapp/shock-lab/compare/v1.32.0...v1.33.0) (2026-11-23)
+
+
+### Features
+
+* **physics:** 車高をバネ取り付け位置へ改め、車高をバネ定数・ストローク・車重から決める ([#557](https://github.com/bamiyanapp/shock-lab/issues/557)) ([#558](https://github.com/bamiyanapp/shock-lab/issues/558)) ([694dec7](https://github.com/bamiyanapp/shock-lab/commit/694dec78e375119bb3c676ce749fc46d292e6da4)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514) [#510](https://github.com/bamiyanapp/shock-lab/issues/510) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#520](https://github.com/bamiyanapp/shock-lab/issues/520) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#509](https://github.com/bamiyanapp/shock-lab/issues/509) [#513](https://github.com/bamiyanapp/shock-lab/issues/513) [#533](https://github.com/bamiyanapp/shock-lab/issues/533) [#536](https://github.com/bamiyanapp/shock-lab/issues/536) [#535](https://github.com/bamiyanapp/shock-lab/issues/535) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#539](https://github.com/bamiyanapp/shock-lab/issues/539) [#541](https://github.com/bamiyanapp/shock-lab/issues/541) [#516](https://github.com/bamiyanapp/shock-lab/issues/516) [#553](https://github.com/bamiyanapp/shock-lab/issues/553)
+
 # [1.32.0](https://github.com/bamiyanapp/shock-lab/compare/v1.31.0...v1.32.0) (2026-11-23)
 
 
