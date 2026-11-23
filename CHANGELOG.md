@@ -1,3 +1,10 @@
+# [1.29.0](https://github.com/bamiyanapp/shock-lab/compare/v1.28.0...v1.29.0) (2026-11-23)
+
+
+### Features
+
+* **ui:** 路面の選択を、アイコンつきのラジオボタンにする ([#539](https://github.com/bamiyanapp/shock-lab/issues/539)) ([#544](https://github.com/bamiyanapp/shock-lab/issues/544)) ([e969c3f](https://github.com/bamiyanapp/shock-lab/commit/e969c3f8a8d7d85609769c3e7a18be0676101bf3)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514) [#510](https://github.com/bamiyanapp/shock-lab/issues/510) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#520](https://github.com/bamiyanapp/shock-lab/issues/520) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#509](https://github.com/bamiyanapp/shock-lab/issues/509) [#513](https://github.com/bamiyanapp/shock-lab/issues/513) [#533](https://github.com/bamiyanapp/shock-lab/issues/533) [#536](https://github.com/bamiyanapp/shock-lab/issues/536) [#535](https://github.com/bamiyanapp/shock-lab/issues/535) [#519](https://github.com/bamiyanapp/shock-lab/issues/519)
+
 # [1.28.0](https://github.com/bamiyanapp/shock-lab/compare/v1.27.0...v1.28.0) (2026-11-23)
 
 
