@@ -1,3 +1,10 @@
+# [1.28.0](https://github.com/bamiyanapp/shock-lab/compare/v1.27.0...v1.28.0) (2026-11-23)
+
+
+### Features
+
+* **physics:** choose the drive type (AWD / FF / FR) ([#535](https://github.com/bamiyanapp/shock-lab/issues/535)) ([#540](https://github.com/bamiyanapp/shock-lab/issues/540)) ([a4823df](https://github.com/bamiyanapp/shock-lab/commit/a4823dfc53f1bf1bbc608e8fb3fa4c1b0552ab8c)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514) [#510](https://github.com/bamiyanapp/shock-lab/issues/510) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#520](https://github.com/bamiyanapp/shock-lab/issues/520) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#509](https://github.com/bamiyanapp/shock-lab/issues/509) [#513](https://github.com/bamiyanapp/shock-lab/issues/513) [#533](https://github.com/bamiyanapp/shock-lab/issues/533) [#536](https://github.com/bamiyanapp/shock-lab/issues/536) [#519](https://github.com/bamiyanapp/shock-lab/issues/519)
+
 # [1.27.0](https://github.com/bamiyanapp/shock-lab/compare/v1.26.1...v1.27.0) (2026-11-23)
 
 
