@@ -1,3 +1,10 @@
+## [1.36.1](https://github.com/bamiyanapp/shock-lab/compare/v1.36.0...v1.36.1) (2026-11-23)
+
+
+### Bug Fixes
+
+* **renovate:** self_ref追従のパターンを正規表現形式にする ([#566](https://github.com/bamiyanapp/shock-lab/issues/566)) ([#567](https://github.com/bamiyanapp/shock-lab/issues/567)) ([0c8dccb](https://github.com/bamiyanapp/shock-lab/commit/0c8dccb18a54a346e91e2f90af5815a3bceae581)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514) [#510](https://github.com/bamiyanapp/shock-lab/issues/510) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#520](https://github.com/bamiyanapp/shock-lab/issues/520) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#509](https://github.com/bamiyanapp/shock-lab/issues/509) [#513](https://github.com/bamiyanapp/shock-lab/issues/513) [#533](https://github.com/bamiyanapp/shock-lab/issues/533) [#536](https://github.com/bamiyanapp/shock-lab/issues/536) [#535](https://github.com/bamiyanapp/shock-lab/issues/535) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#539](https://github.com/bamiyanapp/shock-lab/issues/539) [#541](https://github.com/bamiyanapp/shock-lab/issues/541) [#516](https://github.com/bamiyanapp/shock-lab/issues/516) [#553](https://github.com/bamiyanapp/shock-lab/issues/553) [#557](https://github.com/bamiyanapp/shock-lab/issues/557) [#552](https://github.com/bamiyanapp/shock-lab/issues/552) [#551](https://github.com/bamiyanapp/shock-lab/issues/551) [#551](https://github.com/bamiyanapp/shock-lab/issues/551) [#550](https://github.com/bamiyanapp/shock-lab/issues/550)
+
 # [1.36.0](https://github.com/bamiyanapp/shock-lab/compare/v1.35.0...v1.36.0) (2026-11-23)
 
 
