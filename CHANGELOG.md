@@ -1,3 +1,10 @@
+## [1.24.2](https://github.com/bamiyanapp/shock-lab/compare/v1.24.1...v1.24.2) (2026-11-23)
+
+
+### Bug Fixes
+
+* **canvas:** draw terrain from physics vertices after the background ([#515](https://github.com/bamiyanapp/shock-lab/issues/515)) ([#521](https://github.com/bamiyanapp/shock-lab/issues/521)) ([610acbc](https://github.com/bamiyanapp/shock-lab/commit/610acbc4fee156ae18a85922ef779e4d71a77142))
+
 ## [1.24.1](https://github.com/bamiyanapp/shock-lab/compare/v1.24.0...v1.24.1) (2026-11-18)
 
 
