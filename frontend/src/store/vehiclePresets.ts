@@ -13,7 +13,7 @@ export const VEHICLE_PRESETS: VehiclePreset[] = [
     id: "sedan",
     label: "セダン（標準）",
     config: {
-      body: { weightKg: 1200, frontWeightRatio: 0.55, centerOfGravityHeight: 0.5, wheelbase: 2.5 },
+      body: { weightKg: 1200, frontWeightRatio: 0.55, centerOfGravityHeight: 0.5, wheelbase: 2.5, driveType: "awd" },
       suspension: { springConstant: 30000, damperCoefficient: 3000, strokeLength: 0.15, rideHeight: 0.4 },
       tire: { diameter: 0.6, stiffness: 200000 },
     },
@@ -22,7 +22,7 @@ export const VEHICLE_PRESETS: VehiclePreset[] = [
     id: "kei-car",
     label: "軽自動車",
     config: {
-      body: { weightKg: 800, frontWeightRatio: 0.6, centerOfGravityHeight: 0.55, wheelbase: 2.2 },
+      body: { weightKg: 800, frontWeightRatio: 0.6, centerOfGravityHeight: 0.55, wheelbase: 2.2, driveType: "ff" },
       suspension: { springConstant: 18000, damperCoefficient: 1800, strokeLength: 0.15, rideHeight: 0.4 },
       tire: { diameter: 0.55, stiffness: 150000 },
     },
@@ -31,7 +31,7 @@ export const VEHICLE_PRESETS: VehiclePreset[] = [
     id: "sports-car",
     label: "スポーツカー",
     config: {
-      body: { weightKg: 1400, frontWeightRatio: 0.5, centerOfGravityHeight: 0.35, wheelbase: 2.6 },
+      body: { weightKg: 1400, frontWeightRatio: 0.5, centerOfGravityHeight: 0.35, wheelbase: 2.6, driveType: "fr" },
       suspension: { springConstant: 60000, damperCoefficient: 6000, strokeLength: 0.12, rideHeight: 0.25 },
       tire: { diameter: 0.65, stiffness: 250000 },
     },
@@ -40,7 +40,7 @@ export const VEHICLE_PRESETS: VehiclePreset[] = [
     id: "suv",
     label: "SUV",
     config: {
-      body: { weightKg: 2200, frontWeightRatio: 0.5, centerOfGravityHeight: 0.7, wheelbase: 2.9 },
+      body: { weightKg: 2200, frontWeightRatio: 0.5, centerOfGravityHeight: 0.7, wheelbase: 2.9, driveType: "awd" },
       suspension: { springConstant: 40000, damperCoefficient: 4500, strokeLength: 0.2, rideHeight: 0.55 },
       tire: { diameter: 0.75, stiffness: 220000 },
     },
@@ -49,7 +49,7 @@ export const VEHICLE_PRESETS: VehiclePreset[] = [
     id: "truck",
     label: "トラック",
     config: {
-      body: { weightKg: 8000, frontWeightRatio: 0.45, centerOfGravityHeight: 0.9, wheelbase: 4.2 },
+      body: { weightKg: 8000, frontWeightRatio: 0.45, centerOfGravityHeight: 0.9, wheelbase: 4.2, driveType: "awd" },
       suspension: { springConstant: 90000, damperCoefficient: 5000, strokeLength: 0.25, rideHeight: 0.7 },
       tire: { diameter: 1, stiffness: 350000 },
     },

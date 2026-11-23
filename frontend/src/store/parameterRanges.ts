@@ -1,4 +1,4 @@
-import type { TerrainType, TestConditions, VehicleConfig } from "../types/vehicle";
+import type { DriveType, TerrainType, TestConditions, VehicleConfig } from "../types/vehicle";
 
 export interface ParameterRange {
   min: number;
@@ -20,6 +20,8 @@ export const PARAMETER_RANGES = {
   stiffness: { min: 100000, max: 400000, step: 10000 },
   speed: { min: 5, max: 30, step: 1 },
 } as const satisfies Record<string, ParameterRange>;
+
+export const DRIVE_TYPES: readonly DriveType[] = ["awd", "ff", "fr"];
 
 export const TERRAIN_TYPES: readonly TerrainType[] = [
   "flat",
@@ -58,8 +60,13 @@ function sanitizeGroup<T extends object>(input: unknown, fallback: T, keys: read
 /** 任意の値をVehicleConfigへ整える。不正な項目はfallbackの値、範囲外は範囲内へ丸め、未知のキーは捨てる */
 export function sanitizeVehicleConfig(input: unknown, fallback: VehicleConfig): VehicleConfig {
   const source = asRecord(input);
+  // 駆動方式は3種以外・未指定ならfallback（古い共有URLには含まれないため、既定の駆動方式で読める）。
+  const driveType = DRIVE_TYPES.find((candidate) => candidate === asRecord(source.body).driveType) ?? fallback.body.driveType;
   return {
-    body: sanitizeGroup(source.body, fallback.body, ["weightKg", "frontWeightRatio", "centerOfGravityHeight", "wheelbase"]),
+    body: {
+      ...sanitizeGroup(source.body, fallback.body, ["weightKg", "frontWeightRatio", "centerOfGravityHeight", "wheelbase"]),
+      driveType,
+    },
     suspension: sanitizeGroup(source.suspension, fallback.suspension, [
       "springConstant",
       "damperCoefficient",

@@ -2,12 +2,18 @@ import { useSimulationStore } from "../store/simulationStore";
 import { computeSuspensionTheory } from "../physics/suspensionTheory";
 import { VEHICLE_PRESETS } from "../store/vehiclePresets";
 import { buildShareUrl } from "../store/urlConfig";
-import { PARAMETER_RANGES } from "../store/parameterRanges";
-import type { VehicleConfig } from "../types/vehicle";
+import { DRIVE_TYPES, PARAMETER_RANGES } from "../store/parameterRanges";
+import type { DriveType, VehicleConfig } from "../types/vehicle";
 import ShareButton from "./ShareButton.jsx";
 import { SliderRow } from "./SliderRow";
 
 const CUSTOM_PRESET_ID = "custom";
+
+const DRIVE_TYPE_LABELS: Record<DriveType, string> = {
+  awd: "四駆（4WD）",
+  ff: "前輪駆動（FF）",
+  fr: "後輪駆動（FR）",
+};
 
 // 現在の車両設定がいずれかのプリセットと全項目一致するときはそのIDを、一致しなければ
 // 「カスタム」を返す（スライダー変更後・共有URL読み込み後も表示が実態と一致するように）。
@@ -53,6 +59,23 @@ export function ControlPanel() {
           {VEHICLE_PRESETS.map((preset) => (
             <option key={preset.id} value={preset.id}>
               {preset.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="form-label d-block mb-3">
+        駆動方式
+        <select
+          className="form-select"
+          value={vehicle.body.driveType}
+          onChange={(event) => {
+            const driveType = DRIVE_TYPES.find((candidate) => candidate === event.target.value);
+            if (driveType) setVehicle({ body: { ...vehicle.body, driveType } });
+          }}
+        >
+          {DRIVE_TYPES.map((driveType) => (
+            <option key={driveType} value={driveType}>
+              {DRIVE_TYPE_LABELS[driveType]}
             </option>
           ))}
         </select>

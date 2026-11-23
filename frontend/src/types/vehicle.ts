@@ -1,3 +1,6 @@
+/** 駆動方式。awd=四駆（前後どちらか）、ff=前輪駆動、fr=後輪駆動 */
+export type DriveType = "awd" | "ff" | "fr";
+
 export interface VehicleBodyParams {
   /** 車重(kg) */
   weightKg: number;
@@ -7,6 +10,8 @@ export interface VehicleBodyParams {
   centerOfGravityHeight: number;
   /** ホイールベース(m) */
   wheelbase: number;
+  /** 駆動方式。駆動輪が接地しているときだけ駆動力が働く */
+  driveType: DriveType;
 }
 
 export interface SuspensionParams {
