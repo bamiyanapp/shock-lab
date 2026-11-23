@@ -20,3 +20,15 @@ export const NEWTON_TO_MATTER_FORCE = (MASS_SCALE * PIXELS_PER_METER) / 1e6;
 export const HISTORY_SAMPLE_TICKS = 6;
 /** 履歴の上限（10Hzで5分） */
 export const MAX_HISTORY_SAMPLES = 3000;
+
+/**
+ * 角度(rad)を(-π, π]へ正規化する。Matter.jsのbody.angleは回転するたびに増減し続ける値（一回転で
+ * 2π）のため、向き（傾き）の判定には正規化した値を使う。そうしないと、空中で一回転して
+ * タイヤから着地した（向きは正常な）車体が、「傾いている」と誤判定される（issue #519）。
+ */
+export function normalizeAngleRad(angle: number): number {
+  const twoPi = Math.PI * 2;
+  const wrapped = ((((angle + Math.PI) % twoPi) + twoPi) % twoPi) - Math.PI;
+  // 範囲を(-π, π]にそろえる（-πはπとして扱う）
+  return wrapped === -Math.PI ? Math.PI : wrapped;
+}

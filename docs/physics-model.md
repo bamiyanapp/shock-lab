@@ -68,7 +68,7 @@ Matter.Constraintのstiffness・dampingは使わない。バネ・ダンパー�
 
 `hugeSpeedBump`は矩形（垂直な壁）では乗り越えられないため、台形にした。
 
-`hugeSpeedBump`・`jumpRamp`は10m/sで転倒しやすく、5プリセットともリタイアになる。過酷な路面として意図した挙動である。
+`hugeSpeedBump`・`jumpRamp`は10m/sで転倒または立ち往生しやすく、5プリセットともリタイアになる。転倒の判定は、車体の角度を、-πより大きくπ以下の範囲へ正規化した向きで行う。空中で1回転して正しい向きで着地した車体は、転倒にしない（issue #519）。過酷な路面として意図した挙動である。
 
 ## ランク閾値
 
@@ -98,7 +98,7 @@ Matter.Constraintのstiffness・dampingは使わない。バネ・ダンパー�
 
 スポーツカーのストローク量は0.1mから0.12mへ調整した。0.1mでは小さな段差で11回底付きし、ランクCになったためである。
 
-上表は`flat`と`smallBump`の計測結果である。他の路面の結果は、`largeBump`が底付きしてランクC、`washboard`がランクA〜S、`hugeSpeedBump`・`jumpRamp`が転倒によるリタイアである（セダンの場合）。
+上表は`flat`と`smallBump`の計測結果である。他の路面の結果は、`largeBump`が底付きしてランクC、`washboard`がランクA〜S、`hugeSpeedBump`・`jumpRamp`が転倒または立ち往生によるリタイアである。セダンは、1回転して正しい向きに戻った後、立ち往生する。
 
 ## スコープ外
 

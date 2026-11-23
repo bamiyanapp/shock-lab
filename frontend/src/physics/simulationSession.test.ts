@@ -114,6 +114,28 @@ describe("SimulationSession", () => {
       }
     });
 
+    it("overturned: 一回転（2π）して正しい向きで着地した車体は、転倒とみなさない（issue #519）", () => {
+      const session = createSession("flat", 10);
+      for (let i = 0; i < 200; i += 1) {
+        // 回転数ぶん増え続ける角度。向きは正常（2π・4π）なので、傾きの判定は0と同じになる。
+        Matter.Body.setAngle(session.bodies.chassis, i % 2 === 0 ? Math.PI * 2 : Math.PI * 4);
+        expect(session.stepForTest().events.some((event) => event.type === "retire" && event.reason === "overturned")).toBe(false);
+      }
+    });
+
+    it("overturned: 一回転半して逆さ（3π）のままなら、転倒として発火する", () => {
+      const session = createSession("flat", 10);
+      for (let i = 0; i < 400 && !session.hasFinished; i += 1) {
+        Matter.Body.setAngle(session.bodies.chassis, Math.PI * 3);
+        const retire = session.stepForTest().events.find((event) => event.type === "retire");
+        if (retire?.type === "retire") {
+          expect(retire.reason).toBe("overturned");
+          return;
+        }
+      }
+      throw new Error("overturnedで終了しませんでした");
+    });
+
     it("stuck: 速度0で5秒(300tick)前進できないと、300tick目以降に発火する（開始直後は判定しない）", () => {
       const session = createSession("flat", 0);
       const found = retireEvents(session, 400);
