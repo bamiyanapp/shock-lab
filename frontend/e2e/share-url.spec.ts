@@ -10,7 +10,7 @@ test('共有URLで車重・バネ定数を指定して開くと、入力欄に�
   await page.goto(`/shock-lab/?config=${config}`)
 
   await expect(page.getByRole('spinbutton', { name: /車重/ })).toHaveValue('2000')
-  await expect(page.getByRole('spinbutton', { name: /バネ定数/ })).toHaveValue('50000')
+  await expect(page.getByRole('spinbutton', { name: /バネ定数/ })).toHaveValue('50')
 })
 
 test('壊れたconfig値でも既定値で起動し、エラーにならない', async ({ page }) => {

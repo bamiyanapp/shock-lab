@@ -36,7 +36,8 @@ export function TestConditionsPanel() {
         </select>
       </label>
       <SliderRow
-        label="試験速度(m/s)"
+        label="試験速度"
+        unit="m/s"
         min={PARAMETER_RANGES.speed.min}
         max={PARAMETER_RANGES.speed.max}
         step={PARAMETER_RANGES.speed.step}
