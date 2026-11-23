@@ -17,3 +17,11 @@
 - `enable_auto_merge` はデフォルト（`true`）のまま使用し、CI成功後に`base_branch`（`main`）へ自動マージする。
 - GitHub Pagesへのデプロイは `dev-standards/.github/actions/deploy-github-pages` を利用する。
 - CI/CDパイプラインの詳細仕様は `docs/cicd-pipeline-specification.md` を参照する。
+
+## コミットメッセージ・PRタイトルの言語
+
+- CIの実行一覧（Actionsタブ）には、コミットメッセージとPRタイトルの1行目が表示される。スマートフォンで読めるよう、**必ず日本語**で書く。
+- 形式は`type(scope): 日本語の件名`とする。`type`・`scope`は、semantic-releaseとcommitlintが読むため、英語のままにする。
+- コミットのbodyも日本語で、「設計」「影響」「テスト」の3見出しを含める（`git-conventions` Skill参照）。
+- `Co-Authored-By`などの帰属行は、指定どおりに末尾へ付ける。
+
