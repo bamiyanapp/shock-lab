@@ -1,3 +1,10 @@
+# [1.30.0](https://github.com/bamiyanapp/shock-lab/compare/v1.29.0...v1.30.0) (2026-11-23)
+
+
+### Features
+
+* **ui:** ホイールベースを画面のスライダーで調整できるようにする ([#541](https://github.com/bamiyanapp/shock-lab/issues/541)) ([#547](https://github.com/bamiyanapp/shock-lab/issues/547)) ([5437fa0](https://github.com/bamiyanapp/shock-lab/commit/5437fa09765ea2dcc9924cad8e531b3cce2c2759)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514) [#510](https://github.com/bamiyanapp/shock-lab/issues/510) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#520](https://github.com/bamiyanapp/shock-lab/issues/520) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#509](https://github.com/bamiyanapp/shock-lab/issues/509) [#513](https://github.com/bamiyanapp/shock-lab/issues/513) [#533](https://github.com/bamiyanapp/shock-lab/issues/533) [#536](https://github.com/bamiyanapp/shock-lab/issues/536) [#535](https://github.com/bamiyanapp/shock-lab/issues/535) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#539](https://github.com/bamiyanapp/shock-lab/issues/539)
+
 # [1.29.0](https://github.com/bamiyanapp/shock-lab/compare/v1.28.0...v1.29.0) (2026-11-23)
 
 
