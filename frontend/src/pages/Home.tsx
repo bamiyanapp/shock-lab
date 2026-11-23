@@ -3,6 +3,7 @@ import { AppVersionInfo } from "../components/AppVersionInfo";
 import { VehicleCanvas } from "../components/VehicleCanvas";
 import { TestConditionsPanel } from "../components/TestConditionsPanel";
 import { ControlPanel } from "../components/ControlPanel";
+import { SuspensionPanel } from "../components/SuspensionPanel";
 import { GraphPanel } from "../components/GraphPanel";
 import { SimulationControls } from "../components/SimulationControls";
 import { SettingsPanels, SettingsTabList } from "../components/SettingsTabs";
@@ -15,6 +16,7 @@ import { decodeSharedConfig, SHARED_CONFIG_QUERY_PARAM } from "../store/urlConfi
 const SETTINGS_TABS: SettingsTab[] = [
   { id: "conditions", label: "試験条件", content: <TestConditionsPanel /> },
   { id: "vehicle", label: "車両パラメータ", content: <ControlPanel /> },
+  { id: "suspension", label: "サスペンション設定", content: <SuspensionPanel /> },
 ];
 
 export function Home() {
