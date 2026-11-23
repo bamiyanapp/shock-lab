@@ -136,6 +136,45 @@ describe("SimulationSession", () => {
       throw new Error("overturnedで終了しませんでした");
     });
 
+    it("停止状態から加速し、目標速度に達すると、それ以上は加速しない（issue #516）", () => {
+      const session = createSession("flat", 10);
+      const speedAfter = (ticks: number) => {
+        let speed = 0;
+        for (let i = 0; i < ticks; i += 1) speed = session.stepForTest().speedMetersPerSecond;
+        return speed;
+      };
+      expect(speedAfter(1)).toBeLessThan(1);
+      const after1s = speedAfter(59);
+      expect(after1s).toBeGreaterThan(3);
+      expect(after1s).toBeLessThan(5);
+      const after5s = speedAfter(240);
+      expect(after5s).toBeGreaterThan(9.5);
+      expect(after5s).toBeLessThan(10.5);
+    });
+
+    // 目標速度に達した後の最低速度(m/s)。段差・斜面で落ちた速度を見る。
+    function minSpeedAfterReachingTarget(terrain: TerrainType): number {
+      const session = createSession(terrain, 10);
+      let reachedTarget = false;
+      let minSpeed = Number.POSITIVE_INFINITY;
+      for (let i = 0; i < 60 * 25; i += 1) {
+        const { speedMetersPerSecond } = session.stepForTest();
+        if (speedMetersPerSecond > 9.95) reachedTarget = true;
+        if (reachedTarget) minSpeed = Math.min(minSpeed, speedMetersPerSecond);
+      }
+      expect(reachedTarget).toBe(true);
+      return minSpeed;
+    }
+
+    it("段差に乗り上げると、速度が目標より落ちる。平坦路では落ちない（issue #516）", () => {
+      expect(minSpeedAfterReachingTarget("flat")).toBeGreaterThan(9.9);
+      expect(minSpeedAfterReachingTarget("largeBump")).toBeLessThan(9.5);
+    });
+
+    it("急な斜面（ジャンプ台）では、速度が大きく落ちる（issue #516）", () => {
+      expect(minSpeedAfterReachingTarget("jumpRamp")).toBeLessThan(5);
+    });
+
     it("stuck: 速度0で5秒(300tick)前進できないと、300tick目以降に発火する（開始直後は判定しない）", () => {
       const session = createSession("flat", 0);
       const found = retireEvents(session, 400);
@@ -197,7 +236,10 @@ describe("SimulationSession", () => {
       let last = session.stepForTest();
       for (let i = 0; i < 59; i += 1) last = session.stepForTest();
       expect(session.latestMetrics).toBe(last.metrics);
-      expect(session.history[session.history.length - 1].distanceM).toBeGreaterThan(5);
+      // 停止状態から4m/s²で加速するため、1秒後の距離は約2m（目標速度で走り続けた場合の10mより短い）。
+      const distanceM = session.history[session.history.length - 1].distanceM;
+      expect(distanceM).toBeGreaterThan(1.5);
+      expect(distanceM).toBeLessThan(3);
     });
 
     it("区間内で1tickだけのピークは、間引き後のサンプルに残る", () => {
