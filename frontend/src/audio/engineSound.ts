@@ -24,18 +24,31 @@ function targetGain(): number {
   return useSimulationStore.getState().isMuted ? 0 : ENGINE_VOLUME;
 }
 
+/**
+ * 止まっているAudioContextを再開する。iOS Safariは、画面ロック・別アプリへの切り替え・
+ * 電話等の割り込みで"suspended"だけでなく"interrupted"（標準のstate型に無い値）にもする。
+ * "suspended"だけを見ると、復帰後に無音のままになる（issue #514）。
+ */
+function resumeIfNotRunning(context: AudioContext) {
+  if (context.state === "running") return;
+  context.resume().catch(() => {});
+}
+
 /** ユーザー操作イベント内（開始ボタン押下等）から呼ぶこと。AudioContextの生成・resumeにはユーザー操作の文脈が必要。 */
 export function startEngineSound() {
   const AudioContextConstructor = getAudioContextConstructor();
   if (!AudioContextConstructor) return; // Web Audio API非対応環境では何もしない
 
   try {
+    if (audioContext?.state === "closed") {
+      // closedは再開できない。古いノードごと捨てて作り直す。
+      stopEngineSound();
+      audioContext = null;
+    }
     if (!audioContext) {
       audioContext = new AudioContextConstructor();
     }
-    if (audioContext.state === "suspended") {
-      audioContext.resume().catch(() => {});
-    }
+    resumeIfNotRunning(audioContext);
     if (oscillator) return; // 既に再生中
 
     oscillator = audioContext.createOscillator();
@@ -76,5 +89,15 @@ export function setEngineSoundSpeed(speedMetersPerSecond: number) {
 /** ミュートトグル操作時に呼び、再生中のエンジン音の音量へ即座に反映する */
 export function applyEngineSoundMuted() {
   if (!gainNode || !audioContext) return;
+  // ミュート解除はユーザー操作なので、止まっていれば再開できる。
+  resumeIfNotRunning(audioContext);
   gainNode.gain.setTargetAtTime(targetGain(), audioContext.currentTime, GAIN_RAMP_SECONDS);
+}
+
+// 画面が再び見えるようになったとき、再生中なのに止まっているコンテキストを再開する。
+// 再開はユーザー操作外だと拒否されることがあるが、拒否されても無害（無音のまま）なので試す。
+if (typeof document !== "undefined") {
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && oscillator && audioContext) resumeIfNotRunning(audioContext);
+  });
 }
