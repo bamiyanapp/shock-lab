@@ -194,11 +194,21 @@ export function drawTerrain(
   ctx: CanvasRenderingContext2D,
   terrainBodies: Matter.Body[],
   offsetX: number,
-  canvasWidth: number
+  canvasWidth: number,
+  groundScreenY?: number
 ) {
   for (const body of terrainBodies) {
     if (body.bounds.max.x - offsetX < 0 || body.bounds.min.x - offsetX > canvasWidth) continue;
     ctx.fillStyle = body.render.fillStyle ?? "#52606d";
+    // 障害物（地面より上へ出ているボディ）は、物理のため地面の下へも延びている。その部分を描くと、
+    // 地面を横切る縞に見えるため、地面の高さで切り取る。地面自身は、切り取らない。
+    const isObstacle = groundScreenY !== undefined && body.bounds.min.y < groundScreenY - 1;
+    if (isObstacle) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, 0, canvasWidth, groundScreenY);
+      ctx.clip();
+    }
     // 凹形状は複数のパーツに分かれる。先頭は全体を表すため、パーツがあるときはそれ以外を描く。
     const parts = body.parts.length > 1 ? body.parts.slice(1) : [body];
     for (const part of parts) {
@@ -210,6 +220,7 @@ export function drawTerrain(
       ctx.closePath();
       ctx.fill();
     }
+    if (isObstacle) ctx.restore();
   }
 }
 
