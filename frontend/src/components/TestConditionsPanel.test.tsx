@@ -14,15 +14,15 @@ describe("TestConditionsPanel（issue #445）", () => {
     render(<TestConditionsPanel />);
     useSimulationStore.getState().startRun();
 
-    await user.selectOptions(screen.getByLabelText("路面"), "washboard");
+    await user.click(screen.getByRole("radio", { name: "洗濯板（波状路）" }));
 
     expect(useSimulationStore.getState().testConditions.terrainType).toBe("washboard");
     expect(useSimulationStore.getState().phase).toBe("idle");
   });
 
-  it("6種類の路面を日本語ラベルで選べる", () => {
+  it("6種類の路面を、ラジオボタンで日本語ラベルのまま選べる（issue #539）", () => {
     render(<TestConditionsPanel />);
-    const labels = screen.getAllByRole("option").map((option) => option.textContent);
+    const labels = screen.getAllByRole("radio").map((radio) => radio.parentElement?.textContent);
     expect(labels).toEqual([
       "平坦路",
       "小さい段差",
@@ -31,6 +31,27 @@ describe("TestConditionsPanel（issue #445）", () => {
       "洗濯板（波状路）",
       "ジャンプ台",
     ]);
+    expect(screen.getByRole("group", { name: "路面" })).toBeInTheDocument();
+  });
+
+  it("既定の路面が選択状態になり、選ぶと選択が移る（ラジオは1つだけ選択）", async () => {
+    const user = userEvent.setup();
+    render(<TestConditionsPanel />);
+    expect(useSimulationStore.getState().testConditions.terrainType).toBe("smallBump");
+    expect(screen.getAllByRole("radio").filter((radio) => (radio as HTMLInputElement).checked)).toHaveLength(1);
+    expect(screen.getByRole("radio", { name: "小さい段差" })).toBeChecked();
+
+    await user.click(screen.getByRole("radio", { name: "ジャンプ台" }));
+
+    expect(screen.getByRole("radio", { name: "ジャンプ台" })).toBeChecked();
+    expect(screen.getByRole("radio", { name: "小さい段差" })).not.toBeChecked();
+  });
+
+  it("各選択肢に、路面のアイコン（装飾のSVG）がある", () => {
+    const { container } = render(<TestConditionsPanel />);
+    const icons = container.querySelectorAll("svg[data-terrain-icon]");
+    expect(icons).toHaveLength(6);
+    for (const icon of icons) expect(icon).toHaveAttribute("aria-hidden", "true");
   });
 
   it("速度スライダーを動かすとストアのspeedが変わり、km/h換算を表示する", () => {
