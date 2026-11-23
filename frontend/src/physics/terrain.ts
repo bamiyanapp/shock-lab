@@ -39,16 +39,41 @@ export function computeBumpHeight(bumpCenterX: number, maxHeight: number, spacin
   return minHeight + (maxHeight - minHeight) * progress;
 }
 
-/** 地面上面を基準に、中心x・幅・高さの矩形バンプを置く（下端は地面の厚みぶん地中へ延ばす） */
-function createRectBump(centerX: number, width: number, height: number, groundY: number): Matter.Body {
-  const groundCenterY = groundY + GROUND_THICKNESS_PX / 2;
-  return Matter.Bodies.rectangle(
-    centerX,
-    groundCenterY - height / 2,
-    width,
-    GROUND_THICKNESS_PX + height,
-    OBSTACLE_OPTIONS
-  );
+/** 角の丸めの、円弧を近似する線分の数 */
+const CORNER_SEGMENTS = 6;
+/** 段差・台形の上側の角の、丸めの半径（px）の上限 */
+const MAX_CORNER_RADIUS_PX = 12;
+
+/**
+ * 凸多角形の頂点列のうち、radiiが正の頂点の角を、円弧（2次ベジェ）で丸める（issue #579）。
+ * 半径は、隣の辺の長さの半分までに抑える。radiiが0の頂点は、そのまま残す。
+ * 地面に接する角は、丸めると、地面との間にすき間ができるため、0にする。
+ */
+export function roundCorners(points: Matter.Vector[], radii: number[]): Matter.Vector[] {
+  const rounded: Matter.Vector[] = [];
+  points.forEach((corner, index) => {
+    const radius = radii[index] ?? 0;
+    if (radius <= 0) {
+      rounded.push({ x: corner.x, y: corner.y });
+      return;
+    }
+    const previous = points[(index + points.length - 1) % points.length];
+    const next = points[(index + 1) % points.length];
+    const toPrevious = Math.hypot(previous.x - corner.x, previous.y - corner.y);
+    const toNext = Math.hypot(next.x - corner.x, next.y - corner.y);
+    const cut = Math.min(radius, toPrevious / 2, toNext / 2);
+    const start = { x: corner.x + ((previous.x - corner.x) / toPrevious) * cut, y: corner.y + ((previous.y - corner.y) / toPrevious) * cut };
+    const end = { x: corner.x + ((next.x - corner.x) / toNext) * cut, y: corner.y + ((next.y - corner.y) / toNext) * cut };
+    for (let step = 0; step <= CORNER_SEGMENTS; step += 1) {
+      const t = step / CORNER_SEGMENTS;
+      const u = 1 - t;
+      rounded.push({
+        x: u * u * start.x + 2 * u * t * corner.x + t * t * end.x,
+        y: u * u * start.y + 2 * u * t * corner.y + t * t * end.y,
+      });
+    }
+  });
+  return rounded;
 }
 
 /**
@@ -60,23 +85,51 @@ function createPolygon(worldVertices: Matter.Vector[]): Matter.Body {
   return Matter.Bodies.fromVertices(centre.x, centre.y, [worldVertices], OBSTACLE_OPTIONS);
 }
 
-/** 台形（上底・下底・高さ）。下底が地面上面に接する */
-function createTrapezoid(centerX: number, topWidth: number, bottomWidth: number, height: number, groundY: number) {
-  return createPolygon([
-    { x: centerX - bottomWidth / 2, y: groundY },
-    { x: centerX + bottomWidth / 2, y: groundY },
-    { x: centerX + topWidth / 2, y: groundY - height },
-    { x: centerX - topWidth / 2, y: groundY - height },
-  ]);
+/**
+ * 地面上面を基準に、中心x・幅・高さの矩形バンプを置く（下端は地面の厚みぶん地中へ延ばす）。
+ * 上側の2つの角を丸める。半径は、高さの0.7倍（上限あり）。
+ */
+function createRectBump(centerX: number, width: number, height: number, groundY: number): Matter.Body {
+  const radius = Math.min(height * 0.7, MAX_CORNER_RADIUS_PX);
+  const bottomY = groundY + GROUND_THICKNESS_PX;
+  const points = [
+    { x: centerX - width / 2, y: bottomY },
+    { x: centerX - width / 2, y: groundY - height },
+    { x: centerX + width / 2, y: groundY - height },
+    { x: centerX + width / 2, y: bottomY },
+  ];
+  return createPolygon(roundCorners(points, [0, radius, radius, 0]));
 }
 
-/** 直角三角形の上り斜面。startXから進行方向へ上り、頂点の先は垂直に落ちる */
+/** 台形（上底・下底・高さ）。下底が地面上面に接する。上底の2つの角を丸める */
+function createTrapezoid(centerX: number, topWidth: number, bottomWidth: number, height: number, groundY: number) {
+  const radius = Math.min(height * 0.4, MAX_CORNER_RADIUS_PX);
+  return createPolygon(
+    roundCorners(
+      [
+        { x: centerX - bottomWidth / 2, y: groundY },
+        { x: centerX + bottomWidth / 2, y: groundY },
+        { x: centerX + topWidth / 2, y: groundY - height },
+        { x: centerX - topWidth / 2, y: groundY - height },
+      ],
+      [0, 0, radius, radius]
+    )
+  );
+}
+
+/** 直角三角形の上り斜面。startXから進行方向へ上り、頂点の先は垂直に落ちる。先端（頂点）の角を丸める */
 function createRamp(startX: number, run: number, height: number, groundY: number) {
-  return createPolygon([
-    { x: startX, y: groundY },
-    { x: startX + run, y: groundY },
-    { x: startX + run, y: groundY - height },
-  ]);
+  const radius = Math.min(height * 0.4, MAX_CORNER_RADIUS_PX);
+  return createPolygon(
+    roundCorners(
+      [
+        { x: startX, y: groundY },
+        { x: startX + run, y: groundY },
+        { x: startX + run, y: groundY - height },
+      ],
+      [0, 0, radius]
+    )
+  );
 }
 
 /** 一定間隔で障害物を並べる。最後の障害物の端がゴール手前の余白に収まる範囲に限る */
