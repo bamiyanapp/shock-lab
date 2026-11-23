@@ -22,7 +22,6 @@ export function SuspensionPanel() {
 
   return (
     <div>
-      <h2>サスペンション設定</h2>
       <p className="text-body-secondary mb-1">
         固有振動数: {naturalFrequencyHz.toFixed(2)} Hz / 減衰比 ζ: {dampingRatio.toFixed(2)}
       </p>

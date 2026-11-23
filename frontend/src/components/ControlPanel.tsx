@@ -27,7 +27,6 @@ export function ControlPanel() {
 
   return (
     <div>
-      <h2>車両パラメータ</h2>
       <div className="mb-3">
         <ShareButton
           label="セッティングを共有"

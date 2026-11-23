@@ -79,7 +79,9 @@ test('下へスクロールしてもプレビューは画面上端に残り、�
 
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
   await expect.poll(() => preview.evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBeLessThanOrEqual(1)
-  await expect(page.getByRole('button', { name: '開始' })).toBeInViewport()
+  // 操作ボタンは固定の範囲外で、スクロールすると画面の外へ出る。キャンバスは見え続ける（issue #583）。
+  await expect(page.getByRole('button', { name: '開始' })).not.toBeInViewport()
+  await expect(page.getByTestId('vehicle-canvas')).toBeInViewport()
 
   await page.getByRole('tab', { name: '車両', exact: true }).click()
   await expect(page.getByRole('tab', { name: '車両', exact: true })).toHaveAttribute('aria-selected', 'true')

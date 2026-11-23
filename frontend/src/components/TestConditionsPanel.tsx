@@ -23,7 +23,6 @@ export function TestConditionsPanel() {
 
   return (
     <div>
-      <h2>試験条件</h2>
       <fieldset className="mb-3">
         <legend className="form-label fs-6">路面</legend>
         <div className="row row-cols-2 g-2">
