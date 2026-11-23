@@ -9,6 +9,7 @@ import vehicleSpriteUrl from "../assets/vehicle-sprite.png";
 import {
   drawGoalLine,
   drawBackground,
+  drawTerrain,
   drawDustParticles,
   drawVehicleSprite,
   drawSuspensionSprings,
@@ -64,6 +65,11 @@ export function VehicleCanvas() {
       frontWheel.render.visible = false;
       rearWheel.render.visible = false;
     };
+    // 地形はMatter.jsの既定描画だと背景に上書きされるため、隠して自前で背景の後に描く。
+    for (const body of session.terrainBodies) {
+      body.render.visible = false;
+      for (const part of body.parts) part.render.visible = false;
+    }
     if (vehicleSprite.complete) {
       hideDefaultVehicleRender();
     } else {
@@ -115,6 +121,7 @@ export function VehicleCanvas() {
       const offsetX = render.bounds.min.x;
       context.save();
       drawBackground(context, session.parallaxLayers, session.scenery, offsetX, CANVAS_WIDTH, GROUND_Y);
+      drawTerrain(context, session.terrainBodies, offsetX, CANVAS_WIDTH);
       drawDustParticles(context, session.dustParticles, offsetX, CANVAS_WIDTH);
 
       const goalScreenX = GOAL_LINE_X_PX - offsetX;

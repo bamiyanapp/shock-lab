@@ -198,6 +198,34 @@ export function drawBackground(
   }
 }
 
+/**
+ * 地面・障害物を、物理ボディの頂点そのままに描く。Matter.jsの既定描画はafterRenderで描く背景
+ * （山・雲・木・家）に上書きされ、バンプが背景の裏に隠れて見えたため、自前で背景の後に描く。
+ * 物理と同じ頂点を使うので、見た目と当たり判定がずれない。
+ */
+export function drawTerrain(
+  ctx: CanvasRenderingContext2D,
+  terrainBodies: Matter.Body[],
+  offsetX: number,
+  canvasWidth: number
+) {
+  for (const body of terrainBodies) {
+    if (body.bounds.max.x - offsetX < 0 || body.bounds.min.x - offsetX > canvasWidth) continue;
+    ctx.fillStyle = body.render.fillStyle ?? "#52606d";
+    // 凹形状は複数のパーツに分かれる。先頭は全体を表すため、パーツがあるときはそれ以外を描く。
+    const parts = body.parts.length > 1 ? body.parts.slice(1) : [body];
+    for (const part of parts) {
+      const [first, ...rest] = part.vertices;
+      if (!first) continue;
+      ctx.beginPath();
+      ctx.moveTo(first.x - offsetX, first.y);
+      for (const vertex of rest) ctx.lineTo(vertex.x - offsetX, vertex.y);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+}
+
 export function drawDustParticles(
   ctx: CanvasRenderingContext2D,
   dustParticles: DustParticle[],
