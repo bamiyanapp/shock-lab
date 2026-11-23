@@ -1,10 +1,16 @@
 name: CD
-run-name: CD ${{ github.event.head_commit.message }}
+run-name: >-
+  CD (${{ github.event_name == 'workflow_dispatch' && 'manual' || 'push' }})
+  ${{ github.event.head_commit.message }}
 
 on:
   push:
     branches:
       - main
+  # デプロイだけが失敗したとき、「失敗ジョブの再実行」ではなく新規実行でやり直すために使う。
+  # 再実行では同名のPagesアーティファクトが重複して失敗することがあり、全体の再実行では
+  # 新しいリリースが無くdeployがスキップされるため（dev-standards docs/cicd-pipeline-specification.md参照）。
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -20,7 +26,7 @@ jobs:
 
   deploy:
     needs: release
-    if: success() && needs.release.outputs.new_release_published == 'true'
+    if: success() && (needs.release.outputs.new_release_published == 'true' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
