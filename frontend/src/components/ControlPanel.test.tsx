@@ -117,9 +117,46 @@ describe("ControlPanel", () => {
 
     const strokeInput = screen.getByRole("spinbutton", { name: /ストローク量/ });
     await user.clear(strokeInput);
-    await user.type(strokeInput, "0.3");
+    await user.type(strokeInput, "30");
     await user.tab();
 
     expect(useSimulationStore.getState().vehicle.suspension.strokeLength).toBeCloseTo(0.3, 10);
+  });
+
+  it("バネ定数はkN/mで表示・入力し、内部はN/mで保持する（issue #510・#518）", async () => {
+    const user = userEvent.setup();
+    render(<ControlPanel />);
+
+    const springInput = screen.getByRole("spinbutton", { name: /バネ定数/ });
+    expect(springInput).toHaveValue(useSimulationStore.getState().vehicle.suspension.springConstant / 1000);
+    expect(screen.getByText("kN/m")).toBeInTheDocument();
+
+    await user.clear(springInput);
+    await user.type(springInput, "50");
+    await user.tab();
+    expect(useSimulationStore.getState().vehicle.suspension.springConstant).toBe(50000);
+
+    await user.clear(springInput);
+    await user.type(springInput, "500");
+    await user.tab();
+    expect(useSimulationStore.getState().vehicle.suspension.springConstant).toBe(200000);
+  });
+
+  it("ダンパー減衰はkN・s/m、車高はcmで表示・入力し、内部の単位へ誤差なく変換する", async () => {
+    const user = userEvent.setup();
+    render(<ControlPanel />);
+
+    const damperInput = screen.getByRole("spinbutton", { name: /ダンパー減衰/ });
+    await user.clear(damperInput);
+    await user.type(damperInput, "2.5");
+    await user.tab();
+    expect(useSimulationStore.getState().vehicle.suspension.damperCoefficient).toBe(2500);
+
+    const rideHeightInput = screen.getByRole("spinbutton", { name: /車高/ });
+    await user.clear(rideHeightInput);
+    await user.type(rideHeightInput, "35");
+    await user.tab();
+    expect(useSimulationStore.getState().vehicle.suspension.rideHeight).toBeCloseTo(0.35, 10);
+    expect(screen.getAllByText("cm")).toHaveLength(2);
   });
 });

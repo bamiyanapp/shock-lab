@@ -65,7 +65,8 @@ export function ControlPanel() {
         ζが1未満: 揺れが残りやすい（ふわふわ）／1超: 動きが硬い（ガチガチ）
       </p>
       <SliderRow
-        label="車重(kg)"
+        label="車重"
+        unit="kg"
         min={PARAMETER_RANGES.weightKg.min}
         max={PARAMETER_RANGES.weightKg.max}
         step={PARAMETER_RANGES.weightKg.step}
@@ -73,7 +74,9 @@ export function ControlPanel() {
         onChange={(weightKg) => setVehicle({ body: { ...vehicle.body, weightKg } })}
       />
       <SliderRow
-        label="バネ定数(N/m)"
+        label="バネ定数"
+        unit="kN/m"
+        displayScale={0.001}
         min={PARAMETER_RANGES.springConstant.min}
         max={PARAMETER_RANGES.springConstant.max}
         step={PARAMETER_RANGES.springConstant.step}
@@ -83,7 +86,9 @@ export function ControlPanel() {
         }
       />
       <SliderRow
-        label="ダンパー減衰(N・s/m)"
+        label="ダンパー減衰"
+        unit="kN・s/m"
+        displayScale={0.001}
         min={PARAMETER_RANGES.damperCoefficient.min}
         max={PARAMETER_RANGES.damperCoefficient.max}
         step={PARAMETER_RANGES.damperCoefficient.step}
@@ -93,7 +98,9 @@ export function ControlPanel() {
         }
       />
       <SliderRow
-        label="ストローク量(m)"
+        label="ストローク量"
+        unit="cm"
+        displayScale={100}
         min={PARAMETER_RANGES.strokeLength.min}
         max={PARAMETER_RANGES.strokeLength.max}
         step={PARAMETER_RANGES.strokeLength.step}
@@ -101,7 +108,9 @@ export function ControlPanel() {
         onChange={(strokeLength) => setVehicle({ suspension: { ...vehicle.suspension, strokeLength } })}
       />
       <SliderRow
-        label="車高(m)"
+        label="車高"
+        unit="cm"
+        displayScale={100}
         min={PARAMETER_RANGES.rideHeight.min}
         max={PARAMETER_RANGES.rideHeight.max}
         step={PARAMETER_RANGES.rideHeight.step}
