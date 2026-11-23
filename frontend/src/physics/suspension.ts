@@ -39,7 +39,7 @@ export class SuspensionAxle {
     this.armPx = armPx;
     this.anchorOffsetPx = anchorOffsetPx;
     // 圧縮量の基準は、バネの自由長（荷重ゼロの長さ）。静止時は、荷重のぶん縮んだ状態になる（issue #557）。
-    this.restLengthPx = computeFreeLengthM(params.mountHeight) * PIXELS_PER_METER;
+    this.restLengthPx = computeFreeLengthM(params.mountHeight, params.strokeLength) * PIXELS_PER_METER;
     this.strokeM = params.strokeLength;
     this.springN = WHEELS_PER_AXLE * params.springConstant;
     this.damperNs = WHEELS_PER_AXLE * params.damperCoefficient;

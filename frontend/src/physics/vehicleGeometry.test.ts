@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  MOUNT_BASE_LENGTH_M,
+  FREE_LENGTH_BASE_M,
   computeAnchorOffsetsPx,
   computeFreeLengthM,
   computeStaticState,
@@ -16,13 +16,32 @@ const withSuspension = (overrides: Partial<VehicleConfig["suspension"]>, weightK
 });
 
 describe("computeFreeLengthM", () => {
-  it("自由長 = 基準 + バネ取り付け位置（0〜0.5mで、0.30〜0.80m）", () => {
-    expect(computeFreeLengthM(0)).toBeCloseTo(MOUNT_BASE_LENGTH_M, 10);
-    expect(computeFreeLengthM(0.5)).toBeCloseTo(0.8, 10);
+  it("自由長 = 基準 + バネ取り付け位置 + ストローク量", () => {
+    expect(computeFreeLengthM(0, 0.05)).toBeCloseTo(FREE_LENGTH_BASE_M + 0.05, 10);
+    expect(computeFreeLengthM(0.5, 0.4)).toBeCloseTo(0.95, 10);
+  });
+
+  it("既定のセダン（取り付け位置0.19m・ストローク0.25m）は、自由長0.49m", () => {
+    expect(computeFreeLengthM(0.19, 0.25)).toBeCloseTo(0.49, 10);
+  });
+
+  it("5種のプリセットの自由長は、ストローク量を連動させる前と同じ（物理の結果を変えない。issue #569）", () => {
+    const expected = [0.49, 0.49, 0.3, 0.68, 0.78];
+    VEHICLE_PRESETS.forEach((preset, index) => {
+      const { mountHeight, strokeLength } = preset.config.suspension;
+      expect(computeFreeLengthM(mountHeight, strokeLength)).toBeCloseTo(expected[index], 10);
+    });
   });
 });
 
 describe("computeStaticState（issue #557）", () => {
+  it("ストローク量を上げると、バネが長くなり、実際の車高が上がる（issue #569）", () => {
+    const short = computeStaticState(withSuspension({ strokeLength: 0.2 }));
+    const long = computeStaticState(withSuspension({ strokeLength: 0.3 }));
+    expect(long.freeLengthM - short.freeLengthM).toBeCloseTo(0.1, 10);
+    expect(long.rideHeightM - short.rideHeightM).toBeCloseTo(0.1, 10);
+  });
+
   it("静止時のたわみ = ばね上質量×荷重配分×重力 ÷ (2×バネ定数)", () => {
     const state = computeStaticState(SEDAN);
     // ばね上質量 1040kg、前0.55。1040 × 0.55 × 9.8 ÷ 60000

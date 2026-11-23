@@ -66,8 +66,10 @@ describe("設定の切り替え（issue #550）", () => {
     expect(screen.getByRole("tab", { name: "車両パラメータ" })).toHaveAttribute("aria-selected", "true");
   });
 
-  it("横スクロールの領域は、キーボードでも操作できる（フォーカスできる）", () => {
+  it("横スクロールの領域は、ユーザーのスクロール操作を受け付けない（スライダーとの競合を避ける。issue #570）", () => {
     render(<Harness />);
-    expect(screen.getByTestId("settings-scroller")).toHaveAttribute("tabindex", "0");
+    const scroller = screen.getByTestId("settings-scroller");
+    expect(scroller).toHaveStyle({ overflowX: "hidden" });
+    expect(scroller).not.toHaveAttribute("tabindex");
   });
 });

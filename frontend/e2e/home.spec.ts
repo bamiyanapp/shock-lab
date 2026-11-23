@@ -85,3 +85,16 @@ test('下へスクロールしてもプレビューは画面上端に残り、�
   await expect(page.getByRole('tab', { name: '車両パラメータ' })).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('slider', { name: /バネ取り付け位置/ })).toBeInViewport()
 })
+
+// ストローク量を上げると、バネが長くなり、実際の車高が上がる（issue #569）。
+test('ストローク量を上げると、実際の車高の数値が上がる', async ({ page }) => {
+  await page.goto('/shock-lab/')
+  await page.getByRole('tab', { name: '車両パラメータ' }).click()
+  const state = page.getByTestId('static-state')
+  const height = async () => Number((await state.innerText()).match(/実際の車高: ([\d.]+) cm/)![1])
+
+  await page.getByRole('slider', { name: /ストローク量/ }).fill('0.2')
+  const low = await height()
+  await page.getByRole('slider', { name: /ストローク量/ }).fill('0.3')
+  expect(await height()).toBeGreaterThan(low + 5)
+})

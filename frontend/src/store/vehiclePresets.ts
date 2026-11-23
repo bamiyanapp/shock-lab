@@ -23,7 +23,7 @@ export const VEHICLE_PRESETS: VehiclePreset[] = [
     label: "軽自動車",
     config: {
       body: { weightKg: 800, frontWeightRatio: 0.6, centerOfGravityHeight: 0.55, wheelbase: 2.2, driveType: "ff" },
-      suspension: { springConstant: 18000, damperCoefficient: 1800, strokeLength: 0.26, mountHeight: 0.19 },
+      suspension: { springConstant: 18000, damperCoefficient: 1800, strokeLength: 0.26, mountHeight: 0.18 },
       tire: { diameter: 0.55, stiffness: 150000 },
     },
   },
@@ -32,7 +32,7 @@ export const VEHICLE_PRESETS: VehiclePreset[] = [
     label: "スポーツカー",
     config: {
       body: { weightKg: 1400, frontWeightRatio: 0.5, centerOfGravityHeight: 0.35, wheelbase: 2.6, driveType: "fr" },
-      suspension: { springConstant: 60000, damperCoefficient: 6000, strokeLength: 0.18, mountHeight: 0 },
+      suspension: { springConstant: 60000, damperCoefficient: 6000, strokeLength: 0.18, mountHeight: 0.07 },
       tire: { diameter: 0.65, stiffness: 250000 },
     },
   },
@@ -41,7 +41,7 @@ export const VEHICLE_PRESETS: VehiclePreset[] = [
     label: "SUV",
     config: {
       body: { weightKg: 2200, frontWeightRatio: 0.5, centerOfGravityHeight: 0.7, wheelbase: 2.9, driveType: "awd" },
-      suspension: { springConstant: 40000, damperCoefficient: 4500, strokeLength: 0.33, mountHeight: 0.38 },
+      suspension: { springConstant: 40000, damperCoefficient: 4500, strokeLength: 0.33, mountHeight: 0.3 },
       tire: { diameter: 0.75, stiffness: 220000 },
     },
   },
@@ -50,7 +50,7 @@ export const VEHICLE_PRESETS: VehiclePreset[] = [
     label: "トラック",
     config: {
       body: { weightKg: 8000, frontWeightRatio: 0.45, centerOfGravityHeight: 0.9, wheelbase: 4.2, driveType: "awd" },
-      suspension: { springConstant: 250000, damperCoefficient: 8300, strokeLength: 0.34, mountHeight: 0.48 },
+      suspension: { springConstant: 250000, damperCoefficient: 8300, strokeLength: 0.34, mountHeight: 0.39 },
       tire: { diameter: 1, stiffness: 350000 },
     },
   },
