@@ -114,6 +114,43 @@ function createObstacles(terrainType: TerrainType, groundY: number): Matter.Body
   }
 }
 
+/** 待機中のプレビューで、最初の障害物を置くx（px）。車（x=200）の前方で、画面（幅800）の右寄り */
+export const PREVIEW_FIRST_OBSTACLE_X_PX = 540;
+
+/** プレビュー用に、同じ形の障害物を、一定間隔でcount個並べる（最初の位置はPREVIEW_FIRST_OBSTACLE_X_PX） */
+function previewRow(
+  count: number,
+  spacing: number,
+  create: (centerX: number) => Matter.Body,
+  firstX = PREVIEW_FIRST_OBSTACLE_X_PX
+): Matter.Body[] {
+  return Array.from({ length: count }, (_, index) => create(firstX + index * spacing));
+}
+
+/**
+ * 待機中のプレビューに見せる、路面のサンプルの障害物を生成する（issue #551）。実際の地形
+ * （createObstacles）と同じ形・寸法で、最大の高さのものを、車のすぐ前方（画面内）に並べる。
+ * 物理のワールドには加えず、描画だけに使う。実際の地形は、約25m先から始まるため、
+ * 待機中には、路面の違いが見えない。createTerrainの結果は変えない。
+ */
+export function createPreviewObstacles(terrainType: TerrainType, groundY: number): Matter.Body[] {
+  switch (terrainType) {
+    case "flat":
+      return [];
+    case "smallBump":
+      return previewRow(2, 320, (x) => createRectBump(x, 200, 6, groundY));
+    case "largeBump":
+      return previewRow(2, 320, (x) => createRectBump(x, 200, 15, groundY));
+    case "hugeSpeedBump":
+      return previewRow(1, 0, (x) => createTrapezoid(x + 60, 120, 360, 80, groundY));
+    case "washboard":
+      // 実際と同じ間隔（100px）で、画面の右半分に収まる4本。他より手前から並べる。
+      return previewRow(4, 100, (x) => createRectBump(x, 40, 4, groundY), 420);
+    case "jumpRamp":
+      return previewRow(1, 0, (x) => createRamp(x - 90, 300, 90, groundY));
+  }
+}
+
 /**
  * 路面種類ごとの地形をボディ列として生成する。全域に及ぶ地面1枚の上に、種類ごとの障害物
  * （段差・台形のバンプ・洗濯板・ジャンプ台）を一定間隔で並べる。ゴールライン手前には置かない。

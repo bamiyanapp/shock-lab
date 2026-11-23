@@ -1,3 +1,4 @@
+import { createPreviewObstacles } from "./terrain";
 import { describe, expect, it } from "vitest";
 import type Matter from "matter-js";
 import {
@@ -103,5 +104,40 @@ describe("computeBumpHeight", () => {
     for (let i = 1; i < heights.length; i += 1) {
       expect(heights[i]).toBeGreaterThanOrEqual(heights[i - 1]);
     }
+  });
+});
+
+describe("createPreviewObstacles（issue #551）", () => {
+  const TYPES = ["flat", "smallBump", "largeBump", "hugeSpeedBump", "washboard", "jumpRamp"] as const;
+
+  it("平坦路は障害物なし。他の路面は、障害物がある", () => {
+    expect(createPreviewObstacles("flat", 300)).toHaveLength(0);
+    for (const type of TYPES.filter((candidate) => candidate !== "flat")) {
+      expect(createPreviewObstacles(type, 300).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("障害物は、待機中に見える範囲（車の前方、画面幅800の内側）から始まり、最初の1つは全体が収まる", () => {
+    for (const type of TYPES.filter((candidate) => candidate !== "flat")) {
+      const bodies = createPreviewObstacles(type, 300);
+      for (const body of bodies) {
+        expect(body.bounds.min.x).toBeGreaterThan(300);
+        expect(body.bounds.min.x).toBeLessThan(800);
+      }
+      expect(bodies[0].bounds.max.x).toBeLessThanOrEqual(800);
+    }
+  });
+
+  it("障害物の形・高さが、路面ごとに異なる（小さい段差<大きい段差<巨大スピードバンプ）", () => {
+    const height = (type: (typeof TYPES)[number]) =>
+      Math.max(...createPreviewObstacles(type, 300).map((body) => 300 - body.bounds.min.y));
+    expect(height("smallBump")).toBeLessThan(height("largeBump"));
+    expect(height("largeBump")).toBeLessThan(height("hugeSpeedBump"));
+    expect(height("washboard")).toBeLessThan(height("smallBump"));
+  });
+
+  it("実際の地形（createTerrain）は変わらない：最初の障害物は、プレビューより遠い（約25m先）", () => {
+    const farthest = Math.min(...createTerrain("smallBump", 300).slice(1).map((body) => body.bounds.min.x));
+    expect(farthest).toBeGreaterThan(800);
   });
 });

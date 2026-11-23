@@ -90,6 +90,16 @@ describe("drawTerrain", () => {
     expect(count("fill")).toBe(0);
   });
 
+  it("障害物（地面より上へ出るボディ）は、地面の高さで切り取って描く。地面自身は切り取らない（issue #551）", () => {
+    const groundTopY = 300;
+    const ground = Matter.Bodies.rectangle(400, groundTopY + 50, 800, 100, { isStatic: true });
+    const bump = Matter.Bodies.rectangle(400, groundTopY - 10 + 50, 100, 120, { isStatic: true });
+    const mock = createMockContext();
+    drawTerrain(mock.ctx, [ground, bump], 0, 800, groundTopY);
+    expect(mock.count("clip")).toBe(1);
+    expect(mock.count("fill")).toBe(2);
+  });
+
   it("複数パーツのボディは、全体を表す先頭を除いて各パーツを描く", () => {
     const a = Matter.Bodies.rectangle(100, 200, 40, 20);
     const b = Matter.Bodies.rectangle(140, 200, 40, 20);

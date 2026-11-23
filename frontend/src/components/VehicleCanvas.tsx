@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import Matter from "matter-js";
 import { SimulationSession, GROUND_Y } from "../physics/simulationSession";
-import { GOAL_LINE_X_PX } from "../physics/terrain";
+import { GOAL_LINE_X_PX, createPreviewObstacles } from "../physics/terrain";
 import { useSimulationStore } from "../store/simulationStore";
 import { shockSound, successSound } from "../audio/soundEffects";
 import { startEngineSound, stopEngineSound, setEngineSoundSpeed } from "../audio/engineSound";
@@ -100,12 +100,17 @@ export function VehicleCanvas() {
     };
     Matter.Events.on(render, "beforeRender", handleBeforeRender);
 
+    // 待機中は、実際の地形の最初の障害物が約25m先で見えないため、選んだ路面のサンプルを車の前方へ見せる
+    // （issue #551）。路面を変えると、ストアが走行を作り直し、このeffectがやり直されてサンプルも切り替わる。
+    const previewObstacles = createPreviewObstacles(testConditions.terrainType, GROUND_Y);
+
     const handleAfterRender = () => {
       const context = render.context;
       const offsetX = render.bounds.min.x;
       context.save();
       drawBackground(context, session.parallaxLayers, session.scenery, offsetX, CANVAS_WIDTH, GROUND_Y);
-      drawTerrain(context, session.terrainBodies, offsetX, CANVAS_WIDTH);
+      drawTerrain(context, session.terrainBodies, offsetX, CANVAS_WIDTH, GROUND_Y);
+      if (useSimulationStore.getState().phase === "idle") drawTerrain(context, previewObstacles, offsetX, CANVAS_WIDTH, GROUND_Y);
       drawDustParticles(context, session.dustParticles, offsetX, CANVAS_WIDTH);
 
       const goalScreenX = GOAL_LINE_X_PX - offsetX;
