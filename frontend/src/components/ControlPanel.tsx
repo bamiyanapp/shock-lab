@@ -97,6 +97,15 @@ export function ControlPanel() {
         onChange={(weightKg) => setVehicle({ body: { ...vehicle.body, weightKg } })}
       />
       <SliderRow
+        label="ホイールベース"
+        unit="m"
+        min={PARAMETER_RANGES.wheelbase.min}
+        max={PARAMETER_RANGES.wheelbase.max}
+        step={PARAMETER_RANGES.wheelbase.step}
+        value={vehicle.body.wheelbase}
+        onChange={(wheelbase) => setVehicle({ body: { ...vehicle.body, wheelbase } })}
+      />
+      <SliderRow
         label="バネ定数"
         unit="kN/m"
         displayScale={0.001}
