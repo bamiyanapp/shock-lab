@@ -34,7 +34,7 @@ class FakeAudioContext {
   // vi.fn()のmock.instancesはnewで呼ばれたクラスコンストラクタそのものには
   // 使えないため、生成されたインスタンスを自前で記録する。
   static readonly instances: FakeAudioContext[] = [];
-  state: "running" | "suspended" = "running";
+  state: "running" | "suspended" | "interrupted" | "closed" = "running";
   currentTime = 0;
   destination = {};
   resume = vi.fn().mockResolvedValue(undefined);
@@ -143,5 +143,86 @@ describe("engineSound", () => {
     useSimulationStore.getState().setMuted(false);
     applyEngineSoundMuted();
     expect(gainNode.gain.value).toBeGreaterThan(0);
+  });
+
+  it("iOSのinterrupted状態からの開始でも、resumeして音を戻す", async () => {
+    window.AudioContext = FakeAudioContext as unknown as typeof AudioContext;
+    const { startEngineSound, stopEngineSound } = await loadModules();
+
+    startEngineSound();
+    const context = FakeAudioContext.instances.at(-1)!;
+    stopEngineSound();
+    context.state = "interrupted";
+    context.resume.mockClear();
+
+    startEngineSound();
+
+    expect(context.resume).toHaveBeenCalledTimes(1);
+  });
+
+  it("running状態ではresumeを呼ばない", async () => {
+    window.AudioContext = FakeAudioContext as unknown as typeof AudioContext;
+    const { startEngineSound } = await loadModules();
+
+    startEngineSound();
+
+    expect(FakeAudioContext.instances.at(-1)!.resume).not.toHaveBeenCalled();
+  });
+
+  it("コンテキストがclosedなら作り直して再生する", async () => {
+    window.AudioContext = FakeAudioContext as unknown as typeof AudioContext;
+    const { startEngineSound, stopEngineSound } = await loadModules();
+
+    startEngineSound();
+    const first = FakeAudioContext.instances.at(-1)!;
+    stopEngineSound();
+    first.state = "closed";
+
+    startEngineSound();
+
+    const second = FakeAudioContext.instances.at(-1)!;
+    expect(second).not.toBe(first);
+    expect(second.createOscillator).toHaveBeenCalledTimes(1);
+  });
+
+  it("開始と停止を繰り返しても、毎回新しいoscillatorで再生され、音量が0のまま残らない", async () => {
+    window.AudioContext = FakeAudioContext as unknown as typeof AudioContext;
+    const { startEngineSound, stopEngineSound } = await loadModules();
+
+    for (let i = 0; i < 3; i += 1) {
+      startEngineSound();
+      stopEngineSound();
+    }
+    startEngineSound();
+
+    const context = FakeAudioContext.instances.at(-1)!;
+    expect(context.createOscillator).toHaveBeenCalledTimes(4);
+    const gain = context.createGain.mock.results[3]?.value as FakeGainNode;
+    expect(gain.gain.value).toBeGreaterThan(0);
+  });
+
+  it("ミュート解除（ユーザー操作）で、止まっているコンテキストをresumeする", async () => {
+    window.AudioContext = FakeAudioContext as unknown as typeof AudioContext;
+    const { startEngineSound, applyEngineSoundMuted } = await loadModules();
+
+    startEngineSound();
+    const context = FakeAudioContext.instances.at(-1)!;
+    context.state = "interrupted";
+
+    applyEngineSoundMuted();
+
+    expect(context.resume).toHaveBeenCalledTimes(1);
+  });
+
+  it("画面が再び見えたとき、再生中で止まっているコンテキストをresumeする", async () => {
+    window.AudioContext = FakeAudioContext as unknown as typeof AudioContext;
+    const { startEngineSound } = await loadModules();
+
+    startEngineSound();
+    const context = FakeAudioContext.instances.at(-1)!;
+    context.state = "suspended";
+    document.dispatchEvent(new Event("visibilitychange"));
+
+    expect(context.resume).toHaveBeenCalledTimes(1);
   });
 });
