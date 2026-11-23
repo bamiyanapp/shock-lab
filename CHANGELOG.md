@@ -1,3 +1,10 @@
+## [1.24.3](https://github.com/bamiyanapp/shock-lab/compare/v1.24.2...v1.24.3) (2026-11-23)
+
+
+### Bug Fixes
+
+* **audio:** resume the engine sound from iOS "interrupted" and other stopped states ([#514](https://github.com/bamiyanapp/shock-lab/issues/514)) ([#523](https://github.com/bamiyanapp/shock-lab/issues/523)) ([5475765](https://github.com/bamiyanapp/shock-lab/commit/5475765668882c6593ebe0cb8648121ba2ac594f)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515)
+
 ## [1.24.2](https://github.com/bamiyanapp/shock-lab/compare/v1.24.1...v1.24.2) (2026-11-23)
 
 
