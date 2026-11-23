@@ -126,16 +126,20 @@ describe("ControlPanel", () => {
     expect(mountHeightSlider).toHaveAttribute("aria-valuetext", "35 cm");
   });
 
-  it("駆動方式を選べて、車両の設定へ反映される（issue #535）", async () => {
+  it("駆動方式を、ラジオボタンで選べて、車両の設定へ反映される（issue #535・#552）", async () => {
     const user = userEvent.setup();
     render(<ControlPanel />);
 
-    const select = screen.getByLabelText("駆動方式");
-    expect(select).toHaveValue("awd");
-    await user.selectOptions(select, "ff");
+    expect(screen.getByRole("group", { name: "駆動方式" })).toBeInTheDocument();
+    expect(screen.getAllByRole("radio", { name: /（4WD）|（FF）|（FR）/ })).toHaveLength(3);
+    expect(screen.getByRole("radio", { name: "四駆（4WD）" })).toBeChecked();
+
+    await user.click(screen.getByText("前輪駆動（FF）"));
     expect(useSimulationStore.getState().vehicle.body.driveType).toBe("ff");
-    await user.selectOptions(select, "fr");
+    expect(screen.getByRole("radio", { name: "前輪駆動（FF）" })).toBeChecked();
+    await user.click(screen.getByText("後輪駆動（FR）"));
     expect(useSimulationStore.getState().vehicle.body.driveType).toBe("fr");
+    expect(screen.getByRole("radio", { name: "四駆（4WD）" })).not.toBeChecked();
     // プリセットと一致しなくなるため、カスタム表示になる
     expect(screen.getByLabelText("プリセット")).toHaveValue("custom");
   });
