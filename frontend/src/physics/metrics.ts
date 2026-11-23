@@ -4,6 +4,17 @@ import type { SimulationMetrics } from "../types/vehicle";
 /** 上下Gの移動平均に使うtick数（0.1秒ぶん）。1tickごとのノイズを最大衝撃として拾わないため */
 export const VERTICAL_G_AVERAGE_TICKS = 6;
 
+/**
+ * 底付きに入る圧縮量の割合（ストローク量に対して）。バンプストップは圧縮量をちょうど
+ * ストローク量へ戻すため、浮動小数点の誤差で取りこぼさないよう、わずかに手前で判定する。
+ */
+export const BOTTOM_OUT_ENTER_RATIO = 0.98;
+/**
+ * 底付きから抜ける圧縮量の割合。バンプストップ付近で縮み・戻りを繰り返す（跳ね返りの
+ * ちらつき）と、1回の衝撃が何度も数えられていたため、ここまで戻るまでは「底付き中」とする。
+ */
+export const BOTTOM_OUT_EXIT_RATIO = 0.85;
+
 export interface MetricsSample {
   chassisVelocity: { x: number; y: number };
   /** 直近の車体の上下加速度(px/step²)。末尾が今回のtick。移動平均を取る対象 */
@@ -44,7 +55,11 @@ export function computeMetrics(sample: MetricsSample): SimulationMetrics {
   const maxImpact = Math.max(previousMaxImpact, Math.abs(verticalG));
 
   // 前後いずれかの軸が底付き（ストロークを使い切った）状態なら底付きとみなす。
-  const isBottomedOut = Math.max(frontStrokeM, rearStrokeM) >= strokeLength;
+  // 入る閾値と抜ける閾値を分けて（ヒステリシス）、1回の衝撃の跳ね返りを複数回に数えない。
+  const maxStrokeM = Math.max(frontStrokeM, rearStrokeM);
+  const isBottomedOut = previousIsBottomedOut
+    ? maxStrokeM >= strokeLength * BOTTOM_OUT_EXIT_RATIO
+    : maxStrokeM >= strokeLength * BOTTOM_OUT_ENTER_RATIO;
   // 底付きが続いている間は毎tick加算せず、非底付き→底付きに切り替わった瞬間のみを1回として数える
   const bottomOutCount = previousBottomOutCount + (isBottomedOut && !previousIsBottomedOut ? 1 : 0);
 
