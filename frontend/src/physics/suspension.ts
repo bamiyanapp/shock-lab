@@ -1,6 +1,7 @@
 import Matter from "matter-js";
 import type { SuspensionParams } from "../types/vehicle";
-import { GRAVITY_MS2, NEWTON_TO_MATTER_FORCE, PIXELS_PER_METER, STEPS_PER_SECOND, UNSPRUNG_MASS_KG } from "./units";
+import { NEWTON_TO_MATTER_FORCE, PIXELS_PER_METER, STEPS_PER_SECOND, UNSPRUNG_MASS_KG } from "./units";
+import { computeFreeLengthM } from "./vehicleGeometry";
 
 // スライダー値は1輪あたり。2Dの1軸は左右2輪ぶんなので2倍する。
 const WHEELS_PER_AXLE = 2;
@@ -16,11 +17,12 @@ export class SuspensionAxle {
   readonly wheel: Matter.Body;
   /** 車体の重心からアンカーまでの水平距離(px)。前軸は正、後軸は負 */
   readonly armPx: number;
+  /** 取り付け点の、車体の重心からの縦のずれ(px。車体の下向きが正)。前後のたわみの差を吸収する */
+  readonly anchorOffsetPx: number;
   private readonly restLengthPx: number;
   private readonly strokeM: number;
   private readonly springN: number;
   private readonly damperNs: number;
-  private readonly staticForceN: number;
   private readonly reducedMassKg: number;
 
   constructor(
@@ -29,17 +31,18 @@ export class SuspensionAxle {
     armPx: number,
     params: SuspensionParams,
     sprungMassKg: number,
-    loadRatio: number
+    loadRatio: number,
+    anchorOffsetPx = 0
   ) {
     this.chassis = chassis;
     this.wheel = wheel;
     this.armPx = armPx;
-    this.restLengthPx = params.rideHeight * PIXELS_PER_METER;
+    this.anchorOffsetPx = anchorOffsetPx;
+    // 圧縮量の基準は、バネの自由長（荷重ゼロの長さ）。静止時は、荷重のぶん縮んだ状態になる（issue #557）。
+    this.restLengthPx = computeFreeLengthM(params.mountHeight) * PIXELS_PER_METER;
     this.strokeM = params.strokeLength;
     this.springN = WHEELS_PER_AXLE * params.springConstant;
     this.damperNs = WHEELS_PER_AXLE * params.damperCoefficient;
-    // 静止時にこの軸が支える荷重。これで静止時の圧縮量が0になり、車高がそのまま静止車高になる。
-    this.staticForceN = sprungMassKg * GRAVITY_MS2 * loadRatio;
     const axleSprungKg = sprungMassKg * loadRatio;
     this.reducedMassKg = (axleSprungKg * UNSPRUNG_MASS_KG) / (axleSprungKg + UNSPRUNG_MASS_KG);
   }
@@ -53,44 +56,51 @@ export class SuspensionAxle {
     };
   }
 
-  private anchor(perp: { x: number; y: number }) {
+  /** 車体の重心から取り付け点までのベクトル（px）。水平方向の腕＋縦のずれ */
+  private anchorArm() {
+    const { axis, perp } = this.basis();
     return {
-      x: this.chassis.position.x + perp.x * this.armPx,
-      y: this.chassis.position.y + perp.y * this.armPx,
+      x: perp.x * this.armPx + axis.x * this.anchorOffsetPx,
+      y: perp.y * this.armPx + axis.y * this.anchorOffsetPx,
     };
   }
 
-  private anchorVelocity(perp: { x: number; y: number }) {
+  private anchor() {
+    const arm = this.anchorArm();
+    return { x: this.chassis.position.x + arm.x, y: this.chassis.position.y + arm.y };
+  }
+
+  private anchorVelocity() {
     // 車体の並進速度＋回転による速度（ω × r）。単位はpx/step。
     // body.velocityは衝突解決後に更新されないため、位置の差分から求める。
+    const arm = this.anchorArm();
     const omega = Matter.Body.getAngularVelocity(this.chassis);
     const velocity = Matter.Body.getVelocity(this.chassis);
     return {
-      x: velocity.x - omega * perp.y * this.armPx,
-      y: velocity.y + omega * perp.x * this.armPx,
+      x: velocity.x - omega * arm.y,
+      y: velocity.y + omega * arm.x,
     };
   }
 
   /** 圧縮量[m]。縮むと正。ストローク値の定義 */
   getCompression(): number {
-    const { axis, perp } = this.basis();
-    const anchor = this.anchor(perp);
+    const { axis } = this.basis();
+    const anchor = this.anchor();
     const length = (this.wheel.position.x - anchor.x) * axis.x + (this.wheel.position.y - anchor.y) * axis.y;
     return (this.restLengthPx - length) / PIXELS_PER_METER;
   }
 
   /** 描画用。バネの上端（車体のアンカー）と下端（タイヤ中心）のワールド座標 */
   getSpringEnds(): { top: { x: number; y: number }; bottom: { x: number; y: number } } {
-    const { perp } = this.basis();
-    return { top: this.anchor(perp), bottom: { x: this.wheel.position.x, y: this.wheel.position.y } };
+    return { top: this.anchor(), bottom: { x: this.wheel.position.x, y: this.wheel.position.y } };
   }
 
   /** beforeUpdateで呼ぶ。バネ・ダンパーの力を車体のアンカー点とタイヤへ加える */
   applyForces(): void {
-    const { axis, perp } = this.basis();
-    const anchor = this.anchor(perp);
+    const { axis } = this.basis();
+    const anchor = this.anchor();
     const compression = this.getCompression();
-    const anchorVelocity = this.anchorVelocity(perp);
+    const anchorVelocity = this.anchorVelocity();
     // 圧縮速度[m/s]（1px/step = 1m/s）。縮む向きが正。
     const wheelVelocity = Matter.Body.getVelocity(this.wheel);
     const compressionSpeed =
@@ -98,7 +108,8 @@ export class SuspensionAxle {
     // 陰解法に相当する形でダンパー力を求め、大きな減衰係数でも1tickで相対速度が逆転して
     // 発散しないようにする（c/(1+c·Δt/m)）。
     const effectiveDamper = this.damperNs / (1 + (this.damperNs * STEP_SECONDS) / this.reducedMassKg);
-    const forceN = this.staticForceN + this.springN * compression + effectiveDamper * compressionSpeed;
+    // 静止荷重の打ち消しは無い。静止時は、荷重ぶんだけ縮んだ位置で釣り合う（issue #557）。
+    const forceN = this.springN * compression + effectiveDamper * compressionSpeed;
     const force = forceN * NEWTON_TO_MATTER_FORCE;
     Matter.Body.applyForce(this.chassis, anchor, { x: -axis.x * force, y: -axis.y * force });
     Matter.Body.applyForce(this.wheel, this.wheel.position, { x: axis.x * force, y: axis.y * force });
@@ -107,8 +118,8 @@ export class SuspensionAxle {
   /** afterUpdateで呼ぶ。ストローク制限（バンプストップ）と横方向の拘束を適用する */
   constrain(): void {
     const { axis, perp } = this.basis();
-    const anchor = this.anchor(perp);
-    const anchorVelocity = this.anchorVelocity(perp);
+    const anchor = this.anchor();
+    const anchorVelocity = this.anchorVelocity();
     const relX = this.wheel.position.x - anchor.x;
     const relY = this.wheel.position.y - anchor.y;
     const length = relX * axis.x + relY * axis.y;

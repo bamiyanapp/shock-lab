@@ -109,4 +109,11 @@ describe("SimulationControls", () => {
     expect(useSimulationStore.getState().isMuted).toBe(false);
     expect(screen.getByRole("button", { name: "ミュート" })).toHaveAttribute("aria-pressed", "false");
   });
+
+  it("初めから底付きになる設定では、「開始」が無効になる（issue #557）", () => {
+    const store = useSimulationStore.getState();
+    store.setVehicle({ suspension: { ...store.vehicle.suspension, springConstant: 5000 }, body: { ...store.vehicle.body, weightKg: 5000 } });
+    render(<SimulationControls />);
+    expect(screen.getByRole("button", { name: "開始" })).toBeDisabled();
+  });
 });

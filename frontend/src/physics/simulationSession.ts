@@ -6,6 +6,7 @@ import { createTerrain, COURSE_LENGTH_PX, GOAL_LINE_X_PX } from "./terrain";
 import { createVehicleBodies, getAxleArmsPx, getSprungMassKg, type VehicleBodies } from "./vehicle";
 import { SuspensionAxle } from "./suspension";
 import { computeMetrics, VERTICAL_G_AVERAGE_TICKS } from "./metrics";
+import { computeAnchorOffsetsPx, computeStaticState } from "./vehicleGeometry";
 import { DRIVE_ACCELERATION_MS2, computeDrivenVelocityX, shouldApplyDrivingForce } from "./driveControl";
 import { computeAirDragDeceleration } from "./resistance";
 import { createScenery, createParallaxLayers, type SceneryItem, type ParallaxLayer } from "./scenery";
@@ -130,9 +131,10 @@ export class SimulationSession {
     const { body, suspension } = options.vehicle;
     const arms = getAxleArmsPx(body);
     const sprungMassKg = getSprungMassKg(body.weightKg);
+    const anchorOffsets = computeAnchorOffsetsPx(computeStaticState(options.vehicle));
     this.suspensions = {
-      front: new SuspensionAxle(chassis, frontWheel, arms.front, suspension, sprungMassKg, body.frontWeightRatio),
-      rear: new SuspensionAxle(chassis, rearWheel, -arms.rear, suspension, sprungMassKg, 1 - body.frontWeightRatio),
+      front: new SuspensionAxle(chassis, frontWheel, arms.front, suspension, sprungMassKg, body.frontWeightRatio, anchorOffsets.front),
+      rear: new SuspensionAxle(chassis, rearWheel, -arms.rear, suspension, sprungMassKg, 1 - body.frontWeightRatio, anchorOffsets.rear),
     };
     Matter.World.add(this.engine.world, [
       ...terrainBodies,

@@ -106,7 +106,7 @@ describe("ControlPanel", () => {
     expect(strokeSlider).toHaveAttribute("aria-valuetext", "30 cm");
   });
 
-  it("バネ定数はkN/m、ダンパー減衰はkN・s/m、車高はcmで表示し、内部の単位で保持する（issue #510・#518）", () => {
+  it("バネ定数はkN/m、ダンパー減衰はkN・s/m、バネ取り付け位置はcmで表示し、内部の単位で保持する（issue #510・#518）", () => {
     render(<ControlPanel />);
 
     const springSlider = screen.getByRole("slider", { name: /バネ定数/ });
@@ -120,10 +120,10 @@ describe("ControlPanel", () => {
     expect(useSimulationStore.getState().vehicle.suspension.damperCoefficient).toBe(2500);
     expect(damperSlider).toHaveAttribute("aria-valuetext", "2.5 kN・s/m");
 
-    const rideHeightSlider = screen.getByRole("slider", { name: /車高/ });
-    fireEvent.change(rideHeightSlider, { target: { value: "0.35" } });
-    expect(useSimulationStore.getState().vehicle.suspension.rideHeight).toBeCloseTo(0.35, 10);
-    expect(rideHeightSlider).toHaveAttribute("aria-valuetext", "35 cm");
+    const mountHeightSlider = screen.getByRole("slider", { name: /バネ取り付け位置/ });
+    fireEvent.change(mountHeightSlider, { target: { value: "0.35" } });
+    expect(useSimulationStore.getState().vehicle.suspension.mountHeight).toBeCloseTo(0.35, 10);
+    expect(mountHeightSlider).toHaveAttribute("aria-valuetext", "35 cm");
   });
 
   it("駆動方式を選べて、車両の設定へ反映される（issue #535）", async () => {
@@ -150,5 +150,28 @@ describe("ControlPanel", () => {
     expect(useSimulationStore.getState().vehicle.body.wheelbase).toBeCloseTo(3.4, 10);
     expect(slider).toHaveAttribute("aria-valuetext", "3.4 m");
     expect(screen.getByLabelText("プリセット")).toHaveValue("custom");
+  });
+
+  it("実際の車高と静止時のたわみを、読み取り専用で表示する。取り付け位置を上げると車高が上がる（issue #557）", () => {
+    render(<ControlPanel />);
+    const readout = screen.getByTestId("static-state");
+    expect(readout).toHaveTextContent(/実際の車高: \d+\.\d cm/);
+    expect(readout).toHaveTextContent(/静止時のたわみ: 前\d+\.\d cm/);
+    const before = Number(/実際の車高: ([\d.]+) cm/.exec(readout.textContent ?? "")?.[1]);
+
+    fireEvent.change(screen.getByRole("slider", { name: /バネ取り付け位置/ }), { target: { value: "0.4" } });
+
+    const after = Number(/実際の車高: ([\d.]+) cm/.exec(screen.getByTestId("static-state").textContent ?? "")?.[1]);
+    expect(after).toBeGreaterThan(before);
+  });
+
+  it("低いバネ定数・重い車重で、初めから底付きになる場合は、警告を表示する（issue #557）", () => {
+    render(<ControlPanel />);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole("slider", { name: /バネ定数/ }), { target: { value: "5000" } });
+    fireEvent.change(screen.getByRole("slider", { name: /車重/ }), { target: { value: "5000" } });
+
+    expect(screen.getByRole("alert")).toHaveTextContent("走れません");
   });
 });
