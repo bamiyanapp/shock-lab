@@ -190,6 +190,20 @@ export function drawBackground(
  * （山・雲・木・家）に上書きされ、バンプが背景の裏に隠れて見えたため、自前で背景の後に描く。
  * 物理と同じ頂点を使うので、見た目と当たり判定がずれない。
  */
+/** 1つのボディの各パーツを、頂点どおりに塗る。凹形状は複数のパーツに分かれ、先頭は全体を表すため除く。 */
+function fillBodyParts(ctx: CanvasRenderingContext2D, body: Matter.Body, offsetX: number) {
+  const parts = body.parts.length > 1 ? body.parts.slice(1) : [body];
+  for (const part of parts) {
+    const [first, ...rest] = part.vertices;
+    if (!first) continue;
+    ctx.beginPath();
+    ctx.moveTo(first.x - offsetX, first.y);
+    for (const vertex of rest) ctx.lineTo(vertex.x - offsetX, vertex.y);
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
 export function drawTerrain(
   ctx: CanvasRenderingContext2D,
   terrainBodies: Matter.Body[],
@@ -202,25 +216,16 @@ export function drawTerrain(
     ctx.fillStyle = body.render.fillStyle ?? "#52606d";
     // 障害物（地面より上へ出ているボディ）は、物理のため地面の下へも延びている。その部分を描くと、
     // 地面を横切る縞に見えるため、地面の高さで切り取る。地面自身は、切り取らない。
-    const isObstacle = groundScreenY !== undefined && body.bounds.min.y < groundScreenY - 1;
-    if (isObstacle) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(0, 0, canvasWidth, groundScreenY);
-      ctx.clip();
+    if (groundScreenY === undefined || body.bounds.min.y >= groundScreenY - 1) {
+      fillBodyParts(ctx, body, offsetX);
+      continue;
     }
-    // 凹形状は複数のパーツに分かれる。先頭は全体を表すため、パーツがあるときはそれ以外を描く。
-    const parts = body.parts.length > 1 ? body.parts.slice(1) : [body];
-    for (const part of parts) {
-      const [first, ...rest] = part.vertices;
-      if (!first) continue;
-      ctx.beginPath();
-      ctx.moveTo(first.x - offsetX, first.y);
-      for (const vertex of rest) ctx.lineTo(vertex.x - offsetX, vertex.y);
-      ctx.closePath();
-      ctx.fill();
-    }
-    if (isObstacle) ctx.restore();
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, canvasWidth, groundScreenY);
+    ctx.clip();
+    fillBodyParts(ctx, body, offsetX);
+    ctx.restore();
   }
 }
 
