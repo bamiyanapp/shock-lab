@@ -139,4 +139,16 @@ describe("ControlPanel", () => {
     // プリセットと一致しなくなるため、カスタム表示になる
     expect(screen.getByLabelText("プリセット")).toHaveValue("custom");
   });
+
+  it("ホイールベースをスライダーで変えられ、mで表示する（issue #541）", () => {
+    render(<ControlPanel />);
+
+    const slider = screen.getByRole("slider", { name: /ホイールベース/ });
+    expect(slider).toHaveAttribute("aria-valuetext", "2.5 m");
+    fireEvent.change(slider, { target: { value: "3.4" } });
+
+    expect(useSimulationStore.getState().vehicle.body.wheelbase).toBeCloseTo(3.4, 10);
+    expect(slider).toHaveAttribute("aria-valuetext", "3.4 m");
+    expect(screen.getByLabelText("プリセット")).toHaveValue("custom");
+  });
 });
