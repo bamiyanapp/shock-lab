@@ -12,7 +12,7 @@
       "customType": "regex",
       "description": "self_refはuses:行と同じdev-standardsバージョンを指すべきだが、Renovateのgithub-actionsマネージャーはプレーンな文字列入力であるself_ref:を検知しない。正規表現で明示的に検知対象へ加える",
       "managerFilePatterns": [
-        "^\\.github/workflows/.*\\.yml$"
+        "/^\\.github\\/workflows\\/.*\\.yml$/"
       ],
       "matchStrings": [
         "self_ref: v(?<currentValue>[\\d.]+)"
