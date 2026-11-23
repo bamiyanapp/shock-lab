@@ -243,6 +243,7 @@ export class SimulationSession {
       isFrontWheelGrounded: this.wheelContactTracker.frontWheelContactCount > 0,
       isRearWheelGrounded: this.wheelContactTracker.rearWheelContactCount > 0,
       chassisAngle: chassis.angle,
+      driveType: this.options.vehicle.body.driveType,
     });
     if (canDrive) {
       Matter.Body.setVelocity(chassis, { x: drivingVelocityXPerStep, y: chassisVelocity.y });

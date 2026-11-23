@@ -18,6 +18,17 @@ describe("sanitizeVehicleConfig", () => {
     }
   );
 
+  it("駆動方式は3種のみ有効で、不正な値・未指定（古い共有URL）はfallbackの駆動方式になる（issue #535）", () => {
+    expect(sanitizeVehicleConfig({ body: { driveType: "ff" } }, DEFAULT_VEHICLE).body.driveType).toBe("ff");
+    expect(sanitizeVehicleConfig({ body: { driveType: "fr" } }, DEFAULT_VEHICLE).body.driveType).toBe("fr");
+    for (const bad of ["rwd", 1, null, undefined]) {
+      expect(sanitizeVehicleConfig({ body: { driveType: bad } }, DEFAULT_VEHICLE).body.driveType).toBe(
+        DEFAULT_VEHICLE.body.driveType
+      );
+    }
+    expect(sanitizeVehicleConfig({}, DEFAULT_VEHICLE).body.driveType).toBe(DEFAULT_VEHICLE.body.driveType);
+  });
+
   it("範囲外はmin・maxへ丸める", () => {
     const result = sanitizeVehicleConfig(
       { body: { weightKg: 0 }, suspension: { springConstant: 1e9 }, tire: { diameter: -1 } },

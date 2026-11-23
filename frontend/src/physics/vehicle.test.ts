@@ -10,6 +10,7 @@ const body = (overrides: Partial<VehicleBodyParams> = {}): VehicleBodyParams => 
   frontWeightRatio: 0.5,
   centerOfGravityHeight: 0.5,
   wheelbase: 2.5,
+  driveType: "awd",
   ...overrides,
 });
 const create = (b: VehicleBodyParams, t = tire) => createVehicleBodies(b, t, suspension, 0, 300);

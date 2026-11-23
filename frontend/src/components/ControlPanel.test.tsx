@@ -125,4 +125,18 @@ describe("ControlPanel", () => {
     expect(useSimulationStore.getState().vehicle.suspension.rideHeight).toBeCloseTo(0.35, 10);
     expect(rideHeightSlider).toHaveAttribute("aria-valuetext", "35 cm");
   });
+
+  it("駆動方式を選べて、車両の設定へ反映される（issue #535）", async () => {
+    const user = userEvent.setup();
+    render(<ControlPanel />);
+
+    const select = screen.getByLabelText("駆動方式");
+    expect(select).toHaveValue("awd");
+    await user.selectOptions(select, "ff");
+    expect(useSimulationStore.getState().vehicle.body.driveType).toBe("ff");
+    await user.selectOptions(select, "fr");
+    expect(useSimulationStore.getState().vehicle.body.driveType).toBe("fr");
+    // プリセットと一致しなくなるため、カスタム表示になる
+    expect(screen.getByLabelText("プリセット")).toHaveValue("custom");
+  });
 });
