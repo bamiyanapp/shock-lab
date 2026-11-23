@@ -1,3 +1,10 @@
+## [1.36.2](https://github.com/bamiyanapp/shock-lab/compare/v1.36.1...v1.36.2) (2026-11-23)
+
+
+### Bug Fixes
+
+* **physics:** ストローク量をバネの自由長に反映し、設定の切り替えをボタンのみにする ([#569](https://github.com/bamiyanapp/shock-lab/issues/569), [#570](https://github.com/bamiyanapp/shock-lab/issues/570)) ([#571](https://github.com/bamiyanapp/shock-lab/issues/571)) ([fcf06e3](https://github.com/bamiyanapp/shock-lab/commit/fcf06e3793a282ff60cc4241271c83ebf3923a63)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514) [#510](https://github.com/bamiyanapp/shock-lab/issues/510) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#520](https://github.com/bamiyanapp/shock-lab/issues/520) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#509](https://github.com/bamiyanapp/shock-lab/issues/509) [#513](https://github.com/bamiyanapp/shock-lab/issues/513) [#533](https://github.com/bamiyanapp/shock-lab/issues/533) [#536](https://github.com/bamiyanapp/shock-lab/issues/536) [#535](https://github.com/bamiyanapp/shock-lab/issues/535) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#539](https://github.com/bamiyanapp/shock-lab/issues/539) [#541](https://github.com/bamiyanapp/shock-lab/issues/541) [#516](https://github.com/bamiyanapp/shock-lab/issues/516) [#553](https://github.com/bamiyanapp/shock-lab/issues/553) [#557](https://github.com/bamiyanapp/shock-lab/issues/557) [#552](https://github.com/bamiyanapp/shock-lab/issues/552) [#551](https://github.com/bamiyanapp/shock-lab/issues/551) [#551](https://github.com/bamiyanapp/shock-lab/issues/551) [#550](https://github.com/bamiyanapp/shock-lab/issues/550) [#566](https://github.com/bamiyanapp/shock-lab/issues/566)
+
 ## [1.36.1](https://github.com/bamiyanapp/shock-lab/compare/v1.36.0...v1.36.1) (2026-11-23)
 
 
