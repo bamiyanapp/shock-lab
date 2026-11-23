@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type Matter from "matter-js";
 import {
   createTerrain,
+  roundCorners,
   computeBumpHeight,
   COURSE_LENGTH_PX,
   GOAL_CLEARANCE_PX,
@@ -63,22 +64,45 @@ describe("createTerrain", () => {
     expect(obstacles[0].bounds.max.x - obstacles[0].bounds.min.x).toBeCloseTo(40, 5);
   });
 
-  it("hugeSpeedBump: 台形（上底120・下底360）で、最も低い頂点が地面上面に一致する（重心補正）", () => {
+  it("hugeSpeedBump: 台形（上底120・下底360）で、最も低い頂点が地面上面に一致する。上底の角は丸い（issue #579）", () => {
     const [bump] = obstaclesOf("hugeSpeedBump");
     expect(bump.bounds.max.y).toBeCloseTo(GROUND_Y, 5);
     expect(bump.bounds.max.x - bump.bounds.min.x).toBeCloseTo(360, 5);
-    const topVertices = bump.vertices.filter((vertex) => vertex.y < GROUND_Y - heightAboveGround(bump) + 1e-6);
-    expect(Math.max(...topVertices.map((v) => v.x)) - Math.min(...topVertices.map((v) => v.x))).toBeCloseTo(120, 5);
+    // 上底の平らな部分は、角の丸めのぶん、120より短い
+    const flatTop = bump.vertices.filter((vertex) => vertex.y < bump.bounds.min.y + 1e-6);
+    const flatWidth = Math.max(...flatTop.map((v) => v.x)) - Math.min(...flatTop.map((v) => v.x));
+    expect(flatWidth).toBeLessThan(120 - 1);
+    expect(flatWidth).toBeGreaterThan(120 - 2 * 12 - 1);
+    // 角を、円弧の頂点で表す（4頂点の台形より多い）。下の2つの角は、地面に接するため丸めない
+    expect(bump.vertices.length).toBeGreaterThanOrEqual(4 - 2 + 2 * 7);
   });
 
-  it("jumpRamp: 直角三角形の上り斜面で、最も低い頂点が地面上面に一致し、頂点の先は垂直に落ちる", () => {
+  it("jumpRamp: 直角三角形の上り斜面で、最も低い頂点が地面上面に一致し、頂点の先は垂直に落ちる。先端は丸い（issue #579）", () => {
     const [ramp] = obstaclesOf("jumpRamp");
     expect(ramp.bounds.max.y).toBeCloseTo(GROUND_Y, 5);
     expect(ramp.bounds.max.x - ramp.bounds.min.x).toBeCloseTo(300, 5);
-    // 最も高い頂点は右端（進行方向の先）にある
+    // 最も高い点は、右端の近くにある。先端を丸めるため、右端そのものではなく、少し手前にある
     const apex = ramp.vertices.reduce((best, vertex) => (vertex.y < best.y ? vertex : best));
-    expect(apex.x).toBeCloseTo(ramp.bounds.max.x, 5);
+    expect(apex.x).toBeLessThanOrEqual(ramp.bounds.max.x);
+    expect(ramp.bounds.max.x - apex.x).toBeLessThan(12 + 1e-6);
+    // 右端は、垂直に落ちる壁のまま（右端上の頂点が、複数ある）
+    const wall = ramp.vertices.filter((vertex) => Math.abs(vertex.x - ramp.bounds.max.x) < 1e-6);
+    expect(wall.length).toBeGreaterThanOrEqual(2);
+    expect(ramp.vertices.length).toBeGreaterThanOrEqual(3 - 1 + 7);
   });
+
+  it.each(["smallBump", "largeBump", "washboard"] as const)(
+    "%s: 上側の2つの角が丸く、平らな上面は、幅より短い。下側は、地中まで延びる（issue #579）",
+    (terrain) => {
+      const [bump] = obstaclesOf(terrain);
+      const width = bump.bounds.max.x - bump.bounds.min.x;
+      const flatTop = bump.vertices.filter((vertex) => vertex.y < bump.bounds.min.y + 1e-6);
+      const flatWidth = Math.max(...flatTop.map((v) => v.x)) - Math.min(...flatTop.map((v) => v.x));
+      expect(flatWidth).toBeLessThan(width - 1e-3);
+      expect(bump.vertices.length).toBeGreaterThanOrEqual(4 - 2 + 2 * 7);
+      expect(bump.bounds.max.y).toBeGreaterThan(GROUND_Y);
+    }
+  );
 
   it("places the goal line before the course actually ends, leaving solid ground under it", () => {
     expect(GOAL_LINE_X_PX).toBeLessThan(COURSE_LENGTH_PX);
@@ -139,5 +163,39 @@ describe("createPreviewObstacles（issue #551）", () => {
   it("実際の地形（createTerrain）は変わらない：最初の障害物は、プレビューより遠い（約25m先）", () => {
     const farthest = Math.min(...createTerrain("smallBump", 300).slice(1).map((body) => body.bounds.min.x));
     expect(farthest).toBeGreaterThan(800);
+  });
+});
+
+describe("roundCorners（issue #579）", () => {
+  const square = [
+    { x: 0, y: 0 },
+    { x: 100, y: 0 },
+    { x: 100, y: 100 },
+    { x: 0, y: 100 },
+  ];
+
+  it("半径0の頂点は、そのまま残る。半径が正の頂点は、円弧の頂点に置き換わる", () => {
+    const result = roundCorners(square, [0, 10, 0, 0]);
+    expect(result).toHaveLength(3 + 7);
+    expect(result[0]).toEqual({ x: 0, y: 0 });
+    // 丸めた角は、元の角（100, 0）を通らず、内側に入る
+    expect(result.some((point) => point.x === 100 && point.y === 0)).toBe(false);
+    expect(Math.max(...result.map((p) => p.x))).toBeLessThanOrEqual(100);
+  });
+
+  it("半径は、隣の辺の長さの半分までに抑える", () => {
+    const result = roundCorners(square, [1000, 0, 0, 0]);
+    // 辺の長さ100の半分（50）が上限。円弧の始点は(50, 0)と(0, 50)
+    expect(result.some((point) => Math.abs(point.x - 50) < 1e-9 && Math.abs(point.y) < 1e-9)).toBe(true);
+    expect(result.some((point) => Math.abs(point.x) < 1e-9 && Math.abs(point.y - 50) < 1e-9)).toBe(true);
+  });
+
+  it("丸めた角の頂点は、円弧が、元の角と2つの接点が作る三角形の内側にある", () => {
+    const result = roundCorners(square, [0, 20, 0, 0]);
+    const arc = result.slice(1, 8);
+    for (const point of arc) {
+      expect(point.x).toBeGreaterThanOrEqual(80 - 1e-9);
+      expect(point.y).toBeLessThanOrEqual(20 + 1e-9);
+    }
   });
 });
