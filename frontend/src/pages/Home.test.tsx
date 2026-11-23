@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { Home } from "./Home";
 import { useSimulationStore } from "../store/simulationStore";
 import { encodeSharedConfig } from "../store/urlConfig";
@@ -58,9 +58,35 @@ describe("Home", () => {
   it("試験条件と車両パラメータが、タブで切り替えられる設定のパネルに入っている（issue #550）", () => {
     render(<Home />);
     expect(screen.getByRole("tab", { name: "試験条件" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "車両パラメータ" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "車両" })).toBeInTheDocument();
     const scroller = screen.getByTestId("settings-scroller");
     expect(scroller).toContainElement(screen.getByRole("group", { name: "路面" }));
     expect(scroller).toContainElement(screen.getByRole("group", { name: "駆動方式" }));
+  });
+
+  it("リザルトとメトリクスは、設定の画面に出さない（issue #576）", () => {
+    render(<Home />);
+    act(() => {
+      useSimulationStore.getState().startRun();
+      useSimulationStore.getState().finishRun({
+        outcome: "goal",
+        rank: "A",
+        maxImpact: 1,
+        bottomOutCount: 0,
+        averageAbsVerticalG: 0.1,
+        elapsedSeconds: 10,
+        distanceMeters: 100,
+      });
+    });
+
+    const scroller = screen.getByTestId("settings-scroller");
+    expect(scroller).not.toHaveTextContent("最大衝撃");
+    // ビュー（ダイアログ）の中にだけ、リザルトがある。
+    expect(screen.getByRole("dialog", { name: "リザルト" })).toHaveTextContent("最大衝撃");
+  });
+
+  it("3つのタブ見出しが、短い名前で並ぶ（issue #576）", () => {
+    render(<Home />);
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual(["試験条件", "車両", "サスペンション"]);
   });
 });

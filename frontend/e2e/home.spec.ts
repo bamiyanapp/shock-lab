@@ -81,19 +81,19 @@ test('下へスクロールしてもプレビューは画面上端に残り、�
   await expect.poll(() => preview.evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBeLessThanOrEqual(1)
   await expect(page.getByRole('button', { name: '開始' })).toBeInViewport()
 
-  await page.getByRole('tab', { name: '車両パラメータ' }).click()
-  await expect(page.getByRole('tab', { name: '車両パラメータ' })).toHaveAttribute('aria-selected', 'true')
+  await page.getByRole('tab', { name: '車両', exact: true }).click()
+  await expect(page.getByRole('tab', { name: '車両', exact: true })).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('slider', { name: /車重/ })).toBeInViewport()
 
-  await page.getByRole('tab', { name: 'サスペンション設定' }).click()
-  await expect(page.getByRole('tab', { name: 'サスペンション設定' })).toHaveAttribute('aria-selected', 'true')
+  await page.getByRole('tab', { name: 'サスペンション', exact: true }).click()
+  await expect(page.getByRole('tab', { name: 'サスペンション', exact: true })).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('slider', { name: /バネ取り付け位置/ })).toBeInViewport()
 })
 
 // ストローク量を上げると、バネが長くなり、実際の車高が上がる（issue #569）。
 test('ストローク量を上げると、実際の車高の数値が上がる', async ({ page }) => {
   await page.goto('/shock-lab/')
-  await page.getByRole('tab', { name: 'サスペンション設定' }).click()
+  await page.getByRole('tab', { name: 'サスペンション', exact: true }).click()
   const state = page.getByTestId('static-state')
   const height = async () => Number((await state.innerText()).match(/実際の車高: ([\d.]+) cm/)![1])
 

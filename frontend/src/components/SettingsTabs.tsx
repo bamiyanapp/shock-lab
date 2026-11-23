@@ -13,7 +13,7 @@ export function SettingsTabList({
   onSelect: (index: number) => void;
 }) {
   return (
-    <div role="tablist" aria-label="設定の切り替え" className="nav nav-pills nav-fill gap-2 w-100">
+    <div role="tablist" aria-label="設定の切り替え" className="nav nav-pills nav-fill flex-nowrap gap-1 w-100">
       {tabs.map((tab, index) => (
         <button
           key={tab.id}
@@ -22,7 +22,9 @@ export function SettingsTabList({
           id={`settings-tab-${tab.id}`}
           aria-selected={index === activeIndex}
           aria-controls={`settings-panel-${tab.id}`}
-          className={`nav-link${index === activeIndex ? " active" : ""}`}
+          className={`nav-link px-1 text-nowrap${index === activeIndex ? " active" : ""}`}
+          // 3つのタブを1行に収めるため、画面の幅に応じて文字の大きさを変える。
+          style={{ fontSize: "clamp(0.75rem, 3.6vw, 1rem)" }}
           onClick={() => onSelect(index)}
         >
           {tab.label}

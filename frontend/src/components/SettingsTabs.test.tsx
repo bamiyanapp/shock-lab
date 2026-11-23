@@ -7,7 +7,7 @@ import type { SettingsTab } from "./useSettingsTabs";
 
 const TABS: SettingsTab[] = [
   { id: "a", label: "試験条件", content: <p>パネルA</p> },
-  { id: "b", label: "車両パラメータ", content: <input aria-label="入力B" /> },
+  { id: "b", label: "車両", content: <input aria-label="入力B" /> },
 ];
 
 // 見出し（固定側）とパネル（スクロール側）を、フックで連携させる。Homeと同じ組み立て。
@@ -26,7 +26,7 @@ describe("設定の切り替え（issue #550）", () => {
     render(<Harness />);
     expect(screen.getAllByRole("tab")).toHaveLength(2);
     expect(screen.getByRole("tab", { name: "試験条件" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByRole("tab", { name: "車両パラメータ" })).toHaveAttribute("aria-selected", "false");
+    expect(screen.getByRole("tab", { name: "車両" })).toHaveAttribute("aria-selected", "false");
     expect(screen.getAllByRole("tabpanel", { hidden: true })[0]).toBeInTheDocument();
   });
 
@@ -36,7 +36,7 @@ describe("設定の切り替え（issue #550）", () => {
     const input = screen.getByLabelText("入力B", { selector: "input" });
     await user.type(input, "abc");
 
-    await user.click(screen.getByRole("tab", { name: "車両パラメータ" }));
+    await user.click(screen.getByRole("tab", { name: "車両" }));
     await user.click(screen.getByRole("tab", { name: "試験条件" }));
 
     expect(screen.getByLabelText("入力B", { selector: "input" })).toHaveValue("abc");
@@ -48,9 +48,9 @@ describe("設定の切り替え（issue #550）", () => {
     Element.prototype.scrollTo = scrollTo as unknown as typeof Element.prototype.scrollTo;
     render(<Harness />);
 
-    await user.click(screen.getByRole("tab", { name: "車両パラメータ" }));
+    await user.click(screen.getByRole("tab", { name: "車両" }));
 
-    expect(screen.getByRole("tab", { name: "車両パラメータ" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "車両" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tab", { name: "試験条件" })).toHaveAttribute("aria-selected", "false");
     expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ behavior: "smooth" }));
   });
@@ -63,7 +63,7 @@ describe("設定の切り替え（issue #550）", () => {
     scroller.scrollLeft = 300;
     fireEvent.scroll(scroller);
 
-    expect(screen.getByRole("tab", { name: "車両パラメータ" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "車両" })).toHaveAttribute("aria-selected", "true");
   });
 
   it("横スクロールの領域は、ユーザーのスクロール操作を受け付けない（スライダーとの競合を避ける。issue #570）", () => {
