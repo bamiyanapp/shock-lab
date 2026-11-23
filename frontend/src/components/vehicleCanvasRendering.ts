@@ -1,4 +1,3 @@
-import { STEPS_PER_SECOND } from "../physics/units";
 import type { CSSProperties } from "react";
 import Matter from "matter-js";
 import type { SuspensionAxle } from "../physics/suspension";
@@ -28,18 +27,6 @@ export function getFullscreenWrapperStyle(isRunning: boolean): CSSProperties | u
     backgroundColor: "#000",
   };
 }
-
-// アセット画像（frontend/src/assets/vehicle-sprite.png）は、タイヤの回転角が少しずつ
-// 異なる12フレームを縦に並べたスプライトシート。ホイールアニメーション用に切り出して使う。
-const VEHICLE_SPRITE_FRAME_COUNT = 12;
-const VEHICLE_SPRITE_FRAME_WIDTH = 600;
-const VEHICLE_SPRITE_FRAME_HEIGHT = 404;
-const VEHICLE_SPRITE_ASPECT_RATIO = VEHICLE_SPRITE_FRAME_HEIGHT / VEHICLE_SPRITE_FRAME_WIDTH;
-// 1秒間に何フレーム進めるか（12フレームで1周＝1秒サイクルのホイールアニメーション）。
-const VEHICLE_SPRITE_FPS = 12;
-const VEHICLE_SPRITE_STEPS_PER_FRAME = STEPS_PER_SECOND / VEHICLE_SPRITE_FPS;
-// 画像下部のタイヤ接地位置が画像高さの何割の位置にあるか（目視調整値）。
-const VEHICLE_IMAGE_WHEEL_ANCHOR_RATIO = 0.48;
 
 export function drawTree(ctx: CanvasRenderingContext2D, x: number, groundScreenY: number) {
   ctx.fillStyle = "#6b4a2f";
@@ -237,45 +224,6 @@ export function drawDustParticles(
     if (screenX < -20 || screenX > canvasWidth + 20) continue;
     drawDustParticle(ctx, particle, screenX);
   }
-}
-
-interface VehicleSpriteParams {
-  sprite: HTMLImageElement;
-  frontWheel: Matter.Body;
-  rearWheel: Matter.Body;
-  chassis: Matter.Body;
-  wheelbasePx: number;
-  wheelRadiusPx: number;
-  animationTickCount: number;
-  offsetX: number;
-}
-
-export function drawVehicleSprite(ctx: CanvasRenderingContext2D, params: VehicleSpriteParams) {
-  const { sprite, frontWheel, rearWheel, chassis, wheelbasePx, wheelRadiusPx, animationTickCount, offsetX } = params;
-  if (!sprite.complete || sprite.naturalWidth <= 0) return;
-
-  const targetWidthPx = wheelbasePx + wheelRadiusPx * 2.8;
-  const targetHeightPx = targetWidthPx * VEHICLE_SPRITE_ASPECT_RATIO;
-  const wheelCenterY = (frontWheel.position.y + rearWheel.position.y) / 2;
-  const frameIndex = Math.floor(animationTickCount / VEHICLE_SPRITE_STEPS_PER_FRAME) % VEHICLE_SPRITE_FRAME_COUNT;
-
-  ctx.save();
-  ctx.translate(chassis.position.x - offsetX, wheelCenterY);
-  ctx.rotate(chassis.angle);
-  // 画像は左向き（フロントが左）のため、右方向へ進む車体に合わせて左右反転する。
-  ctx.scale(-1, 1);
-  ctx.drawImage(
-    sprite,
-    0,
-    frameIndex * VEHICLE_SPRITE_FRAME_HEIGHT,
-    VEHICLE_SPRITE_FRAME_WIDTH,
-    VEHICLE_SPRITE_FRAME_HEIGHT,
-    -targetWidthPx / 2,
-    -targetHeightPx * VEHICLE_IMAGE_WHEEL_ANCHOR_RATIO,
-    targetWidthPx,
-    targetHeightPx
-  );
-  ctx.restore();
 }
 
 export function drawSuspensionSprings(

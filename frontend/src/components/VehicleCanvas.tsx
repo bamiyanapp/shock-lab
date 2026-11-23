@@ -5,17 +5,16 @@ import { GOAL_LINE_X_PX } from "../physics/terrain";
 import { useSimulationStore } from "../store/simulationStore";
 import { shockSound, successSound } from "../audio/soundEffects";
 import { startEngineSound, stopEngineSound, setEngineSoundSpeed } from "../audio/engineSound";
-import vehicleSpriteUrl from "../assets/vehicle-sprite.png";
 import {
   drawGoalLine,
   drawBackground,
   drawTerrain,
   drawDustParticles,
-  drawVehicleSprite,
   drawSuspensionSprings,
   drawStatusOverlays,
   getFullscreenWrapperStyle,
 } from "./vehicleCanvasRendering";
+import { drawVehicle } from "./vehicleDrawing";
 import { getCanvasStyle } from "./canvasLayout";
 import { useIsPortrait } from "../hooks/useIsPortrait";
 import { usePauseWhenHidden } from "../hooks/usePauseWhenHidden";
@@ -26,9 +25,6 @@ const CANVAS_HEIGHT = 400;
 // この値を超える上下Gを検知するとカメラを微振動させる（衝撃の体感フィードバック）。
 const IMPACT_SHAKE_THRESHOLD_G = 1.5;
 const SHAKE_AMPLITUDE_PX = 4;
-
-const vehicleSprite = new Image();
-vehicleSprite.src = vehicleSpriteUrl;
 
 export function VehicleCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -59,22 +55,10 @@ export function VehicleCanvas() {
     });
     const { chassis, frontWheel, rearWheel } = session.bodies;
 
-    // 画像スプライトで車体を表現するため、Matter.jsの既定描画（矩形・円）は隠す。
-    const hideDefaultVehicleRender = () => {
-      chassis.render.visible = false;
-      frontWheel.render.visible = false;
-      rearWheel.render.visible = false;
-    };
-    // 地形はMatter.jsの既定描画だと背景に上書きされるため、隠して自前で背景の後に描く。
-    for (const body of session.terrainBodies) {
-      body.render.visible = false;
-      for (const part of body.parts) part.render.visible = false;
-    }
-    if (vehicleSprite.complete) {
-      hideDefaultVehicleRender();
-    } else {
-      vehicleSprite.addEventListener("load", hideDefaultVehicleRender, { once: true });
-    }
+    // 車体・タイヤは自前で描くため、Matter.jsの既定描画（矩形・円）は隠す。
+    chassis.render.visible = false;
+    frontWheel.render.visible = false;
+    rearWheel.render.visible = false;
 
     // セッションの1tick結果を、ストア・効果音へ橋渡しする。
     const handleAfterUpdate = () => {
@@ -129,14 +113,13 @@ export function VehicleCanvas() {
         drawGoalLine(context, goalScreenX, GROUND_Y);
       }
 
-      drawVehicleSprite(context, {
-        sprite: vehicleSprite,
+      drawVehicle(context, {
+        chassis,
         frontWheel,
         rearWheel,
-        chassis,
-        wheelbasePx: session.wheelbasePx,
+        frontArmPx: session.suspensions.front.armPx,
+        rearArmPx: session.suspensions.rear.armPx,
         wheelRadiusPx: session.wheelRadiusPx,
-        animationTickCount: session.animationTickCount,
         offsetX,
       });
       context.restore();
@@ -160,7 +143,6 @@ export function VehicleCanvas() {
     Matter.Render.run(render);
 
     return () => {
-      vehicleSprite.removeEventListener("load", hideDefaultVehicleRender);
       Matter.Events.off(engine, "afterUpdate", handleAfterUpdate);
       Matter.Events.off(render, "beforeRender", handleBeforeRender);
       Matter.Events.off(render, "afterRender", handleAfterRender);
