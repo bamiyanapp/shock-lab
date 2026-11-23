@@ -1,3 +1,10 @@
+# [1.40.0](https://github.com/bamiyanapp/shock-lab/compare/v1.39.0...v1.40.0) (2026-11-23)
+
+
+### Features
+
+* **ui:** 操作ボタンを固定範囲の外の上部に置き、パネル内の見出しを削除する ([#583](https://github.com/bamiyanapp/shock-lab/issues/583)) ([#584](https://github.com/bamiyanapp/shock-lab/issues/584)) ([88088f8](https://github.com/bamiyanapp/shock-lab/commit/88088f8e66888d196e045afc30a1a1849cdab775)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514) [#510](https://github.com/bamiyanapp/shock-lab/issues/510) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#520](https://github.com/bamiyanapp/shock-lab/issues/520) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#509](https://github.com/bamiyanapp/shock-lab/issues/509) [#513](https://github.com/bamiyanapp/shock-lab/issues/513) [#533](https://github.com/bamiyanapp/shock-lab/issues/533) [#536](https://github.com/bamiyanapp/shock-lab/issues/536) [#535](https://github.com/bamiyanapp/shock-lab/issues/535) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#539](https://github.com/bamiyanapp/shock-lab/issues/539) [#541](https://github.com/bamiyanapp/shock-lab/issues/541) [#516](https://github.com/bamiyanapp/shock-lab/issues/516) [#553](https://github.com/bamiyanapp/shock-lab/issues/553) [#557](https://github.com/bamiyanapp/shock-lab/issues/557) [#552](https://github.com/bamiyanapp/shock-lab/issues/552) [#551](https://github.com/bamiyanapp/shock-lab/issues/551) [#551](https://github.com/bamiyanapp/shock-lab/issues/551) [#550](https://github.com/bamiyanapp/shock-lab/issues/550) [#566](https://github.com/bamiyanapp/shock-lab/issues/566) [#569](https://github.com/bamiyanapp/shock-lab/issues/569) [#570](https://github.com/bamiyanapp/shock-lab/issues/570) [#572](https://github.com/bamiyanapp/shock-lab/issues/572) [#576](https://github.com/bamiyanapp/shock-lab/issues/576) [#579](https://github.com/bamiyanapp/shock-lab/issues/579)
+
 # [1.39.0](https://github.com/bamiyanapp/shock-lab/compare/v1.38.0...v1.39.0) (2026-11-23)
 
 
