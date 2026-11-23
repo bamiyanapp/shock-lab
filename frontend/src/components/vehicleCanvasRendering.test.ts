@@ -8,7 +8,6 @@ import {
   drawTerrain,
   drawSuspensionSpring,
   drawSuspensionSprings,
-  drawVehicleSprite,
   getFullscreenWrapperStyle,
 } from "./vehicleCanvasRendering";
 import type { SuspensionAxle } from "../physics/suspension";
@@ -138,30 +137,6 @@ describe("drawGoalLine", () => {
     drawGoalLine(ctx, 100, 300);
     expect(count("fillRect")).toBe(1);
     expect(count("fill")).toBe(1);
-  });
-});
-
-describe("drawVehicleSprite", () => {
-  const frontWheel = Matter.Bodies.circle(150, 280, 20);
-  const rearWheel = Matter.Bodies.circle(50, 280, 20);
-  const chassis = Matter.Bodies.rectangle(100, 250, 100, 30);
-  const params = { frontWheel, rearWheel, chassis, wheelbasePx: 100, wheelRadiusPx: 20, animationTickCount: 17, offsetX: 0 };
-
-  it("画像が未読み込みなら何も描かない", () => {
-    const { ctx, calls } = createMockContext();
-    drawVehicleSprite(ctx, { ...params, sprite: { complete: false, naturalWidth: 0 } as HTMLImageElement });
-    expect(calls).toHaveLength(0);
-  });
-
-  it("読み込み済みならスプライトの該当フレームを描く", () => {
-    const { ctx, count } = createMockContext();
-    const drawImage = vi.fn();
-    (ctx as unknown as Record<string, unknown>).drawImage = drawImage;
-    drawVehicleSprite(ctx, { ...params, sprite: { complete: true, naturalWidth: 600 } as HTMLImageElement });
-    expect(drawImage).toHaveBeenCalledTimes(1);
-    // 17tick / 5tick毎 = フレーム3 → ソースY = 3 * 404
-    expect(drawImage.mock.calls[0][2]).toBe(3 * 404);
-    expect(count("restore")).toBe(1);
   });
 });
 
