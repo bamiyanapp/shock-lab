@@ -1,3 +1,17 @@
+# [1.32.0](https://github.com/bamiyanapp/shock-lab/compare/v1.31.0...v1.32.0) (2026-11-23)
+
+
+### Features
+
+* **ui:** メトリクスを走行後に表示し、走行前は非表示にする ([#553](https://github.com/bamiyanapp/shock-lab/issues/553)) ([#555](https://github.com/bamiyanapp/shock-lab/issues/555)) ([f4fb4ea](https://github.com/bamiyanapp/shock-lab/commit/f4fb4eac2f816c5d50b8a2c0a28f5a090f9bb57a)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514) [#510](https://github.com/bamiyanapp/shock-lab/issues/510) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#520](https://github.com/bamiyanapp/shock-lab/issues/520) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#509](https://github.com/bamiyanapp/shock-lab/issues/509) [#513](https://github.com/bamiyanapp/shock-lab/issues/513) [#533](https://github.com/bamiyanapp/shock-lab/issues/533) [#536](https://github.com/bamiyanapp/shock-lab/issues/536) [#535](https://github.com/bamiyanapp/shock-lab/issues/535) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#539](https://github.com/bamiyanapp/shock-lab/issues/539) [#541](https://github.com/bamiyanapp/shock-lab/issues/541) [#516](https://github.com/bamiyanapp/shock-lab/issues/516)
+
+# [1.31.0](https://github.com/bamiyanapp/shock-lab/compare/v1.30.0...v1.31.0) (2026-11-23)
+
+
+### Features
+
+* **physics:** 停止状態から加速し、段差・斜面で減速するようにする ([#516](https://github.com/bamiyanapp/shock-lab/issues/516)) ([#549](https://github.com/bamiyanapp/shock-lab/issues/549)) ([9055a6a](https://github.com/bamiyanapp/shock-lab/commit/9055a6a4870b94d3aa332caf9de9f0b2065d90e2)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514) [#510](https://github.com/bamiyanapp/shock-lab/issues/510) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#520](https://github.com/bamiyanapp/shock-lab/issues/520) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#509](https://github.com/bamiyanapp/shock-lab/issues/509) [#513](https://github.com/bamiyanapp/shock-lab/issues/513) [#533](https://github.com/bamiyanapp/shock-lab/issues/533) [#536](https://github.com/bamiyanapp/shock-lab/issues/536) [#535](https://github.com/bamiyanapp/shock-lab/issues/535) [#519](https://github.com/bamiyanapp/shock-lab/issues/519) [#539](https://github.com/bamiyanapp/shock-lab/issues/539) [#541](https://github.com/bamiyanapp/shock-lab/issues/541)
+
 # [1.30.0](https://github.com/bamiyanapp/shock-lab/compare/v1.29.0...v1.30.0) (2026-11-23)
 
 
