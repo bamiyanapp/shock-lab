@@ -1,20 +1,17 @@
+import { useId } from "react";
 import { useSimulationStore } from "../store/simulationStore";
 import { computeSuspensionTheory } from "../physics/suspensionTheory";
 import { computeStaticState } from "../physics/vehicleGeometry";
 import { VEHICLE_PRESETS } from "../store/vehiclePresets";
 import { buildShareUrl } from "../store/urlConfig";
 import { DRIVE_TYPES, PARAMETER_RANGES } from "../store/parameterRanges";
-import type { DriveType, VehicleConfig } from "../types/vehicle";
+import type { VehicleConfig } from "../types/vehicle";
 import ShareButton from "./ShareButton.jsx";
 import { SliderRow } from "./SliderRow";
+import { DriveTypeIcon } from "./DriveTypeIcon";
+import { DRIVE_TYPE_LABELS } from "./driveTypeIcons";
 
 const CUSTOM_PRESET_ID = "custom";
-
-const DRIVE_TYPE_LABELS: Record<DriveType, string> = {
-  awd: "四駆（4WD）",
-  ff: "前輪駆動（FF）",
-  fr: "後輪駆動（FR）",
-};
 
 // 現在の車両設定がいずれかのプリセットと全項目一致するときはそのIDを、一致しなければ
 // 「カスタム」を返す（スライダー変更後・共有URL読み込み後も表示が実態と一致するように）。
@@ -33,6 +30,7 @@ export function ControlPanel() {
   const vehicle = useSimulationStore((state) => state.vehicle);
   const setVehicle = useSimulationStore((state) => state.setVehicle);
   const testConditions = useSimulationStore((state) => state.testConditions);
+  const driveRadioId = useId();
   const staticState = computeStaticState(vehicle);
   const { naturalFrequencyHz, dampingRatio } = computeSuspensionTheory(
     vehicle.suspension.springConstant,
@@ -70,23 +68,31 @@ export function ControlPanel() {
           ))}
         </select>
       </label>
-      <label className="form-label d-block mb-3">
-        駆動方式
-        <select
-          className="form-select"
-          value={vehicle.body.driveType}
-          onChange={(event) => {
-            const driveType = DRIVE_TYPES.find((candidate) => candidate === event.target.value);
-            if (driveType) setVehicle({ body: { ...vehicle.body, driveType } });
-          }}
-        >
+      <fieldset className="mb-3">
+        <legend className="form-label fs-6">駆動方式</legend>
+        <div className="row row-cols-3 g-2">
           {DRIVE_TYPES.map((driveType) => (
-            <option key={driveType} value={driveType}>
-              {DRIVE_TYPE_LABELS[driveType]}
-            </option>
+            <div className="col" key={driveType}>
+              <input
+                type="radio"
+                className="btn-check"
+                name="driveType"
+                id={`${driveRadioId}-${driveType}`}
+                checked={vehicle.body.driveType === driveType}
+                onChange={() => setVehicle({ body: { ...vehicle.body, driveType } })}
+              />
+              <label
+                className="btn btn-outline-secondary w-100 d-flex flex-column align-items-center justify-content-center gap-1 py-2 px-1"
+                style={{ minHeight: 64 }}
+                htmlFor={`${driveRadioId}-${driveType}`}
+              >
+                <DriveTypeIcon driveType={driveType} />
+                <span className="small">{DRIVE_TYPE_LABELS[driveType]}</span>
+              </label>
+            </div>
           ))}
-        </select>
-      </label>
+        </div>
+      </fieldset>
       <p className="text-body-secondary mb-1">
         固有振動数: {naturalFrequencyHz.toFixed(2)} Hz / 減衰比 ζ: {dampingRatio.toFixed(2)}
       </p>
