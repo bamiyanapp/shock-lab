@@ -1,3 +1,10 @@
+# [1.26.0](https://github.com/bamiyanapp/shock-lab/compare/v1.25.2...v1.26.0) (2026-11-23)
+
+
+### Features
+
+* **canvas:** draw the car from physics so ride height and spring mount show ([#509](https://github.com/bamiyanapp/shock-lab/issues/509), [#513](https://github.com/bamiyanapp/shock-lab/issues/513)) ([#531](https://github.com/bamiyanapp/shock-lab/issues/531)) ([d2826fb](https://github.com/bamiyanapp/shock-lab/commit/d2826fbff1201bdc35b919ff9019cfa61ee68b8a)), closes [#515](https://github.com/bamiyanapp/shock-lab/issues/515) [#514](https://github.com/bamiyanapp/shock-lab/issues/514) [#510](https://github.com/bamiyanapp/shock-lab/issues/510) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#518](https://github.com/bamiyanapp/shock-lab/issues/518) [#520](https://github.com/bamiyanapp/shock-lab/issues/520) [#519](https://github.com/bamiyanapp/shock-lab/issues/519)
+
 ## [1.25.2](https://github.com/bamiyanapp/shock-lab/compare/v1.25.1...v1.25.2) (2026-11-23)
 
 
