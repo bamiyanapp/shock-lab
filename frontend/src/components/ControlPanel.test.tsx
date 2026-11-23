@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ControlPanel } from "./ControlPanel";
 import { useSimulationStore } from "../store/simulationStore";
@@ -23,40 +23,27 @@ describe("ControlPanel", () => {
     expect(useSimulationStore.getState().vehicle).toEqual(truckPreset.config);
   });
 
-  it("updates the vehicle when a value is typed into the numeric input and confirmed (blur/Enter)", async () => {
-    const user = userEvent.setup();
+  it("updates the vehicle when the slider is moved, and shows the value with its unit (issue #536)", () => {
     render(<ControlPanel />);
 
-    const weightInput = screen.getByRole("spinbutton", { name: /車重/ });
-    await user.clear(weightInput);
-    await user.type(weightInput, "2500");
-    // 入力中は確定しない（途中の値でシミュレーションを作り直さない）
-    expect(useSimulationStore.getState().vehicle.body.weightKg).toBe(1200);
+    const weightSlider = screen.getByRole("slider", { name: /車重/ });
+    expect(weightSlider).toHaveAttribute("aria-valuetext", "1200 kg");
+    fireEvent.change(weightSlider, { target: { value: "2500" } });
 
-    await user.keyboard("{Enter}");
     expect(useSimulationStore.getState().vehicle.body.weightKg).toBe(2500);
+    expect(weightSlider).toHaveAttribute("aria-valuetext", "2500 kg");
   });
 
-  it("restores the original value when the numeric input is emptied and blurred (issue #446)", async () => {
-    const user = userEvent.setup();
+  it("has no numeric input: values are shown, and only the slider changes them (issue #536)", () => {
     render(<ControlPanel />);
-
-    const weightInput = screen.getByRole("spinbutton", { name: /車重/ });
-    await user.clear(weightInput);
-    await user.tab();
-
-    expect(useSimulationStore.getState().vehicle.body.weightKg).toBe(1200);
-    expect(weightInput).toHaveValue(1200);
+    expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
   });
 
-  it("clamps out-of-range numeric input to the allowed range (issue #446)", async () => {
-    const user = userEvent.setup();
+  it("keeps the slider inside the allowed range (issue #446)", () => {
     render(<ControlPanel />);
 
-    const weightInput = screen.getByRole("spinbutton", { name: /車重/ });
-    await user.clear(weightInput);
-    await user.type(weightInput, "999999");
-    await user.tab();
+    const weightSlider = screen.getByRole("slider", { name: /車重/ });
+    fireEvent.change(weightSlider, { target: { value: "999999" } });
 
     expect(useSimulationStore.getState().vehicle.body.weightKg).toBe(30000);
   });
@@ -71,10 +58,7 @@ describe("ControlPanel", () => {
     await user.selectOptions(presetSelect, "truck");
     expect(presetSelect).toHaveValue("truck");
 
-    const weightInput = screen.getByRole("spinbutton", { name: /車重/ });
-    await user.clear(weightInput);
-    await user.type(weightInput, "1234");
-    await user.tab();
+    fireEvent.change(screen.getByRole("slider", { name: /車重/ }), { target: { value: "1250" } });
     expect(presetSelect).toHaveValue("custom");
   });
 
@@ -111,52 +95,34 @@ describe("ControlPanel", () => {
     expect(screen.getByText(/ζが1未満: 揺れが残りやすい（ふわふわ）／1超: 動きが硬い（ガチガチ）/)).toBeInTheDocument();
   });
 
-  it("ストローク量のスライダーで車両のstrokeLengthを変えられる（issue #445）", async () => {
-    const user = userEvent.setup();
+  it("ストローク量のスライダーで車両のstrokeLengthを変えられる（issue #445）", () => {
     render(<ControlPanel />);
 
-    const strokeInput = screen.getByRole("spinbutton", { name: /ストローク量/ });
-    await user.clear(strokeInput);
-    await user.type(strokeInput, "30");
-    await user.tab();
+    // 表示はcm、内部はm
+    const strokeSlider = screen.getByRole("slider", { name: /ストローク量/ });
+    fireEvent.change(strokeSlider, { target: { value: "0.3" } });
 
     expect(useSimulationStore.getState().vehicle.suspension.strokeLength).toBeCloseTo(0.3, 10);
+    expect(strokeSlider).toHaveAttribute("aria-valuetext", "30 cm");
   });
 
-  it("バネ定数はkN/mで表示・入力し、内部はN/mで保持する（issue #510・#518）", async () => {
-    const user = userEvent.setup();
+  it("バネ定数はkN/m、ダンパー減衰はkN・s/m、車高はcmで表示し、内部の単位で保持する（issue #510・#518）", () => {
     render(<ControlPanel />);
 
-    const springInput = screen.getByRole("spinbutton", { name: /バネ定数/ });
-    expect(springInput).toHaveValue(useSimulationStore.getState().vehicle.suspension.springConstant / 1000);
-    expect(screen.getByText("kN/m")).toBeInTheDocument();
-
-    await user.clear(springInput);
-    await user.type(springInput, "50");
-    await user.tab();
+    const springSlider = screen.getByRole("slider", { name: /バネ定数/ });
+    expect(springSlider).toHaveAttribute("aria-valuetext", "30 kN/m");
+    fireEvent.change(springSlider, { target: { value: "50000" } });
     expect(useSimulationStore.getState().vehicle.suspension.springConstant).toBe(50000);
+    expect(springSlider).toHaveAttribute("aria-valuetext", "50 kN/m");
 
-    await user.clear(springInput);
-    await user.type(springInput, "500");
-    await user.tab();
-    expect(useSimulationStore.getState().vehicle.suspension.springConstant).toBe(200000);
-  });
-
-  it("ダンパー減衰はkN・s/m、車高はcmで表示・入力し、内部の単位へ誤差なく変換する", async () => {
-    const user = userEvent.setup();
-    render(<ControlPanel />);
-
-    const damperInput = screen.getByRole("spinbutton", { name: /ダンパー減衰/ });
-    await user.clear(damperInput);
-    await user.type(damperInput, "2.5");
-    await user.tab();
+    const damperSlider = screen.getByRole("slider", { name: /ダンパー減衰/ });
+    fireEvent.change(damperSlider, { target: { value: "2500" } });
     expect(useSimulationStore.getState().vehicle.suspension.damperCoefficient).toBe(2500);
+    expect(damperSlider).toHaveAttribute("aria-valuetext", "2.5 kN・s/m");
 
-    const rideHeightInput = screen.getByRole("spinbutton", { name: /車高/ });
-    await user.clear(rideHeightInput);
-    await user.type(rideHeightInput, "35");
-    await user.tab();
+    const rideHeightSlider = screen.getByRole("slider", { name: /車高/ });
+    fireEvent.change(rideHeightSlider, { target: { value: "0.35" } });
     expect(useSimulationStore.getState().vehicle.suspension.rideHeight).toBeCloseTo(0.35, 10);
-    expect(screen.getAllByText("cm")).toHaveLength(2);
+    expect(rideHeightSlider).toHaveAttribute("aria-valuetext", "35 cm");
   });
 });
