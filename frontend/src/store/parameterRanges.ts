@@ -1,4 +1,4 @@
-import { MOUNT_BASE_LENGTH_M, computeStaticState } from "../physics/vehicleGeometry";
+import { FREE_LENGTH_BASE_M, computeStaticState } from "../physics/vehicleGeometry";
 import type { DriveType, TerrainType, TestConditions, VehicleConfig } from "../types/vehicle";
 
 export interface ParameterRange {
@@ -82,7 +82,7 @@ export function sanitizeVehicleConfig(input: unknown, fallback: VehicleConfig): 
 /**
  * 古い共有URLは、バネ取り付け位置（mountHeight）ではなく、車高（rideHeight）を持つ（issue #557）。
  * mountHeightが無く、rideHeightがあるときは、同じ釣り合いの車高になる取り付け位置へ換算する
- * （取り付け位置 = 旧車高 + 静止時のたわみ − 基準の自由長）。範囲外は範囲内へ丸める。
+ * （取り付け位置 = 旧車高 + 静止時のたわみ − 自由長の基準 − ストローク量）。範囲外は範囲内へ丸める。
  */
 function convertLegacyRideHeight(config: VehicleConfig, suspensionSource: Record<string, unknown>): VehicleConfig {
   const { rideHeight, mountHeight } = suspensionSource;
@@ -90,7 +90,7 @@ function convertLegacyRideHeight(config: VehicleConfig, suspensionSource: Record
   if (hasMountHeight || typeof rideHeight !== "number" || !Number.isFinite(rideHeight)) return config;
 
   const { sagFrontM, sagRearM } = computeStaticState(config);
-  const converted = rideHeight + (sagFrontM + sagRearM) / 2 - MOUNT_BASE_LENGTH_M;
+  const converted = rideHeight + (sagFrontM + sagRearM) / 2 - FREE_LENGTH_BASE_M - config.suspension.strokeLength;
   const range = PARAMETER_RANGES.mountHeight;
   const clamped = Math.min(range.max, Math.max(range.min, Math.round(converted * 100) / 100));
   return { ...config, suspension: { ...config.suspension, mountHeight: clamped } };

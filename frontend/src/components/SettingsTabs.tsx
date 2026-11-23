@@ -32,7 +32,7 @@ export function SettingsTabList({
   );
 }
 
-/** 横に並べたパネル。CSSのscroll-snapで1枚ずつ止める。全てのパネルを常にマウントし、切り替えで状態が消えないようにする。 */
+/** 横に並べたパネル。切り替えはタブ見出しのボタンだけで、スワイプは無効。全てのパネルを常にマウントし、切り替えで状態が消えないようにする。 */
 export function SettingsPanels({
   tabs,
   scrollerRef,
@@ -43,10 +43,11 @@ export function SettingsPanels({
   onScroll: () => void;
 }) {
   return (
-    // tabIndexで、キーボードの矢印キーでも横にスクロールできるようにする。
+    // 切り替えはタブ見出しのボタンだけにする。スライダーの横ドラッグと、スワイプが競合するため
+    // overflow-x: hiddenにして、ユーザーのスクロール操作を無効にする（issue #570）。
+    // タブ見出しからの切り替えと、フォーカス移動による位置ずれは、プログラムからのスクロールで扱える。
     <div
       ref={scrollerRef}
-      tabIndex={0}
       onScroll={onScroll}
       data-testid="settings-scroller"
       style={{
@@ -57,9 +58,7 @@ export function SettingsPanels({
         // btn-checkのinputはposition:absoluteのため、これがないと、スクロール領域の外へはみ出し、ページが横に広がる。
         position: "relative",
         alignItems: "flex-start",
-        overflowX: "auto",
-        scrollSnapType: "x mandatory",
-        scrollbarWidth: "none",
+        overflowX: "hidden",
       }}
     >
       {tabs.map((tab) => (
@@ -68,7 +67,7 @@ export function SettingsPanels({
           role="tabpanel"
           id={`settings-panel-${tab.id}`}
           aria-labelledby={`settings-tab-${tab.id}`}
-          style={{ flex: "0 0 100%", scrollSnapAlign: "start", minWidth: 0, paddingInline: 2 }}
+          style={{ flex: "0 0 100%", minWidth: 0, paddingInline: 2 }}
         >
           {tab.content}
         </div>

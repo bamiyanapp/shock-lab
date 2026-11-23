@@ -3,10 +3,11 @@ import { GRAVITY_MS2, PIXELS_PER_METER, UNSPRUNG_MASS_KG } from "./units";
 import type { VehicleBodyParams, VehicleConfig } from "../types/vehicle";
 
 /**
- * バネの自由長（荷重ゼロでの長さ）の基準。自由長 = この値 + バネ取り付け位置。
- * 取り付け位置は0〜0.5mなので、自由長は0.30〜0.80mになる（issue #557）。
+ * バネの自由長（荷重ゼロでの長さ）の基準。自由長 = この値 + バネ取り付け位置 + ストローク量。
+ * ストローク量が大きいバネは長く、車高が上がる（issue #557・#569）。
+ * 取り付け位置0〜0.5m・ストローク0.05〜0.40mなので、自由長は0.10〜0.95mになる。
  */
-export const MOUNT_BASE_LENGTH_M = 0.3;
+export const FREE_LENGTH_BASE_M = 0.05;
 
 // スライダー値は1輪あたり。2Dの1軸は左右2輪ぶんなので2倍する（suspension.tsと同じ）。
 const WHEELS_PER_AXLE = 2;
@@ -22,9 +23,9 @@ export function getAxleArmsPx(body: VehicleBodyParams): { front: number; rear: n
   return { front: wheelbasePx * (1 - body.frontWeightRatio), rear: wheelbasePx * body.frontWeightRatio };
 }
 
-/** バネの自由長(m)。取り付け位置から決まる */
-export function computeFreeLengthM(mountHeightM: number): number {
-  return MOUNT_BASE_LENGTH_M + mountHeightM;
+/** バネの自由長(m)。取り付け位置とストローク量から決まる */
+export function computeFreeLengthM(mountHeightM: number, strokeM: number): number {
+  return FREE_LENGTH_BASE_M + mountHeightM + strokeM;
 }
 
 export interface StaticState {
@@ -51,7 +52,7 @@ export function computeStaticState(vehicle: VehicleConfig): StaticState {
   const { body, suspension } = vehicle;
   const sprungMassKg = getSprungMassKg(body.weightKg);
   const springN = WHEELS_PER_AXLE * suspension.springConstant;
-  const freeLengthM = computeFreeLengthM(suspension.mountHeight);
+  const freeLengthM = computeFreeLengthM(suspension.mountHeight, suspension.strokeLength);
   const sagFrontM = (sprungMassKg * body.frontWeightRatio * GRAVITY_MS2) / springN;
   const sagRearM = (sprungMassKg * (1 - body.frontWeightRatio) * GRAVITY_MS2) / springN;
   const heightFrontM = freeLengthM - sagFrontM;
