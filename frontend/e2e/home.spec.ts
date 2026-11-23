@@ -65,9 +65,8 @@ test('開始→一時停止→再開/最初から→スライダー変更で開�
   await expect(page.getByRole('button', { name: '最初から' })).toBeVisible()
 
   // 一時停止中に設定を変えると、状態が食い違わず「開始」に戻る
-  const weight = page.getByRole('spinbutton', { name: /車重/ })
+  const weight = page.getByRole('slider', { name: /車重/ })
   await weight.fill('1500')
-  await weight.blur()
   await expect(page.getByRole('button', { name: '開始' })).toBeVisible()
   await expect(page.getByRole('button', { name: '再開' })).toHaveCount(0)
 })

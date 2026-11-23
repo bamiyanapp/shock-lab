@@ -4,7 +4,7 @@ test('プリセット「トラック」を選ぶと車重が8000になる', asyn
   await page.goto('/shock-lab/')
   await page.getByLabel('プリセット').selectOption({ label: 'トラック' })
 
-  await expect(page.getByRole('spinbutton', { name: /車重/ })).toHaveValue('8000')
+  await expect(page.getByRole('slider', { name: /車重/ })).toHaveValue('8000')
 })
 
 test('開始→✕→「再開」「最初から」が表示される', async ({ page }) => {

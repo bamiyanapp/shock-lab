@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TestConditionsPanel } from "./TestConditionsPanel";
 import { useSimulationStore } from "../store/simulationStore";
@@ -33,15 +33,12 @@ describe("TestConditionsPanel（issue #445）", () => {
     ]);
   });
 
-  it("速度を入力して確定するとストアのspeedが変わり、km/h換算を表示する", async () => {
-    const user = userEvent.setup();
+  it("速度スライダーを動かすとストアのspeedが変わり、km/h換算を表示する", () => {
     render(<TestConditionsPanel />);
     expect(screen.getByText("36 km/h")).toBeInTheDocument();
 
-    const speedInput = screen.getByRole("spinbutton", { name: /試験速度/ });
-    await user.clear(speedInput);
-    await user.type(speedInput, "20");
-    await user.tab();
+    const speedSlider = screen.getByRole("slider", { name: /試験速度/ });
+    fireEvent.change(speedSlider, { target: { value: "20" } });
 
     expect(useSimulationStore.getState().testConditions.speed).toBe(20);
     expect(screen.getByText("72 km/h")).toBeInTheDocument();
