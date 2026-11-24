@@ -75,6 +75,25 @@ export function drawDustParticle(ctx: CanvasRenderingContext2D, particle: DustPa
   ctx.fill();
 }
 
+/** バネの通常の色と、ストロークを使い切ったときの色（issue #520） */
+const SPRING_COLOR = { r: 148, g: 163, b: 184 };
+const SPRING_BOTTOM_COLOR = { r: 220, g: 38, b: 38 };
+/** この使用率から、バネの色が赤へ変わり始める */
+const SPRING_WARN_START_RATIO = 0.6;
+/** 底付きの入口（metrics.tsのBOTTOM_OUT_ENTER_RATIOと同じ値）で、赤になりきる */
+const SPRING_WARN_FULL_RATIO = 0.98;
+
+/**
+ * ストロークの使用率（0〜1）から、バネの描画色を決める純粋関数（issue #520）。
+ * 使用率が低いうちは通常の色で、底付きに近づくほど赤くなり、底付きの入口で赤になりきる。
+ * 「底付き」と判定される瞬間と、絵の上で「縮みきった」バネが、同じ見た目でそろう。
+ */
+export function springColor(compressionRatio: number): string {
+  const t = Math.min(1, Math.max(0, (compressionRatio - SPRING_WARN_START_RATIO) / (SPRING_WARN_FULL_RATIO - SPRING_WARN_START_RATIO)));
+  const mix = (from: number, to: number) => Math.round(from + (to - from) * t);
+  return `rgb(${mix(SPRING_COLOR.r, SPRING_BOTTOM_COLOR.r)}, ${mix(SPRING_COLOR.g, SPRING_BOTTOM_COLOR.g)}, ${mix(SPRING_COLOR.b, SPRING_BOTTOM_COLOR.b)})`;
+}
+
 // サスペンションのコイルバネを、実際のconstraintのアンカー位置（車体側）とタイヤ中心を
 // 結ぶ形で描画する。静止画スプライトへバネを描き込むと、バネの実際の伸縮・車体とタイヤの
 // 相対位置とずれて見える問題（issue #44項目3）があったため、実際の物理状態から毎フレーム
@@ -84,7 +103,8 @@ export function drawSuspensionSpring(
   topX: number,
   topY: number,
   bottomX: number,
-  bottomY: number
+  bottomY: number,
+  compressionRatio = 0
 ) {
   const dx = bottomX - topX;
   const dy = bottomY - topY;
@@ -99,8 +119,9 @@ export function drawSuspensionSpring(
   const COIL_WIDTH_PX = 7;
 
   ctx.save();
-  ctx.strokeStyle = "#94a3b8";
-  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = springColor(compressionRatio);
+  // 底付きの限界では、コイルが詰まって見えるよう、線を太くする。
+  ctx.lineWidth = compressionRatio >= SPRING_WARN_FULL_RATIO ? 4 : 2.5;
   ctx.beginPath();
   ctx.moveTo(topX, topY);
   for (let i = 1; i < COIL_COUNT; i++) {
@@ -250,7 +271,7 @@ export function drawSuspensionSprings(
 ) {
   for (const axle of [frontSuspension, rearSuspension]) {
     const { top, bottom } = axle.getSpringEnds();
-    drawSuspensionSpring(ctx, top.x - offsetX, top.y, bottom.x - offsetX, bottom.y);
+    drawSuspensionSpring(ctx, top.x - offsetX, top.y, bottom.x - offsetX, bottom.y, axle.getCompressionRatio());
   }
 }
 
