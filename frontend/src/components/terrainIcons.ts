@@ -24,11 +24,27 @@ function washboardSurface(): Array<[number, number]> {
   return points;
 }
 
+/** 巨大スピードバンプ: 半コサインの、丸い山形（physics/terrain.tsの断面と同じ形） */
+function domeSurface(): Array<[number, number]> {
+  const left = 8;
+  const right = 40;
+  const peak = 5;
+  const points: Array<[number, number]> = [[0, GROUND_Y]];
+  const steps = 16;
+  for (let i = 0; i <= steps; i += 1) {
+    const x = left + ((right - left) * i) / steps;
+    const y = GROUND_Y - ((GROUND_Y - peak) * (1 + Math.cos((Math.PI * (x - (left + right) / 2)) / ((right - left) / 2)))) / 2;
+    points.push([x, Number(y.toFixed(2))]);
+  }
+  points.push([TERRAIN_ICON_WIDTH, GROUND_Y]);
+  return points;
+}
+
 export const TERRAIN_ICON_POINTS: Record<TerrainType, string> = {
   flat: profile([0, GROUND_Y], [TERRAIN_ICON_WIDTH, GROUND_Y]),
   smallBump: profile([0, GROUND_Y], [18, GROUND_Y], [18, 15], [30, 15], [30, GROUND_Y], [TERRAIN_ICON_WIDTH, GROUND_Y]),
   largeBump: profile([0, GROUND_Y], [18, GROUND_Y], [18, 9], [30, 9], [30, GROUND_Y], [TERRAIN_ICON_WIDTH, GROUND_Y]),
-  hugeSpeedBump: profile([0, GROUND_Y], [10, GROUND_Y], [17, 5], [31, 5], [38, GROUND_Y], [TERRAIN_ICON_WIDTH, GROUND_Y]),
+  hugeSpeedBump: profile(...domeSurface()),
   washboard: profile(...washboardSurface()),
   jumpRamp: profile([0, GROUND_Y], [10, GROUND_Y], [36, 5], [36, GROUND_Y], [TERRAIN_ICON_WIDTH, GROUND_Y]),
 };

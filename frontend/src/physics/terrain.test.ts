@@ -64,17 +64,20 @@ describe("createTerrain", () => {
     expect(obstacles[0].bounds.max.x - obstacles[0].bounds.min.x).toBeCloseTo(40, 5);
   });
 
-  it("hugeSpeedBump: 台形（上底120・下底360）で、最も低い頂点が地面上面に一致する。上底の角は丸い（issue #579）", () => {
+  it("hugeSpeedBump: 台形でなく、半コサインの、丸い山形（24個の短冊の複合ボディ）。両端は地面になめらかにつながる（issue #590）", () => {
     const [bump] = obstaclesOf("hugeSpeedBump");
-    expect(bump.bounds.max.y).toBeCloseTo(GROUND_Y, 5);
-    expect(bump.bounds.max.x - bump.bounds.min.x).toBeCloseTo(360, 5);
-    // 上底の平らな部分は、角の丸めのぶん、120より短い
-    const flatTop = bump.vertices.filter((vertex) => vertex.y < bump.bounds.min.y + 1e-6);
-    const flatWidth = Math.max(...flatTop.map((v) => v.x)) - Math.min(...flatTop.map((v) => v.x));
-    expect(flatWidth).toBeLessThan(120 - 1);
-    expect(flatWidth).toBeGreaterThan(120 - 2 * 12 - 1);
-    // 角を、円弧の頂点で表す（4頂点の台形より多い）。下の2つの角は、地面に接するため丸めない
-    expect(bump.vertices.length).toBeGreaterThanOrEqual(4 - 2 + 2 * 7);
+    // 幅は360（短冊の重なりぶん、わずかに広い）。下端は、地面の厚みぶん、地中へ延びる
+    expect(bump.bounds.max.x - bump.bounds.min.x).toBeCloseTo(361, 5);
+    expect(bump.bounds.max.y).toBeGreaterThan(GROUND_Y);
+    expect(bump.parts.length - 1).toBe(24);
+    // 地面の高さに、最も近い両端の上面は、ほぼ地面と同じ高さ（段差がない）
+    const topAt = (nearX: number) => Math.min(...bump.vertices.filter((v) => Math.abs(v.x - nearX) < 1).map((v) => v.y));
+    expect(topAt(bump.bounds.min.x + 0.5)).toBeGreaterThan(GROUND_Y - 1);
+    expect(topAt(bump.bounds.max.x - 0.5)).toBeGreaterThan(GROUND_Y - 1);
+    // 頂上は丸く、中央に最も高い点がある。平らな上面は、持たない
+    const apexX = (bump.bounds.min.x + bump.bounds.max.x) / 2;
+    expect(Math.abs(topAt(apexX) - bump.bounds.min.y)).toBeLessThan(1e-6);
+    expect(topAt(apexX + 30)).toBeGreaterThan(bump.bounds.min.y + 1);
   });
 
   it("jumpRamp: 直角三角形の上り斜面で、最も低い頂点が地面上面に一致し、頂点の先は垂直に落ちる。先端は丸い（issue #579）", () => {
