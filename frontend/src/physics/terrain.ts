@@ -101,20 +101,33 @@ function createRectBump(centerX: number, width: number, height: number, groundY:
   return createPolygon(roundCorners(points, [0, radius, radius, 0]));
 }
 
-/** 台形（上底・下底・高さ）。下底が地面上面に接する。上底の2つの角を丸める */
-function createTrapezoid(centerX: number, topWidth: number, bottomWidth: number, height: number, groundY: number) {
-  const radius = Math.min(height * 0.4, MAX_CORNER_RADIUS_PX);
-  return createPolygon(
-    roundCorners(
-      [
-        { x: centerX - bottomWidth / 2, y: groundY },
-        { x: centerX + bottomWidth / 2, y: groundY },
-        { x: centerX + topWidth / 2, y: groundY - height },
-        { x: centerX - topWidth / 2, y: groundY - height },
-      ],
-      [0, 0, radius, radius]
-    )
-  );
+/** 山形の断面を、凸の縦の短冊に分ける数。多いほど、なめらかになる */
+const DOME_STRIPS = 24;
+/** 隣り合う短冊を、わずかに重ねる幅（px）。描画のつなぎ目に、すき間が出ないようにする */
+const DOME_STRIP_OVERLAP_PX = 0.5;
+
+/**
+ * 丸い山形のバンプ（スピードバンプ）。断面は、半コサインの曲線で、両端は地面へなめらかにつながり、
+ * 頂上は丸い（issue #590）。曲線は凹形のため、凸の細い縦の短冊を並べた複合ボディにする。
+ * 物理と描画は、同じ頂点を使う。下端は、地面の厚みぶん地中へ延ばす。
+ */
+function createDome(centerX: number, width: number, height: number, groundY: number): Matter.Body {
+  const bottomY = groundY + GROUND_THICKNESS_PX;
+  const left = centerX - width / 2;
+  const surfaceY = (x: number) => groundY - (height * (1 + Math.cos((Math.PI * (x - centerX)) / (width / 2)))) / 2;
+  const strips: Matter.Vector[][] = [];
+  for (let i = 0; i < DOME_STRIPS; i += 1) {
+    const x0 = left + (width * i) / DOME_STRIPS - DOME_STRIP_OVERLAP_PX;
+    const x1 = left + (width * (i + 1)) / DOME_STRIPS + DOME_STRIP_OVERLAP_PX;
+    strips.push([
+      { x: x0, y: bottomY },
+      { x: x0, y: surfaceY(x0) },
+      { x: x1, y: surfaceY(x1) },
+      { x: x1, y: bottomY },
+    ]);
+  }
+  // 短冊ごとに、頂点がワールド座標のままの剛体を作り、1つの複合ボディへまとめる。
+  return Matter.Body.create({ parts: strips.map((vertices) => createPolygon(vertices)), ...OBSTACLE_OPTIONS });
 }
 
 /** 直角三角形の上り斜面。startXから進行方向へ上り、頂点の先は垂直に落ちる。先端（頂点）の角を丸める */
@@ -154,9 +167,7 @@ function createObstacles(terrainType: TerrainType, groundY: number): Matter.Body
     case "largeBump":
       return repeatObstacles(1200, 200, (x) => createRectBump(x, 200, computeBumpHeight(x, 15), groundY));
     case "hugeSpeedBump":
-      return repeatObstacles(1500, 360, (x) =>
-        createTrapezoid(x, 120, 360, computeBumpHeight(x, 80, 1500), groundY)
-      );
+      return repeatObstacles(1500, 360, (x) => createDome(x, 360, computeBumpHeight(x, 80, 1500), groundY));
     case "washboard":
       return repeatObstacles(100, 40, (x) => createRectBump(x, 40, 4, groundY));
     case "jumpRamp":
@@ -195,7 +206,7 @@ export function createPreviewObstacles(terrainType: TerrainType, groundY: number
     case "largeBump":
       return previewRow(2, 320, (x) => createRectBump(x, 200, 15, groundY));
     case "hugeSpeedBump":
-      return previewRow(1, 0, (x) => createTrapezoid(x + 60, 120, 360, 80, groundY));
+      return previewRow(1, 0, (x) => createDome(x + 60, 360, 80, groundY));
     case "washboard":
       // 実際と同じ間隔（100px）で、画面の右半分に収まる4本。他より手前から並べる。
       return previewRow(4, 100, (x) => createRectBump(x, 40, 4, groundY), 420);
