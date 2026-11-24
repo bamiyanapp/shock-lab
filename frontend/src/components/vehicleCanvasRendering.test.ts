@@ -8,6 +8,7 @@ import {
   drawTerrain,
   drawSuspensionSpring,
   drawSuspensionSprings,
+  springColor,
   getFullscreenWrapperStyle,
 } from "./vehicleCanvasRendering";
 import type { SuspensionAxle } from "../physics/suspension";
@@ -134,7 +135,7 @@ describe("drawSuspensionSpring / drawSuspensionSprings", () => {
 
   it("前後2本のバネを描く", () => {
     const axle = (x: number) =>
-      ({ getSpringEnds: () => ({ top: { x, y: 0 }, bottom: { x, y: 60 } }) }) as unknown as SuspensionAxle;
+      ({ getSpringEnds: () => ({ top: { x, y: 0 }, bottom: { x, y: 60 } }), getCompressionRatio: () => 0 }) as unknown as SuspensionAxle;
     const { ctx, count } = createMockContext();
     drawSuspensionSprings(ctx, axle(0), axle(40), 0);
     expect(count("stroke")).toBe(2);
@@ -168,5 +169,37 @@ describe("drawStatusOverlays", () => {
     const { ctx, count } = createMockContext();
     drawStatusOverlays(ctx, 800, 400, false, true);
     expect(count("fillText")).toBe(1);
+  });
+});
+
+describe("springColor（issue #520）", () => {
+  it("使用率が低いうちは、通常の色のまま", () => {
+    expect(springColor(0)).toBe("rgb(148, 163, 184)");
+    expect(springColor(0.6)).toBe("rgb(148, 163, 184)");
+  });
+
+  it("底付きの入口（98%）で、赤になりきり、それ以上は変わらない", () => {
+    expect(springColor(0.98)).toBe("rgb(220, 38, 38)");
+    expect(springColor(1.5)).toBe("rgb(220, 38, 38)");
+  });
+
+  it("途中は、通常の色と赤の間になる", () => {
+    const [r] = springColor(0.79).match(/\d+/g)!.map(Number);
+    expect(r).toBeGreaterThan(148);
+    expect(r).toBeLessThan(220);
+  });
+});
+
+describe("バネの色と太さ（issue #520）", () => {
+  it("ストロークを使い切ると、赤く太く描く。余裕があれば、通常の色と太さで描く", () => {
+    const relaxed = createMockContext();
+    drawSuspensionSpring(relaxed.ctx, 0, 0, 0, 60, 0.1);
+    expect(relaxed.ctx.strokeStyle).toBe("rgb(148, 163, 184)");
+    expect(relaxed.ctx.lineWidth).toBe(2.5);
+
+    const bottomed = createMockContext();
+    drawSuspensionSpring(bottomed.ctx, 0, 0, 0, 60, 1);
+    expect(bottomed.ctx.strokeStyle).toBe("rgb(220, 38, 38)");
+    expect(bottomed.ctx.lineWidth).toBe(4);
   });
 });

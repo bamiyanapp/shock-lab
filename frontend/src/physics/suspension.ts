@@ -90,6 +90,11 @@ export class SuspensionAxle {
     return (this.restLengthPx - length) / PIXELS_PER_METER;
   }
 
+  /** ストロークの使用率。0で自由長、1でストロークを使い切った（底付きの限界）。描画用（issue #520） */
+  getCompressionRatio(): number {
+    return this.strokeM > 0 ? this.getCompression() / this.strokeM : 0;
+  }
+
   /** 描画用。バネの上端（車体のアンカー）と下端（タイヤ中心）のワールド座標 */
   getSpringEnds(): { top: { x: number; y: number }; bottom: { x: number; y: number } } {
     return { top: this.anchor(), bottom: { x: this.wheel.position.x, y: this.wheel.position.y } };

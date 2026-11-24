@@ -91,6 +91,7 @@ Matter.Constraintのstiffness・dampingは使わない。バネ・ダンパー�
 - `maxImpact`は移動平均後の`|verticalG|`の最大値とする。
 - 前後いずれかの圧縮量が`strokeLength`の98%以上になると、底付きに入る。85%未満へ戻るまで底付き中とする（ヒステリシス）。非底付きから底付きに変わった瞬間だけ1回と数える。
 - ヒステリシスの理由: バンプストップ付近で縮みと戻りを繰り返す跳ね返りのちらつきが、1回の衝撃を何度も数えていたため（issue #520）。定数は`physics/metrics.ts`の`BOTTOM_OUT_ENTER_RATIO`・`BOTTOM_OUT_EXIT_RATIO`。
+- バネの色は、ストロークの使用率（圧縮量 ÷ ストローク量）で変わる。60%から赤みを帯び、底付きの入口（98%）で赤になりきり、線も太くなる。底付きの判定と、絵の上の「縮みきったバネ」が、同じ見た目でそろう（issue #520）。色の計算は`springColor`（`components/vehicleCanvasRendering.ts`）にある。
 
 ## 理論値表示
 
