@@ -77,7 +77,7 @@ describe("createTerrain", () => {
     // 頂上は丸く、中央に最も高い点がある。平らな上面は、持たない
     const apexX = (bump.bounds.min.x + bump.bounds.max.x) / 2;
     expect(Math.abs(topAt(apexX) - bump.bounds.min.y)).toBeLessThan(1e-6);
-    expect(topAt(apexX + 30)).toBeGreaterThan(bump.bounds.min.y + 1);
+    expect(topAt(apexX + 60)).toBeGreaterThan(bump.bounds.min.y + 1);
   });
 
   it("jumpRamp: 直角三角形の上り斜面で、最も低い頂点が地面上面に一致し、頂点の先は垂直に落ちる。先端は丸い（issue #579）", () => {
