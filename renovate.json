@@ -1,12 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "github>bamiyanapp/dev-standards"
   ],
   "semanticCommits": "enabled",
-  "git-submodules": {
-    "enabled": true
-  },
   "customManagers": [
     {
       "customType": "regex",
