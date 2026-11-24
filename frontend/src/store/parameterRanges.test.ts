@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeTestConditions, sanitizeVehicleConfig } from "./parameterRanges";
+import { PARAMETER_RANGES, sanitizeTestConditions, sanitizeVehicleConfig } from "./parameterRanges";
 import { DEFAULT_TEST_CONDITIONS, DEFAULT_VEHICLE } from "./simulationStore";
 import { VEHICLE_PRESETS } from "./vehiclePresets";
 import { computeStaticState } from "../physics/vehicleGeometry";
@@ -38,6 +38,16 @@ describe("sanitizeVehicleConfig", () => {
     expect(result.body.weightKg).toBe(500);
     expect(result.suspension.springConstant).toBe(300000);
     expect(result.tire.diameter).toBeCloseTo(0.4);
+  });
+
+  it("ダンパー減衰の範囲は、100〜200000 N·s/m（最大は、20000の10倍。issue #595）", () => {
+    expect(PARAMETER_RANGES.damperCoefficient).toEqual({ min: 100, max: 200000, step: 100 });
+    const read = (damperCoefficient: number) =>
+      sanitizeVehicleConfig({ suspension: { damperCoefficient } }, DEFAULT_VEHICLE).suspension.damperCoefficient;
+    expect(read(200000)).toBe(200000);
+    expect(read(150000)).toBe(150000);
+    expect(read(1e9)).toBe(200000);
+    expect(read(1)).toBe(100);
   });
 
   it("古い共有URLの車高（rideHeight）は、同じ釣り合いの車高になる取り付け位置へ換算して読む（issue #557）", () => {
