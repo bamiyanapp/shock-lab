@@ -28,7 +28,7 @@ function washboardSurface(): Array<[number, number]> {
 function domeSurface(): Array<[number, number]> {
   const left = 8;
   const right = 40;
-  const peak = 5;
+  const peak = 8;
   const points: Array<[number, number]> = [[0, GROUND_Y]];
   const steps = 16;
   for (let i = 0; i <= steps; i += 1) {

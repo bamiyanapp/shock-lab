@@ -2,6 +2,8 @@ import Matter from "matter-js";
 import type { TerrainType } from "../types/vehicle";
 
 const GROUND_THICKNESS_PX = 100;
+/** 巨大スピードバンプの最大高さ（px）。大きすぎて飛びすぎたため、80pxから半分にした（issue #589） */
+const HUGE_SPEED_BUMP_MAX_HEIGHT_PX = 40;
 const FIRST_OBSTACLE_X_PX = 1500;
 
 /** 走行コースの総延長（ワールド座標基準）。scenery（背景の木・家）の配置範囲もこれに合わせる。 */
@@ -167,7 +169,7 @@ function createObstacles(terrainType: TerrainType, groundY: number): Matter.Body
     case "largeBump":
       return repeatObstacles(1200, 200, (x) => createRectBump(x, 200, computeBumpHeight(x, 15), groundY));
     case "hugeSpeedBump":
-      return repeatObstacles(1500, 360, (x) => createDome(x, 360, computeBumpHeight(x, 80, 1500), groundY));
+      return repeatObstacles(1500, 360, (x) => createDome(x, 360, computeBumpHeight(x, HUGE_SPEED_BUMP_MAX_HEIGHT_PX, 1500), groundY));
     case "washboard":
       return repeatObstacles(100, 40, (x) => createRectBump(x, 40, 4, groundY));
     case "jumpRamp":
@@ -206,7 +208,7 @@ export function createPreviewObstacles(terrainType: TerrainType, groundY: number
     case "largeBump":
       return previewRow(2, 320, (x) => createRectBump(x, 200, 15, groundY));
     case "hugeSpeedBump":
-      return previewRow(1, 0, (x) => createDome(x + 60, 360, 80, groundY));
+      return previewRow(1, 0, (x) => createDome(x + 60, 360, HUGE_SPEED_BUMP_MAX_HEIGHT_PX, groundY));
     case "washboard":
       // 実際と同じ間隔（100px）で、画面の右半分に収まる4本。他より手前から並べる。
       return previewRow(4, 100, (x) => createRectBump(x, 40, 4, groundY), 420);
