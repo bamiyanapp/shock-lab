@@ -14,7 +14,7 @@ export const PARAMETER_RANGES = {
   centerOfGravityHeight: { min: 0.2, max: 1.5, step: 0.05 },
   wheelbase: { min: 1.8, max: 5.0, step: 0.1 },
   springConstant: { min: 5000, max: 300000, step: 1000 },
-  damperCoefficient: { min: 100, max: 20000, step: 100 },
+  damperCoefficient: { min: 100, max: 200000, step: 100 },
   strokeLength: { min: 0.05, max: 0.4, step: 0.01 },
   mountHeight: { min: 0, max: 0.5, step: 0.01 },
   diameter: { min: 0.4, max: 1.2, step: 0.05 },
