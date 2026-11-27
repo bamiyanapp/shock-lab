@@ -24,6 +24,24 @@ class FakeGainNode {
 class FakeOscillatorNode {
   type = "";
   frequency = new FakeAudioParam();
+  detune = new FakeAudioParam();
+  connect = vi.fn().mockReturnThis();
+  disconnect = vi.fn();
+  start = vi.fn();
+  stop = vi.fn();
+}
+
+class FakeBiquadFilterNode {
+  type = "";
+  frequency = new FakeAudioParam();
+  Q = new FakeAudioParam();
+  connect = vi.fn().mockReturnThis();
+  disconnect = vi.fn();
+}
+
+class FakeBufferSourceNode {
+  buffer: unknown = null;
+  loop = false;
   connect = vi.fn().mockReturnThis();
   disconnect = vi.fn();
   start = vi.fn();
@@ -36,10 +54,14 @@ class FakeAudioContext {
   static readonly instances: FakeAudioContext[] = [];
   state: "running" | "suspended" | "interrupted" | "closed" = "running";
   currentTime = 0;
+  sampleRate = 8000;
   destination = {};
   resume = vi.fn().mockResolvedValue(undefined);
   createOscillator = vi.fn(() => new FakeOscillatorNode());
   createGain = vi.fn(() => new FakeGainNode());
+  createBiquadFilter = vi.fn(() => new FakeBiquadFilterNode());
+  createBufferSource = vi.fn(() => new FakeBufferSourceNode());
+  createBuffer = vi.fn((_channels: number, length: number) => ({ getChannelData: () => new Float32Array(length) }));
 
   constructor() {
     FakeAudioContext.instances.push(this);
@@ -75,19 +97,52 @@ describe("engineSound", () => {
     }).not.toThrow();
   });
 
-  it("開始するとsawtoothのoscillatorが生成・再生される", async () => {
+  it("開始すると、のこぎり波の3つのオシレータ（基音と倍音）と、ループするノイズが、生成・再生される（issue #511）", async () => {
     window.AudioContext = FakeAudioContext as unknown as typeof AudioContext;
     const { startEngineSound } = await loadModules();
 
     startEngineSound();
 
     const context = FakeAudioContext.instances.at(-1)!;
-    const oscillator = context.createOscillator.mock.results[0]?.value as FakeOscillatorNode;
-    expect(oscillator.type).toBe("sawtooth");
-    expect(oscillator.start).toHaveBeenCalledTimes(1);
+    expect(context.createOscillator).toHaveBeenCalledTimes(3);
+    for (const result of context.createOscillator.mock.results) {
+      const oscillator = result.value as FakeOscillatorNode;
+      expect(oscillator.type).toBe("sawtooth");
+      expect(oscillator.start).toHaveBeenCalledTimes(1);
+    }
+    // 倍音は、わずかにずらして（デチューン）重ねる
+    const detunes = context.createOscillator.mock.results.map((r) => (r.value as FakeOscillatorNode).detune.value);
+    expect(new Set(detunes).size).toBe(3);
+    const noise = context.createBufferSource.mock.results[0]?.value as FakeBufferSourceNode;
+    expect(noise.loop).toBe(true);
+    expect(noise.start).toHaveBeenCalledTimes(1);
+    // ノードは、10個前後に抑える（モバイルのCPU負荷）
+    const nodeCount =
+      context.createOscillator.mock.calls.length +
+      context.createGain.mock.calls.length +
+      context.createBiquadFilter.mock.calls.length +
+      context.createBufferSource.mock.calls.length;
+    expect(nodeCount).toBeLessThanOrEqual(12);
   });
 
-  it("setEngineSoundSpeedで速度に応じてfrequencyが上限にクランプされて更新される", async () => {
+  it("setEngineSoundSpeedで、速度に応じた回転数から求めた周波数へ更新される。極端な速度でも、レッドラインで頭打ち", async () => {
+    window.AudioContext = FakeAudioContext as unknown as typeof AudioContext;
+    const { startEngineSound, setEngineSoundSpeed } = await loadModules();
+    const { computeEngineSoundParams, ENGINE_PROFILES } = await import("./engineSoundParams");
+
+    startEngineSound();
+    const context = FakeAudioContext.instances.at(-1)!;
+    const oscillators = context.createOscillator.mock.results.map((r) => r.value as FakeOscillatorNode);
+
+    setEngineSoundSpeed(1000);
+
+    const expected = computeEngineSoundParams(1000, ENGINE_PROFILES.sedan);
+    expect(oscillators[0].frequency.setTargetAtTime).toHaveBeenCalled();
+    expect(oscillators.map((o) => o.frequency.value)).toEqual([...expected.oscillatorHz]);
+    expect(expected.rpm).toBe(ENGINE_PROFILES.sedan.redlineRpm);
+  });
+
+  it("音の更新は、10Hzに間引く（0.1秒より短い間隔の呼び出しは、無視する）", async () => {
     window.AudioContext = FakeAudioContext as unknown as typeof AudioContext;
     const { startEngineSound, setEngineSoundSpeed } = await loadModules();
 
@@ -95,23 +150,73 @@ describe("engineSound", () => {
     const context = FakeAudioContext.instances.at(-1)!;
     const oscillator = context.createOscillator.mock.results[0]?.value as FakeOscillatorNode;
 
-    // 極端に大きな速度を渡しても上限（300Hz）でクランプされる
-    setEngineSoundSpeed(1000);
-    expect(oscillator.frequency.setTargetAtTime).toHaveBeenCalled();
-    expect(oscillator.frequency.value).toBe(300);
+    setEngineSoundSpeed(10);
+    setEngineSoundSpeed(20);
+    expect(oscillator.frequency.setTargetAtTime).toHaveBeenCalledTimes(1);
+
+    context.currentTime = 0.05;
+    setEngineSoundSpeed(20);
+    expect(oscillator.frequency.setTargetAtTime).toHaveBeenCalledTimes(1);
+
+    context.currentTime = 0.11;
+    setEngineSoundSpeed(20);
+    expect(oscillator.frequency.setTargetAtTime).toHaveBeenCalledTimes(2);
   });
 
-  it("stopEngineSound後はsetEngineSoundSpeedを呼んでも何もしない", async () => {
+  it("揺れ（上下G）が大きいと、ノイズの音量が上がる", async () => {
+    window.AudioContext = FakeAudioContext as unknown as typeof AudioContext;
+    const { startEngineSound, setEngineSoundSpeed } = await loadModules();
+
+    startEngineSound();
+    const context = FakeAudioContext.instances.at(-1)!;
+    // createGainの順: マスター、3つのオシレータ、ノイズ
+    const noiseGain = context.createGain.mock.results[4]?.value as FakeGainNode;
+
+    setEngineSoundSpeed(10, 0);
+    const calm = noiseGain.gain.value;
+    context.currentTime = 1;
+    setEngineSoundSpeed(10, 1.5);
+
+    expect(noiseGain.gain.value).toBeGreaterThan(calm);
+  });
+
+  it("開始時に渡した車種の特徴が、音に反映される（トラックは、スポーツカーより低い）", async () => {
+    window.AudioContext = FakeAudioContext as unknown as typeof AudioContext;
+    const { startEngineSound, setEngineSoundSpeed } = await loadModules();
+    const { ENGINE_PROFILES } = await import("./engineSoundParams");
+    const frequencyAt = (profile: (typeof ENGINE_PROFILES)[string]) => {
+      startEngineSound(profile);
+      const context = FakeAudioContext.instances.at(-1)!;
+      const oscillator = context.createOscillator.mock.results.at(-3)?.value as FakeOscillatorNode;
+      context.currentTime += 1;
+      setEngineSoundSpeed(15);
+      return oscillator.frequency.value;
+    };
+    const { stopEngineSound } = await import("./engineSound");
+
+    const truck = frequencyAt(ENGINE_PROFILES.truck);
+    stopEngineSound();
+    const sports = frequencyAt(ENGINE_PROFILES["sports-car"]);
+
+    expect(truck).toBeLessThan(sports);
+  });
+
+  it("stopEngineSound後は、全てのオシレータとノイズを止めて切り離し、setEngineSoundSpeedを呼んでも何もしない", async () => {
     window.AudioContext = FakeAudioContext as unknown as typeof AudioContext;
     const { startEngineSound, stopEngineSound, setEngineSoundSpeed } = await loadModules();
 
     startEngineSound();
     const context = FakeAudioContext.instances.at(-1)!;
-    const oscillator = context.createOscillator.mock.results[0]?.value as FakeOscillatorNode;
+    const oscillators = context.createOscillator.mock.results.map((r) => r.value as FakeOscillatorNode);
+    const noise = context.createBufferSource.mock.results[0]?.value as FakeBufferSourceNode;
 
     stopEngineSound();
-    expect(oscillator.stop).toHaveBeenCalledTimes(1);
-    expect(oscillator.disconnect).toHaveBeenCalledTimes(1);
+    for (const oscillator of oscillators) {
+      expect(oscillator.stop).toHaveBeenCalledTimes(1);
+      expect(oscillator.disconnect).toHaveBeenCalledTimes(1);
+    }
+    expect(noise.stop).toHaveBeenCalledTimes(1);
+    expect(noise.disconnect).toHaveBeenCalledTimes(1);
 
     expect(() => setEngineSoundSpeed(10)).not.toThrow();
   });
@@ -182,10 +287,10 @@ describe("engineSound", () => {
 
     const second = FakeAudioContext.instances.at(-1)!;
     expect(second).not.toBe(first);
-    expect(second.createOscillator).toHaveBeenCalledTimes(1);
+    expect(second.createOscillator).toHaveBeenCalledTimes(3);
   });
 
-  it("開始と停止を繰り返しても、毎回新しいoscillatorで再生され、音量が0のまま残らない", async () => {
+  it("開始と停止を繰り返しても、毎回新しいノードで再生され、音量が0のまま残らない", async () => {
     window.AudioContext = FakeAudioContext as unknown as typeof AudioContext;
     const { startEngineSound, stopEngineSound } = await loadModules();
 
@@ -196,8 +301,9 @@ describe("engineSound", () => {
     startEngineSound();
 
     const context = FakeAudioContext.instances.at(-1)!;
-    expect(context.createOscillator).toHaveBeenCalledTimes(4);
-    const gain = context.createGain.mock.results[3]?.value as FakeGainNode;
+    // 1回の開始で、オシレータ3つ・ゲイン5つ（マスター・オシレータ3・ノイズ）を作る
+    expect(context.createOscillator).toHaveBeenCalledTimes(12);
+    const gain = context.createGain.mock.results[15]?.value as FakeGainNode;
     expect(gain.gain.value).toBeGreaterThan(0);
   });
 
