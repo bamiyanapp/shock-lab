@@ -26,6 +26,20 @@
         "bamiyanapp/dev-standards"
       ],
       "groupName": "dev-standards workflows"
+    },
+    {
+      "description": "typescript-eslintがTS 7に未対応のため、TS 7へは上げない（lintが起動しない）。typescript-eslintがTS 7に対応したら、この規則を外す（issue #600）",
+      "matchPackageNames": [
+        "typescript"
+      ],
+      "allowedVersions": "<7"
+    },
+    {
+      "description": "semantic-release 26はNode >=26.13を要求し、CDのNode（22）で動かないため上げない。CDのNodeが26.13以上になったら、この規則を外す（issue #600）",
+      "matchPackageNames": [
+        "semantic-release"
+      ],
+      "allowedVersions": "<26"
     }
   ]
 }
