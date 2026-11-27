@@ -5,6 +5,7 @@ import { GOAL_LINE_X_PX, createPreviewObstacles } from "../physics/terrain";
 import { useSimulationStore } from "../store/simulationStore";
 import { shockSound, successSound } from "../audio/soundEffects";
 import { startEngineSound, stopEngineSound, setEngineSoundSpeed } from "../audio/engineSound";
+import { selectEngineProfile } from "../audio/engineSoundParams";
 import {
   drawGoalLine,
   drawBackground,
@@ -63,7 +64,7 @@ export function VehicleCanvas() {
     // セッションの1tick結果を、ストア・効果音へ橋渡しする。
     const handleAfterUpdate = () => {
       const { metrics, sample, speedMetersPerSecond, events } = session.afterUpdate();
-      setEngineSoundSpeed(speedMetersPerSecond);
+      setEngineSoundSpeed(speedMetersPerSecond, Math.abs(metrics.verticalG));
       // ストアへの反映は10Hz（履歴のサンプルが確定したtickのみ）。底付き・ゴール等のイベントと
       // canvasの描画はセッションから直接読むため、発生tickで即時に処理できる。
       if (sample) useSimulationStore.getState().setMetrics(metrics, sample);
@@ -166,7 +167,7 @@ export function VehicleCanvas() {
 
     if (isRunning) {
       Matter.Runner.run(runner, engine);
-      startEngineSound();
+      startEngineSound(selectEngineProfile(useSimulationStore.getState().vehicle));
     } else {
       Matter.Runner.stop(runner);
       stopEngineSound();
